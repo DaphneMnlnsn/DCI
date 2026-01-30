@@ -123,4 +123,15 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Created Links
+    |--------------------------------------------------------------------------
+    */
+
+    'login_url' => env('LOGIN_URL'),
+
+    'uname_param' => env('UNAME_PARAM'),
+    
+    'pass_param' => env('PASS_PARAM'),
 ];
