@@ -10,20 +10,20 @@ const LoginPage = () => {
     const navigate = useNavigate();
     
     const handleLogin = async (e) => {   
+        e.preventDefault();
         try {
-            const response = await axios.post(`${process.env.REACT_APP_BASE_URL}/api/login`, {
+            const response = await axios.post(`${import.meta.env.VITE_APP_BASE_URL}/api/login`, {
                 username,
                 password,
             });
-
-            const data = await response.json();
             
-            if (response.ok){
+            if (response.status === 200){
                 alert('Logged in successfully.')
                 navigate('/main');
             }
             else {
-                alert('mali :(');
+                alert('Login failed.')
+                setError('Invalid credentials');
             }
         }
         catch (error){
