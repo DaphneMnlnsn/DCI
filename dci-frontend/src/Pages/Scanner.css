@@ -1,0 +1,33 @@
+.scanner-root {
+    background-color: #F0F0F0;
+    height: 100vh;
+    width: 100vw;
+}
+
+.scanner-grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    height: 100%;
+    margin: 30px;
+}
+
+.scanner-select {
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    padding: 10px;
+}
+
+.select-btn {
+    background-color: #003566;
+    color: white;
+    border: none;
+    padding: 10px 55px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bolder;
+    margin: 25px;
+    display: block;
+    box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 3px -1px;
+}

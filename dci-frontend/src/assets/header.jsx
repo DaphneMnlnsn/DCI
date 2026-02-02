@@ -1,25 +1,24 @@
 import React from "react";
 import "./header.css";
-import logo from './public/IDA-Logo.png';
+import logo from '../assets/IDA-Logo.png';
 
-function header() {
+const Header = () => {
   return (
-    <div className="app-container">
-      <header className="app-header">
+    <header className="app-header">
+      <div className="header-left">
+        <img src={logo} alt="IDA Logo" className="logo-img" />
+      </div>
 
-        <div className="header-left">
-          <img src={logo} alt="IDA Logo" className="logo-img" />
-        </div>
+      <div className="header-center">
+        <h1 className="header-title">Database Conflict Identifier</h1>
+      </div>
 
-        <div className="header-center">
-          <h1 className="header-title">Database Conflict Identifier</h1>
-        </div>
+      <div className="header-right">
+        Logout
+      </div>
 
-        <div className="header-right">
-          Logout
-        </div>
-
-      </header>
-    </div>
+    </header>
   );
-}
+};
+
+export default Header;
