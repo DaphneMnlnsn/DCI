@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\DB;
 class SchemaReaderService
 {
     public function read(){
+
+        $masterSchema = [];
+        $clientSchema = [];
+
         $dbName = DB::connection('master')->getDatabaseName();
 
         $master = DB::connection('master')->select("
@@ -31,13 +35,41 @@ class SchemaReaderService
             ORDER BY T.TABLE_NAME
         ", [$dbClientName]);
 
-        return [
-            'master' => $master,
-            'client1' => $client1
-        ];
-    }
+        // For properly structuring JSON response
+        foreach($master as $row){
+            $tableName = $row->TABLE_NAME;
+            $columnName = $row->COLUMN_NAME;
+            $dataType = $row->DATA_TYPE;
+            $maximumChar = $row->CHARACTER_MAXIMUM_LENGTH;
 
-    public function scan(){
-        
+            if(!isset($masterSchema[$tableName])){
+                $masterSchema[$tableName] = ["columns" => []];
+            }
+
+            $masterSchema[$tableName]["columns"][$columnName] = [
+                "data_type" => $dataType,
+                "maximum_characters" => $maximumChar
+            ];
+        }
+
+        foreach($client1 as $row){
+            $tableName = $row->TABLE_NAME;
+            $columnName = $row->COLUMN_NAME;
+            $dataType = $row->DATA_TYPE;
+            $maximumChar = $row->CHARACTER_MAXIMUM_LENGTH;
+
+            if(!isset($clientSchema[$tableName])){
+                $clientSchema[$tableName] = ["columns" => []];
+            }
+
+            $clientSchema[$tableName]["columns"][$columnName] = [
+                "data_type" => $dataType,
+                "maximum_characters" => $maximumChar
+            ];
+        }
+        return [
+            'master' => $masterSchema,
+            'client' => $clientSchema
+        ];
     }
 }
