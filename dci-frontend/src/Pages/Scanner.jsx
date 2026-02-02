@@ -60,48 +60,100 @@ const MainPage = () => {
             <div className='scanner-container'>
                 <div className='scanner-grid-container'>
                     <div className='scanner-select'>
-                        <button className='select-btn' onClick={fetchDatabase}>Select</button>
-                        <input type="file" ref={fileInput} style={{display: 'none'}} onChange={(e) => setSelectedFile(e.target.files[0])} />
-                        {selectedFile && (
-                            <img src={URL.createObjectURL(selectedFile)} alt='preview'
-                            style={{
-                                    width: 90,
-                                    height: 90,
-                                    borderRadius: 6,
-                                    objectFit: "cover",
-                                }}/>
-                        )}
+                        <h3 className="card-title">Master Database</h3>
+                    </div>
+                    <div className='scanner-select'>
+                        <h3 className="card-title">Client Database</h3>
+                    </div>
+                    <div className='scanner-select'>
+                        <h3 className="card-title">Customize</h3>
+                    </div>
+                    
+                    <div className='scanner-select'>
                         
+                        <div className="card">
+                            <p className="label">
+                                Please select a database to Compare
+                            </p>
+
+                            <div className="line"></div>
+
+                            <button className='select-btn' onClick={fetchDatabase}>Select</button>
+                            <input type="file" ref={fileInput} style={{display: 'none'}} onChange={(e) => setSelectedFile(e.target.files[0])} />
+                            {selectedFile && (
+                                <img src={URL.createObjectURL(selectedFile)} alt='preview'
+                                style={{
+                                        width: 90,
+                                        height: 90,
+                                        borderRadius: 6,
+                                        objectFit: "cover",
+                                    }}/>
+                            )}
+                        </div>
                     </div>
 
                     <div className='scanner-select'>
-                        <button className='select-btn' onClick={handleDBSelect}>Select</button>
-                    
-                        <input type="file" ref={fileInput} style={{display: 'none'}} onChange={(e) => setSelectedFile(e.target.files[0])} />
-                        {selectedFile && (
-                            <img src={URL.createObjectURL(selectedFile)} alt='preview'
-                            style={{
-                                    width: 90,
-                                    height: 90,
-                                    borderRadius: 6,
-                                    objectFit: "cover",
-                                }}/>
-                        )}
+                        
+                        <div className="card">
+                            <p className="label">
+                                Please select a database to Compare
+                            </p>
+
+                            <div className="line"></div>
+
+                            <button className='select-btn' onClick={fetchDatabase}>Select</button>
+                            <input type="file" className='custom-checkbox' ref={fileInput} style={{display: 'none'}} onChange={(e) => setSelectedFile(e.target.files[0])} />
+                            {selectedFile && (
+                                <img src={URL.createObjectURL(selectedFile)} alt='preview'
+                                style={{
+                                        width: 90,
+                                        height: 90,
+                                        borderRadius: 6,
+                                        objectFit: "cover",
+                                    }}/>
+                            )}
+                        </div>
                     </div>
 
                     <div className='scanner-select'>
-                        <button className='select-btn' onClick={handleDBSelect}>Select</button>
-                    
-                        <input type="file" ref={fileInput} style={{display: 'none'}} onChange={(e) => setSelectedFile(e.target.files[0])} />
-                        {selectedFile && (
-                            <img src={URL.createObjectURL(selectedFile)} alt='preview'
-                            style={{
-                                    width: 90,
-                                    height: 90,
-                                    borderRadius: 6,
-                                    objectFit: "cover",
-                                }}/>
-                        )}
+                        
+                        <div className="card">
+                            <p className="label">
+                                Choose the requirement you want to compare
+                            </p>
+
+                            <div className="line"></div>
+
+                            <div className="checkbox-group">
+                                <label>
+                                    <input type="checkbox" /> Select All
+                                </label>
+
+                                <label>
+                                    <input type="checkbox" /> Missing Table
+                                </label>
+
+                                <label>
+                                    <input type="checkbox" /> Missing Column
+                                </label>
+
+                                <label>
+                                    <input type="checkbox" /> Missing Datatype
+                                </label>
+                            </div>
+
+                            <button className='select-btn' onClick={fetchDatabase}>Scan</button>
+                            <input type="file" ref={fileInput} style={{display: 'none'}} onChange={(e) => setSelectedFile(e.target.files[0])} />
+                            {selectedFile && (
+                                <img src={URL.createObjectURL(selectedFile)} alt='preview'
+                                style={{
+                                        width: 90,
+                                        height: 90,
+                                        borderRadius: 6,
+                                        objectFit: "cover",
+                                    }}/>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>      
