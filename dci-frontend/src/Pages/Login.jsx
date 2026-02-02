@@ -34,7 +34,7 @@ const LoginPage = () => {
     }
 
     return (
-        <div className='root'> 
+        <div className='login-root'> 
             <div className='login-left'>
                 <div className='logo'>
                     <img className='login-logo' src='IDA-RTL-Logo.png'></img>
@@ -47,6 +47,7 @@ const LoginPage = () => {
                 <div className='login-form-container'>
                     <h2 className='title'>Welcome Back!</h2>
                     <p className='subtitle'>Please login to your account to continue.</p> 
+                    <div className='line'></div>
 
                     <form className='login-form' onSubmit={handleLogin}>
                         <div className='input-label'>Username</div>

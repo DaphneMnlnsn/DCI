@@ -1,3 +1,117 @@
-.root {
-    background-image: url('background.png') no-repeat;
+.login-root {
+    background-image: url('../assets/background.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+}
+
+.login-logo {
+    width: 170px;
+    height: auto;
+    margin-left: 30px;
+    margin-top: 30px;
+}
+
+.app-name {
+    font-size: 250px;
+    font-weight: bold;
+    margin-bottom: 0;
+    margin-top: 100px;
+    color: #003566;
+    text-align: center;
+}
+
+.app-subname {
+    font-size: 30px;
+    margin-top: 0;
+    color: #003566;
+    text-align: center;
+    text-shadow: 1px 1px 2px rgb(136, 136, 136);
+}
+
+.login-left {
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.login-right {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-form-container{
+    background-color: rgba(65, 101, 137, 0.8);
+    padding: 50px;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    height: 60%;
+    width: 30vw;
+    margin: 10px;
+    box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 3px -1px;
+}
+
+.title {
+    color: white;
+    text-align: center;
+    margin-bottom: 3px;
+    margin-top: 0;
+    font-size: 35px;
+}
+
+.subtitle {
+    color: white;
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 13px;
+}
+
+.line {
+    height: 2px;
+    width: 100%;
+    background-color: #facc15;
+    margin: 10px auto 45px auto;
+}
+
+.input-label {
+    color: white;
+    margin-bottom: 5px;
+    font-size: 18px;
+}
+
+input[type=text], input[type=password] {
+    background-color: white;
+    color: black;
+    padding: 15px;
+    border-radius: 15px;
+    width: 95%;
+    margin-bottom: 40px;
+    border: #003566cc solid 1px;
+    box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 4px -1px;
+}
+
+input::placeholder {
+    color: rgb(205, 205, 205);
+}    
+
+.login-btn {
+    background-color: #003566;
+    color: white;
+    border: none;
+    padding: 10px 55px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bolder;
+    margin: 25px;
+    display: block;
+    margin-left: 36%;
+    box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 3px -1px;
 }
