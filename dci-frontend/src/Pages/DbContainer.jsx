@@ -1,4 +1,4 @@
-                        <table className='database-table'>
+                        {/*<table className='database-table'>
                             <thead>
                                 {database.map((data, index) => (
                                     <tr key={index}>
@@ -13,4 +13,4 @@
                                     </tr>
                                 ))}  
                             </tbody> 
-                        </table>
+                        </table>*/}
