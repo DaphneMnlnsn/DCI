@@ -26,6 +26,8 @@ const MainPage = () => {
     const [selectedFile, setSelectedFile] = useState(null);
     const [error, setError] = useState('');
     const [database, setDatabase] = useState(null);
+    const [database2, setDatabase2] = useState(null);
+    const [results, setResults] = useState(null);
     const [show, setShow] = useState(false);
     const [show2, setShow2] = useState(false);
     const [scan, setScan] = useState(false);
@@ -63,8 +65,44 @@ const MainPage = () => {
                 responseType: 'json',
             });
             if (response.status === 200){
-                setDatabase(response.data);
+                const raw = response.data || {};
+                const schema = raw.schema || raw;
+                const tableArray = Object.entries(schema).map(([tableName, tableData]) => ({
+                    tableName,
+                    columns: Object.entries((tableData && tableData.columns) || {}).map(([columnName, columnData]) => ({
+                        columnName,
+                        dataType: columnData.data_type,
+                        maxCharacters: columnData.maximum_characters,
+                    })),
+                }));
+                setDatabase({ raw, tables: tableArray });
                 setShow(true);
+            }
+
+        }
+        catch (error) {
+            console.log('Fetch database error: ', error);
+        }
+    }
+
+    const fetchDatabase2 = async () => {
+        try {
+            const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/read/client`, {
+                responseType: 'json',
+            });
+            if (response.status === 200){
+                const raw = response.data || {};
+                const schema = raw.schema || raw;
+                const tableArray = Object.entries(schema).map(([tableName, tableData]) => ({
+                    tableName,
+                    columns: Object.entries((tableData && tableData.columns) || {}).map(([columnName, columnData]) => ({
+                        columnName,
+                        dataType: columnData.data_type,
+                        maxCharacters: columnData.maximum_characters,
+                    })),
+                }));
+                setDatabase2({ raw, tables2: tableArray });
+                setShow2(true);
             }
         }
         catch (error) {
@@ -72,27 +110,30 @@ const MainPage = () => {
         }
     }
 
-    function createData(name, calories, fat, carbs, protein, price) {
-        return {
-            name,
-            calories,
-            fat,
-            carbs,
-            protein,
-            price,
-            history: [
-            {
-                date: '2020-01-05',
-                customerId: '11091700',
-                amount: 3,
-            },
-            {
-                date: '2020-01-02',
-                customerId: 'Anonymous',
-                amount: 1,
-            },
-            ],
-        };
+    const fetchResults = async () => {
+        try {
+            const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/scan`, {
+                responseType: 'json',
+            });
+            if (response.status === 200){
+                const raw = response.data || {};
+                const conflicts = raw.conflicts || raw;
+                const tableArray = Object.entries(conflicts).map(([tableName, tableData]) => ({
+                    tableName,
+                    columns: Object.entries((tableData && tableData.tables) || {}).map(([columnName, columnData]) => ({
+                        columnName,
+                        dataType: columnData.data_type,
+                        maxCharacters: columnData.maximum_characters,
+                    })),
+                }));
+                setDatabase({ raw, tables: tableArray });
+                setShow(true);
+            }
+
+        }
+        catch (error) {
+            console.log('Fetch database error: ', error);
+        }
     }
 
     function Row(props) {
@@ -112,7 +153,7 @@ const MainPage = () => {
                     </IconButton>
                 </TableCell>
                 <TableCell component="th" scope="row">
-                    {typeof row === 'string' ? row : (row.tableName + ' (' + row.tableName.columns.length + ')')}
+                    {typeof row === 'string' ? row : `${row.tableName} (${(row.columns && row.columns.length) || 0})`}
                 </TableCell>
                 <TableCell align="right">{row.calories}</TableCell>
                 <TableCell align="right">{row.fat}</TableCell>
@@ -130,11 +171,14 @@ const MainPage = () => {
                         </TableHead>
                         <TableBody>
                         {row.columns && row.columns.map((column, index) => (
-                            <TableRow key={typeof column === 'string' ? column : column.columnName || index}>
+                            <TableRow key={column.columnName || index}>
                             <TableCell component="th" scope="row">
-                                {typeof column === 'string' ? column : column.columnName}
+                                {column.columnName}
                             </TableCell>
-                            <TableCell>{typeof column === 'string' ? 'N/A' : column.dataType}</TableCell>
+                            <TableCell>
+                                {column.dataType}
+                                {column.maxCharacters ? ` (${column.maxCharacters} characters)` : ' (N/A)'}
+                            </TableCell>
                             </TableRow>
                         ))}
                         </TableBody>
@@ -153,7 +197,12 @@ const MainPage = () => {
             PropTypes.shape({
                 tableName: PropTypes.string,
                 tables: PropTypes.array,
-                columns: PropTypes.array,
+                columns: PropTypes.arrayOf(
+                    PropTypes.shape({
+                        columnName: PropTypes.string,
+                        dataType: PropTypes.string,
+                        maxCharacters: PropTypes.number,
+                })),
                 calories: PropTypes.number,
                 carbs: PropTypes.number,
                 fat: PropTypes.number,
@@ -173,7 +222,7 @@ const MainPage = () => {
 
     function CollapsibleTable() {
         if (!database) return <div>No data</div>;
-        const tables = Array.isArray(database) ? database : Object.keys(database.master || database);
+        const tables = Array.isArray(database.tables) ? database.tables : [];
         return (
             <TableContainer component={Paper}>
             <Table aria-label="collapsible table">
@@ -184,7 +233,28 @@ const MainPage = () => {
                 </TableHead>
                 <TableBody>
                 {tables.map((table) => (
-                    <Row key={table} row={table} />
+                    <Row key={table.tableName} row={table} />
+                ))}
+                </TableBody>
+            </Table>
+            </TableContainer>
+        );
+    }
+
+    function CollapsibleTable2() {
+        if (!database2) return <div>No data</div>;
+        const tables2 = Array.isArray(database2.tables2) ? database2.tables2 : [];
+        return (
+            <TableContainer component={Paper}>
+            <Table aria-label="collapsible table">
+                <TableHead>
+                <TableRow>
+                    <TableCell>Table Names ({tables2.length})</TableCell>
+                </TableRow>
+                </TableHead>
+                <TableBody>
+                {tables2.map((table) => (
+                    <Row key={table.tableName} row={table} />
                 ))}
                 </TableBody>
             </Table>
@@ -238,7 +308,7 @@ const MainPage = () => {
 
                                         <div className="line"></div>
 
-                                        <button className='select-btn' onClick={fetchDatabase}>Show</button>
+                                        <button className='select-btn' onClick={() => {fetchDatabase();}}>Show</button>
                                         
                                         {/*
                                         <input type="file" ref={fileInput} style={{display: 'none'}} onChange={(e) => setSelectedFile(e.target.files[0])} />
@@ -260,7 +330,7 @@ const MainPage = () => {
                     <div className='scanner-select'>
                         <div className="card">
                             {show2 ? (
-                                <CollapsibleTable /> 
+                                <CollapsibleTable2 /> 
                             ) : (
                                 <>
                                     <p className="label">
@@ -269,7 +339,7 @@ const MainPage = () => {
 
                                         <div className="line"></div>
 
-                                        <button className='select-btn' onClick={() => setShow2(true)}>Show</button>
+                                        <button className='select-btn' onClick={() => {fetchDatabase2(); }}>Show</button>
                                         
                                         {/*
                                         <input type="file" ref={fileInput} style={{display: 'none'}} onChange={(e) => setSelectedFile(e.target.files[0])} />
@@ -300,7 +370,7 @@ const MainPage = () => {
 
                                         <div className="line"></div>
 
-                                        <button className='select-btn' onClick={() => setScan(true)}>Scan</button>
+                                        <button className='select-btn' onClick={() => fetchResults()}>Scan</button>
                                         
                                         {/*
                                         <input type="file" ref={fileInput} style={{display: 'none'}} onChange={(e) => setSelectedFile(e.target.files[0])} />

@@ -17,8 +17,8 @@ class SchemaScannerService
 
     public function scan(){
         
-        $masterSchema = $this->reader->readMaster()['master'];
-        $clientSchema = $this->reader->readClient()['client'];
+        $masterSchema = $this->reader->readMaster()['schema'];
+        $clientSchema = $this->reader->readClient()['schema'];
 
         // Identifying table conflicts
         $masterTables = array_keys($masterSchema);
@@ -49,11 +49,11 @@ class SchemaScannerService
                 $extraColumns = array_diff($clientColumns, $masterColumns);
 
                 foreach($missingColumns as $column){
-                    $conflicts[$row]['missing_client_column'][$column] = true;
+                    $conflicts['missing_client_column'][$row][$column] = true;
                 }
 
                 foreach($extraColumns as $column){
-                    $conflicts[$row]['extra_client_column'][$column] = true;
+                    $conflicts['extra_client_column'][$row][$column] = true;
                 }
             }
 
@@ -72,14 +72,32 @@ class SchemaScannerService
                         $clientColumn = $clientSchema[$row]["columns"][$columnName];
 
                         if($masterColumn['data_type'] != $clientColumn['data_type']){
-                            $conflicts[$row][$columnName]['type_mismatch'] = [
+                            $conflicts['type_mismatch'][$row][$columnName] = [
                                 'master' => $masterColumn['data_type'],
                                 'client' => $clientColumn['data_type']
                             ];
                         }
+                        
+                    }
+
+                }
+                
+            }
+        }
+
+        foreach($masterTables as $row){
+
+            if(isset($clientSchema[$row])){
+
+                foreach($masterSchema[$row]["columns"] as $columnName => $columnData){
+
+                    if(isset($clientSchema[$row]["columns"][$columnName])){
+
+                        $masterColumn = $columnData;
+                        $clientColumn = $clientSchema[$row]["columns"][$columnName];
 
                         if($masterColumn['maximum_characters'] != $clientColumn['maximum_characters']){
-                            $conflicts[$row][$columnName]['length_mismatch'] = [
+                            $conflicts['length_mismatch'][$row][$columnName] = [
                                 'master' => $masterColumn['maximum_characters'],
                                 'client' => $clientColumn['maximum_characters']
                             ];
