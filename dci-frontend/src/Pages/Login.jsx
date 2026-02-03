@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 
 const LoginPage = () => {
     const [username, setUsername] = useState('');
@@ -11,26 +12,41 @@ const LoginPage = () => {
     
     const handleLogin = async (e) => {   
         e.preventDefault();
+
         try {
             const response = await axios.post(`${import.meta.env.VITE_APP_BASE_URL}/api/login`, {
                 username,
                 password,
             });
             
-            if (response.status === 200){
-                alert('Logged in successfully.')
-                navigate('/main');
-            }
-            else {
-                alert('Login failed.')
-                setError('Invalid credentials');
+            if (response.status === 200) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Login Successful',
+                    text: 'You have been logged in successfully.',
+                }).then(() => {
+                    // Redirect to main page after alert
+                    navigate('/main');
+                });
             }
         }
         catch (error){
+            if (error.response.status === 500) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Wrong Credentials',
+                    text: 'Please check your username and password.',
+                });
+                setError('Invalid credentials');
+            }           
+            else {
+                alert('Login failed. Please try again later.');
+                setError('Something went wrong');
+            }
             console.log('Login error: ', error)
-            setError('Something went wrong');
+
         }
-        
+
     }
 
     return (
@@ -71,7 +87,7 @@ const LoginPage = () => {
             </div>
             
         </div>
-    );
+    );     
 };
 
 export default LoginPage;
