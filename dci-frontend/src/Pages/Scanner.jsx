@@ -116,20 +116,39 @@ const MainPage = () => {
                 responseType: 'json',
             });
             if (response.status === 200){
-                const raw = response.data || {};
-                const conflicts = raw.conflicts || raw;
-                const tableArray = Object.entries(conflicts).map(([tableName, tableData]) => ({
-                    tableName,
-                    columns: Object.entries((tableData && tableData.tables) || {}).map(([columnName, columnData]) => ({
-                        columnName,
-                        dataType: columnData.data_type,
-                        maxCharacters: columnData.maximum_characters,
-                    })),
+                const conflicts = response.data.conflicts || {};
+                const conflictArray = Object.entries(conflicts).map(([conflictType, details]) => ({
+                    conflictType,
+                    details: details || {}
                 }));
-                setDatabase({ raw, tables: tableArray });
-                setShow(true);
-            }
+                setResults({ raw: response.data, conflicts: conflictArray });
+                setScan(true);
 
+                // Calculate total conflict count
+                let totalCount = 0;
+                conflictArray.forEach(({ conflictType, details }) => {
+                    switch (conflictType) {
+                        case 'missing_client_table':
+                        case 'extra_client_table':
+                            totalCount += Object.keys(details).length;
+                            break;
+                        case 'missing_client_column':
+                        case 'extra_client_column':
+                        case 'type_mismatch':
+                        case 'length_mismatch':
+                            Object.values(details).forEach(columns => {
+                                totalCount += Object.keys(columns).length;
+                            });
+                            break;
+                    }
+                });
+                swal.fire({
+                    title: "Scan Complete",
+                    text: `${totalCount} conflicts found`,
+                    icon: "info",
+                    confirmButtonText: "OK"
+                });
+            }
         }
         catch (error) {
             console.log('Fetch database error: ', error);
@@ -155,8 +174,8 @@ const MainPage = () => {
                 <TableCell component="th" scope="row">
                     {typeof row === 'string' ? row : `${row.tableName} (${(row.columns && row.columns.length) || 0})`}
                 </TableCell>
-                <TableCell align="right">{row.calories}</TableCell>
-                <TableCell align="right">{row.fat}</TableCell>
+                <TableCell align="right"></TableCell>
+                <TableCell align="right"></TableCell>
             </TableRow>
             <TableRow>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
@@ -165,8 +184,8 @@ const MainPage = () => {
                     <Table size="small" aria-label="purchases">
                         <TableHead>
                         <TableRow>
-                            <TableCell>Column Name</TableCell>
-                            <TableCell>Variable Type</TableCell>
+                            <TableCell style={{ fontWeight: 'bold' }}>Column Name</TableCell>
+                            <TableCell style={{ fontWeight: 'bold' }}>Variable Type</TableCell>
                         </TableRow>
                         </TableHead>
                         <TableBody>
@@ -228,7 +247,7 @@ const MainPage = () => {
             <Table aria-label="collapsible table">
                 <TableHead>
                 <TableRow>
-                    <TableCell>Table Names ({tables.length})</TableCell>
+                    <TableCell style={{ fontWeight: 'bold' }}>Table Names ({tables.length})</TableCell>
                 </TableRow>
                 </TableHead>
                 <TableBody>
@@ -249,7 +268,7 @@ const MainPage = () => {
             <Table aria-label="collapsible table">
                 <TableHead>
                 <TableRow>
-                    <TableCell>Table Names ({tables2.length})</TableCell>
+                    <TableCell style={{ fontWeight: 'bold' }}>Table Names ({tables2.length})</TableCell>
                 </TableRow>
                 </TableHead>
                 <TableBody>
@@ -262,21 +281,115 @@ const MainPage = () => {
         );
     }
 
+    const renderDetails = (conflictType, row) => {
+        switch (conflictType) {
+            case 'missing_client_table':
+            case 'extra_client_table':
+                return (
+                    <div>
+                        {Object.keys(row.details).map(table => (
+                            <Typography key={table} variant="body2">- {table}</Typography>
+                        ))}
+                    </div>
+                );
+            case 'missing_client_column':
+                return (
+                    <div>
+                        {Object.entries(row.details).map(([table, columns]) => (
+                            <div key={table}>
+                                <Typography variant="body2" style={{ fontWeight: 'bold' }}>{table} table:</Typography>
+                                <Typography variant="body2">{Object.keys(columns).join(', ')}</Typography>
+                            </div>
+                        ))}
+                    </div>
+                );
+            case 'extra_client_column':
+                return (
+                    <div>
+                        {Object.entries(row.details).map(([table, columns]) => (
+                            <div key={table}>
+                                <Typography variant="body2" style={{ fontWeight: 'bold' }}>{table} table:</Typography>
+                                <Typography variant="body2">{Object.keys(columns).join(', ')}</Typography>
+                            </div>
+                        ))}
+                    </div>
+                );
+            case 'type_mismatch':
+                return (
+                    <div>
+                        {Object.entries(row.details).map(([table, columns]) => (
+                            <div key={table}>
+                                <Typography variant="body2" style={{ fontWeight: 'bold' }}>{table} table:</Typography>
+                                {Object.entries(columns).map(([col, types]) => (
+                                    <Typography key={col} variant="body2">{col}: Master ({types.master}) vs Client ({types.client})</Typography>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+                );
+            case 'length_mismatch':
+                return (
+                    <div>
+                        {Object.entries(row.details).map(([table, columns]) => (
+                            <div key={table}>
+                                <Typography variant="body2" style={{ fontWeight: 'bold' }}>{table} table:</Typography>
+                                {Object.entries(columns).map(([col, lengths]) => (
+                                    <Typography key={col} variant="body2">{col}: Master ({lengths.master || 'N/A'}) vs Client ({lengths.client})</Typography>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+                );
+            default:
+                return <Typography variant="body2">No conflicts found.</Typography>;
+        }
+    };
+
     function CollapsibleTableScanned() {
+        if (!results) return <div>No data</div>;
+        const conflicts = Array.isArray(results.conflicts) ? results.conflicts : [];
+        const conflictMap = {};
+        conflicts.forEach(({ conflictType, details }) => {
+            conflictMap[conflictType] = details;
+        });
+
+        const conflictTypes = [
+            { key: 'missing_client_table', label: 'Missing Client Tables' },
+            { key: 'extra_client_table', label: 'Extra Client Tables' },
+            { key: 'missing_client_column', label: 'Missing Client Column' },
+            { key: 'extra_client_column', label: 'Extra Client Column' },
+            { key: 'type_mismatch', label: 'Type Mismatch' },
+            { key: 'length_mismatch', label: 'Length Mismatch' },
+        ];
+
         return (
             <TableContainer component={Paper}>
-            <Table aria-label="collapsible table">
-                <TableHead>
-                <TableRow>
-                    <TableCell>Conflicts ({rows.length})</TableCell>
-                </TableRow>
-                </TableHead>
-                <TableBody>
-                {rows.map((row) => (
-                    <Row key={row.name} row={row} />
-                ))}
-                </TableBody>
-            </Table>
+                <Table aria-label="collapsible table">
+                    <TableHead>
+                        <TableRow>
+                            <TableCell style={{ fontWeight: 'bold' }}>Conflicts</TableCell>
+                            <TableCell style={{ fontWeight: 'bold' }}>Affected</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {conflictTypes.map(({ key, label }) => (
+                            conflictMap[key] && Object.keys(conflictMap[key]).length > 0 && (
+                                <React.Fragment key={key}>
+                                    <TableRow>
+                                        <TableCell>
+                                            {label}
+                                        </TableCell>
+                                        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={2}>
+                                            <Box sx={{ margin: 1 }}>
+                                                {renderDetails(key, { details: conflictMap[key] })}
+                                            </Box>
+                                        </TableCell>
+                                    </TableRow>
+                                </React.Fragment>
+                            )
+                        ))}
+                    </TableBody>
+                </Table>
             </TableContainer>
         );
     }
