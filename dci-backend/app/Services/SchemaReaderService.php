@@ -40,7 +40,7 @@ class SchemaReaderService
         }
 
         return [
-            'master' => $masterSchema,
+            'schema' => $masterSchema,
         ];
     }
     public function readClient(){
@@ -79,7 +79,7 @@ class SchemaReaderService
         }
 
         return [
-            'client' => $clientSchema
+            'schema' => $clientSchema
         ];
     }
 }
