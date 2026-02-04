@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Scanner.css';
 import axios from 'axios';
+import swal from 'sweetalert2';
 import Header from '../assets/header.jsx';
 import PropTypes from 'prop-types';
 import Box from '@mui/material/Box';
@@ -144,9 +145,11 @@ const MainPage = () => {
                 });
                 swal.fire({
                     title: "Scan Complete",
-                    text: `${totalCount} conflicts found`,
+                    html: `<span class="conflict-count">${totalCount} conflicts found</span>`,
                     icon: "info",
-                    confirmButtonText: "OK"
+                    iconColor: '#FF0000',
+                    confirmButtonText: "OK",
+                    confirmButtonColor: '#003566'
                 });
             }
         }
@@ -156,58 +159,62 @@ const MainPage = () => {
     }
 
     function Row(props) {
-        const { row } = props;
-        const [open, setOpen] = React.useState(false);
+    const { row } = props;
+    const [open, setOpen] = React.useState(false);
 
-        return (
-            <React.Fragment>
-            <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
-                <TableCell>
-                    <IconButton
-                        aria-label="expand row"
-                        size="small"
-                        onClick={() => setOpen(!open)}
-                    >
-                        {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-                    </IconButton>
-                </TableCell>
-                <TableCell component="th" scope="row">
-                    {typeof row === 'string' ? row : `${row.tableName} (${(row.columns && row.columns.length) || 0})`}
-                </TableCell>
-                <TableCell align="right"></TableCell>
-                <TableCell align="right"></TableCell>
-            </TableRow>
-            <TableRow>
-                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
-                <Collapse in={open} timeout="auto" unmountOnExit>
-                    <Box sx={{ margin: 1 }}>
-                    <Table size="small" aria-label="purchases">
-                        <TableHead>
-                        <TableRow>
-                            <TableCell style={{ fontWeight: 'bold' }}>Column Name</TableCell>
-                            <TableCell style={{ fontWeight: 'bold' }}>Variable Type</TableCell>
+    return (
+        <React.Fragment>
+
+        <TableRow className="table-row">
+            <TableCell className="icon-cell">
+            <IconButton
+                aria-label="expand row"
+                size="small"
+                onClick={() => setOpen(!open)}
+            >
+                {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+            </IconButton>
+            </TableCell>
+
+            <TableCell className="table-name-cell">
+            {typeof row === "string"
+                ? row
+                : `${row.tableName} (${row.columns?.length || 0})`}
+            </TableCell>
+        </TableRow>
+    
+        <TableRow className="expanded-row">
+            <TableCell colSpan={2} className="expanded-cell">
+            <Collapse in={open} timeout="auto" unmountOnExit>
+                <Box className="expanded-box">
+                <Table size="small" className="inner-table">
+                    <TableHead>
+                    <TableRow className="inner-header">
+                        <TableCell>Column Name</TableCell>
+                        <TableCell>Variable Type</TableCell>
+                    </TableRow>
+                    </TableHead>
+
+                    <TableBody>
+                    {row.columns?.map((column, index) => (
+                        <TableRow key={index} className="inner-row">
+                        <TableCell>{column.columnName}</TableCell>
+                        <TableCell>
+                            {column.dataType}
+                            {column.maxCharacters
+                            ? ` (${column.maxCharacters})`
+                            : " (N/A)"}
+                        </TableCell>
                         </TableRow>
-                        </TableHead>
-                        <TableBody>
-                        {row.columns && row.columns.map((column, index) => (
-                            <TableRow key={column.columnName || index}>
-                            <TableCell component="th" scope="row">
-                                {column.columnName}
-                            </TableCell>
-                            <TableCell>
-                                {column.dataType}
-                                {column.maxCharacters ? ` (${column.maxCharacters} characters)` : ' (N/A)'}
-                            </TableCell>
-                            </TableRow>
-                        ))}
-                        </TableBody>
-                    </Table>
-                    </Box>
-                </Collapse>
-                </TableCell>
-            </TableRow>
-            </React.Fragment>
-        );
+                    ))}
+                    </TableBody>
+                </Table>
+                </Box>
+            </Collapse>
+            </TableCell>
+        </TableRow>
+        </React.Fragment>
+    );
     }
 
     Row.propTypes = {
@@ -243,11 +250,11 @@ const MainPage = () => {
         if (!database) return <div>No data</div>;
         const tables = Array.isArray(database.tables) ? database.tables : [];
         return (
-            <TableContainer component={Paper}>
+            <TableContainer component={Paper} elevation={0}>
             <Table aria-label="collapsible table">
                 <TableHead>
                 <TableRow>
-                    <TableCell style={{ fontWeight: 'bold' }}>Table Names ({tables.length})</TableCell>
+                    <TableCell colSpan={4} style={{ fontWeight: 'bold' }}>Table Names ({tables.length})</TableCell>
                 </TableRow>
                 </TableHead>
                 <TableBody>
@@ -264,11 +271,11 @@ const MainPage = () => {
         if (!database2) return <div>No data</div>;
         const tables2 = Array.isArray(database2.tables2) ? database2.tables2 : [];
         return (
-            <TableContainer component={Paper}>
+            <TableContainer component={Paper} elevation={0}>
             <Table aria-label="collapsible table">
                 <TableHead>
                 <TableRow>
-                    <TableCell style={{ fontWeight: 'bold' }}>Table Names ({tables2.length})</TableCell>
+                    <TableCell colSpan={4} style={{ fontWeight: 'bold' }}>Table Names ({tables2.length})</TableCell>
                 </TableRow>
                 </TableHead>
                 <TableBody>
@@ -363,7 +370,7 @@ const MainPage = () => {
         ];
 
         return (
-            <TableContainer component={Paper}>
+            <TableContainer component={Paper} elevation={0}>
                 <Table aria-label="collapsible table">
                     <TableHead>
                         <TableRow>
@@ -415,9 +422,11 @@ const MainPage = () => {
                                 <CollapsibleTable /> 
                             ) : (
                                 <>
-                                    <p className="label">
+                                    <div className="card-header">
+                                        <p className="label">
                                             Please select a database to Compare
                                         </p>
+                                        </div>
 
                                         <div className="line"></div>
 
@@ -446,9 +455,11 @@ const MainPage = () => {
                                 <CollapsibleTable2 /> 
                             ) : (
                                 <>
+                                <div className="card-header-client">
                                     <p className="label">
                                             Please select a database to Compare
-                                        </p>
+                                    </p>
+                                    </div>
 
                                         <div className="line"></div>
 
@@ -477,10 +488,11 @@ const MainPage = () => {
                                 <CollapsibleTableScanned /> 
                             ) : (
                                 <>
+                                <div className="card-scanner-header">
                                     <p className="label">
                                             Press Scan to compare the databases
                                         </p>
-
+                                </div>
                                         <div className="line"></div>
 
                                         <button className='select-btn' onClick={() => fetchResults()}>Scan</button>
