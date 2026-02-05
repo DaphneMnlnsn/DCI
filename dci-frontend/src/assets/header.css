@@ -48,3 +48,14 @@ html, body, #root {
   font-weight: bold;
   color: #003566;
 }
+
+.logout-button {
+  background-color: #F5FFFA;
+  color: #003566;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+} 

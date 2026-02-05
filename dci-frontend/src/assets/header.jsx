@@ -1,8 +1,15 @@
 import React from "react";
 import "./header.css";
 import logo from '../assets/IDA-Logo.png';
+import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
+  const navigate = useNavigate();
+
+  const handleLogout = async (e) => {   
+    navigate('/');
+  }
+
   return (
     <header className="app-header">
       <div className="header-left">
@@ -14,7 +21,7 @@ const Header = () => {
       </div>
 
       <div className="header-right">
-        Logout
+        <button className="logout-button" onClick={handleLogout}>Logout</button>
       </div>
 
     </header>

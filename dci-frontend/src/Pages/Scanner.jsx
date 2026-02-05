@@ -32,29 +32,6 @@ const MainPage = () => {
     const [show, setShow] = useState(false);
     const [show2, setShow2] = useState(false);
     const [scan, setScan] = useState(false);
-    
-    const handleLogout = async (e) => {   
-        e.preventDefault();
-        try {
-            const response = await axios.post(`${import.meta.env.VITE_APP_BASE_URL}/api/logout`, {
-                username,
-                password,
-            });
-            
-            if (response.status === 200){
-                alert('Logged out successfully.')
-                navigate('/main');
-            }
-            else {
-                alert('Logout failed.')
-                setError('Invalid credentials');
-            }
-        }
-        catch (error){
-            console.log('Logout error: ', error)
-            setError('Something went wrong');
-        }
-    }
 
     const handleDBSelect = () => {
         fileInput.current.click();
