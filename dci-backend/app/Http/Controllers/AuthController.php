@@ -20,7 +20,7 @@ class AuthController extends Controller
 
             return $response;
         }
-        else if($username != "IDA_princesses" && $password != "IDAojtprincesses"){
+        else if($username != "IDA_admin" && $password != "IDA12345admin"){
             return response()->json(['status'=>'error', 'message'=> 'Wrong credentials.'], 401);
         }
 
