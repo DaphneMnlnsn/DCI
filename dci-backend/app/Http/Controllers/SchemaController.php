@@ -12,7 +12,7 @@ class SchemaController extends Controller
     public function readMasterSchema(SchemaReaderService $reader){
         try{
 
-            $schema = $reader->readMaster();
+            $schema = $reader->readSchema('master');
             return response()->json($schema);
 
         }
@@ -28,7 +28,7 @@ class SchemaController extends Controller
     public function readClientSchema(SchemaReaderService $reader){
         try{
 
-            $schema = $reader->readClient();
+            $schema = $reader->readSchema('client');
             return response()->json($schema);
 
         }

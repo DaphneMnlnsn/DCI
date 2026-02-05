@@ -17,8 +17,11 @@ class SchemaScannerService
 
     public function scan(){
         
-        $masterSchema = $this->reader->readMaster()['schema'];
-        $clientSchema = $this->reader->readClient()['schema'];
+        $masterData = $this->reader->readSchema('master');
+        $clientData = $this->reader->readSchema('client');
+
+        $masterSchema = $masterData['schema'];
+        $clientSchema = $clientData['schema'];
 
         // Identifying table conflicts
         $masterTables = array_keys($masterSchema);
