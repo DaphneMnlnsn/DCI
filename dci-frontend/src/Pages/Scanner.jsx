@@ -71,6 +71,7 @@ const MainPage = () => {
             if (response.status === 200){
                 const raw = response.data || {};
                 const schema = raw.schema || raw;
+                const database2 = raw.database || raw;
                 const tableArray = Object.entries(schema).map(([tableName, tableData]) => ({
                     tableName,
                     columns: Object.entries((tableData && tableData.columns) || {}).map(([columnName, columnData]) => ({
@@ -79,7 +80,7 @@ const MainPage = () => {
                         maxCharacters: columnData.maximum_characters,
                     })),
                 }));
-                setDatabase2({ raw, tables2: tableArray });
+                setDatabase2({ raw, database2: database2, tables2: tableArray });
                 setShow2(true);
             }
         }
@@ -264,7 +265,7 @@ const MainPage = () => {
             <Table aria-label="collapsible table">
                 <TableHead>
                 <TableRow>
-                    <TableCell colSpan={4} style={{ fontWeight: 'bold' }}>{/*database.database*/} - Table Names ({tables.length})</TableCell>
+                    <TableCell colSpan={4} style={{ fontWeight: 'bold' }}>Table Names ({tables.length}) - {database.database}</TableCell>
                 </TableRow>
                 </TableHead>
                 <TableBody>
@@ -285,7 +286,7 @@ const MainPage = () => {
             <Table aria-label="collapsible table">
                 <TableHead>
                 <TableRow>
-                    <TableCell colSpan={4} style={{ fontWeight: 'bold' }}>{tables2.database} - Table Names ({tables2.length})</TableCell>
+                    <TableCell colSpan={4} style={{ fontWeight: 'bold' }}>Table Names ({tables2.length}) - {database2.database2}</TableCell>
                 </TableRow>
                 </TableHead>
                 <TableBody>
