@@ -12,7 +12,7 @@ class AuthController extends Controller
         $username = $request->input('username');
         $password = $request->input('password');
 
-        if($username == "IDA_princesses" && $password == "IDAojtprincesses"){
+        if($username == "IDA_admin" && $password == "IDA12345admin"){
             $response = Http::post(config('app.login_url'), [
                 'username'=>config('app.uname_param'),
                 'password'=>config('app.pass_param')
