@@ -20,11 +20,8 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
 const MainPage = () => {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
     const navigate = useNavigate();
     const fileInput = useRef(null);
-    const [selectedFile, setSelectedFile] = useState(null);
     const [error, setError] = useState('');
     const [database, setDatabase] = useState(null);
     const [database2, setDatabase2] = useState(null);
@@ -32,6 +29,8 @@ const MainPage = () => {
     const [show, setShow] = useState(false);
     const [show2, setShow2] = useState(false);
     const [scan, setScan] = useState(false);
+    const [rescan, setRescan] = useState(false);
+    const [fixConflicts, setFixConflicts] = useState(false);
 
     const handleDBSelect = () => {
         fileInput.current.click();
@@ -45,6 +44,7 @@ const MainPage = () => {
             if (response.status === 200){
                 const raw = response.data || {};
                 const schema = raw.schema || raw;
+                const database = raw.database || raw;
                 const tableArray = Object.entries(schema).map(([tableName, tableData]) => ({
                     tableName,
                     columns: Object.entries((tableData && tableData.columns) || {}).map(([columnName, columnData]) => ({
@@ -53,7 +53,7 @@ const MainPage = () => {
                         maxCharacters: columnData.maximum_characters,
                     })),
                 }));
-                setDatabase({ raw, tables: tableArray });
+                setDatabase({ raw, database: database, tables: tableArray });
                 setShow(true);
             }
 
@@ -128,11 +128,44 @@ const MainPage = () => {
                     confirmButtonText: "OK",
                     confirmButtonColor: '#003566'
                 });
+                setRescan(true);
+                setFixConflicts(true);
             }
         }
         catch (error) {
             console.log('Fetch database error: ', error);
         }
+    }
+
+    const handleConflicts = async () => {
+        const decision = await swal.fire({
+            title: 'Fix Conflicts',
+            text: 'Are you sure you want to fix the conflicts automatically? This will only modify the structure.',
+            icon: 'warning',
+            confirmButtonColor: '#003566',
+            showCancelButton: true,
+            confirmButtonText: 'Proceed'
+        });
+
+        if (decision.isConfirmed){
+            try{
+                const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/fix`, {
+                    responseType: 'json',
+                });
+
+                if(response.status === 200){
+                    //SWAL SUCCESS MESSAGE
+                }
+            } catch (error){
+                console.log('Error fixing conflicts: ', error);
+                //SWAL ERROR MESSAGE 
+            }
+        }         
+    }
+
+    const handleExport = (data, filename) => {
+        alert('yaneyyyyyy');
+
     }
 
     function Row(props) {
@@ -231,7 +264,7 @@ const MainPage = () => {
             <Table aria-label="collapsible table">
                 <TableHead>
                 <TableRow>
-                    <TableCell colSpan={4} style={{ fontWeight: 'bold' }}>Table Names ({tables.length})</TableCell>
+                    <TableCell colSpan={4} style={{ fontWeight: 'bold' }}>{/*database.database*/} - Table Names ({tables.length})</TableCell>
                 </TableRow>
                 </TableHead>
                 <TableBody>
@@ -252,7 +285,7 @@ const MainPage = () => {
             <Table aria-label="collapsible table">
                 <TableHead>
                 <TableRow>
-                    <TableCell colSpan={4} style={{ fontWeight: 'bold' }}>Table Names ({tables2.length})</TableCell>
+                    <TableCell colSpan={4} style={{ fontWeight: 'bold' }}>{tables2.database} - Table Names ({tables2.length})</TableCell>
                 </TableRow>
                 </TableHead>
                 <TableBody>
@@ -261,6 +294,9 @@ const MainPage = () => {
                 ))}
                 </TableBody>
             </Table>
+            {fixConflicts && (
+                <button className='fix-btn' style={{ backgroundColor: '#FACC1566', color: '#000000' }} onClick={() => handleConflicts()}>Fix Conflicts</button>
+            )}
             </TableContainer>
         );
     }
@@ -374,6 +410,13 @@ const MainPage = () => {
                         ))}
                     </TableBody>
                 </Table>
+                <div className='btn-group'>
+                    <button className='export-btn' style={{ backgroundColor: '#FACC1566', color: '#000000'}} onClick={() => handleExport()}>Export Results</button>
+                    {rescan && (
+                        <button className='rescan-btn' onClick={() => fetchResults()}>Rescan</button>
+                    )}
+                </div>
+                
             </TableContainer>
         );
     }
