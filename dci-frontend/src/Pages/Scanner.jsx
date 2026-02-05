@@ -390,7 +390,7 @@ const MainPage = () => {
                         <h3 className="card-title">Client Database</h3>
                     </div>
                     <div className='scanner-select'>
-                        <h3 className="card-title">Customize Results</h3>
+                        <h3 className="card-title">Results</h3>
                     </div>
                     
                     <div className='scanner-select'>

@@ -129,6 +129,10 @@
     accent-color: #003566;
 }
 
+.MuiTableCell-root {
+    font-family: 'Poppins', sans-serif !important;
+}
+
 .MuiTableCell-head { /* Header */
     background-color: rgb(250, 204, 21, 0.4);
     padding: 25px;
@@ -151,13 +155,19 @@
   width: 40px;
 }
 
-.table-name-cell {
-  font-weight: 500;
+button:focus {
+    outline: none;
+}
+
+.MuiTypography-root {
+    font-family: 'Poppins', sans-serif !important;
+    font-size: 13px !important;
 }
 
 .expanded-row td { /* Expanded Row Styling */
   padding: 0;
   border-bottom: 1px solid #ffffff; 
+  font-size: 13px;
 }
 
 .expanded-cell {
@@ -172,8 +182,9 @@
 
 .inner-table th, /* Inner Table Header */
 .inner-table td { /* Inner Table Cell */
-  border: 1px solid rgb(40, 100, 159, 0.4);
+  border: 1px solid rgba(40, 100, 159, 0.116);
   padding: 10px;
+  font-family: 'Poppins', sans-serif;
 }
 
 .inner-header th {

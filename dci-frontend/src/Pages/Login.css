@@ -95,6 +95,8 @@ input[type=text], input[type=password] {
     margin-bottom: 40px;
     border: #003566cc solid 1px;
     box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 4px -1px;
+    font-family: Poppins, sans-serif;
+    
 }
 
 input::placeholder {
