@@ -17,7 +17,7 @@ class SchemaReaderService
         if($driver == 'mysql'){
 
             $query = "
-                SELECT T.TABLE_NAME, C.COLUMN_NAME, C.DATA_TYPE, C.CHARACTER_MAXIMUM_LENGTH 
+                SELECT T.TABLE_NAME, C.COLUMN_NAME, C.DATA_TYPE, C.CHARACTER_MAXIMUM_LENGTH , C.IS_NULLABLE
                 FROM information_schema.tables AS T 
                 INNER JOIN
                 information_schema.columns AS C 
@@ -29,7 +29,7 @@ class SchemaReaderService
         } elseif($driver == 'sqlsrv'){
 
             $query = "
-                SELECT T.TABLE_NAME, C.COLUMN_NAME, C.DATA_TYPE, C.CHARACTER_MAXIMUM_LENGTH 
+                SELECT T.TABLE_NAME, C.COLUMN_NAME, C.DATA_TYPE, C.CHARACTER_MAXIMUM_LENGTH, C.IS_NULLABLE
                 FROM information_schema.tables AS T 
                 INNER JOIN
                 information_schema.columns AS C 
@@ -55,7 +55,8 @@ class SchemaReaderService
 
             $schema[$tableName]["columns"][$columnName] = [
                 "data_type" => $dataType,
-                "maximum_characters" => $maximumChar
+                "maximum_characters" => $maximumChar,
+                "nullable" => $row->IS_NULLABLE
             ];
         }
         

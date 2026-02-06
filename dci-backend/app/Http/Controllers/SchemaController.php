@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\SchemaFixerService;
 use App\Services\SchemaReaderService;
 use App\Services\SchemaScannerService;
 use Illuminate\Http\Request;
@@ -46,6 +47,27 @@ class SchemaController extends Controller
 
             $schema = $scanner->scan();
             return response()->json($schema);
+
+        }
+        catch(\Throwable $e){
+
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
+            
+        }
+    }
+
+    public function fixSchema(SchemaReaderService $reader, SchemaScannerService $scanner, SchemaFixerService $fixer){
+        try{
+
+            $conflicts = $scanner->scan();
+            $masterSchema = $reader->readSchema('master');
+            $clientSchema = $reader->readSchema('client');
+
+            $message = $fixer->fix($conflicts['conflicts'], $masterSchema['schema'], $clientSchema['schema']);
+
+            return response()->json($message);
 
         }
         catch(\Throwable $e){
