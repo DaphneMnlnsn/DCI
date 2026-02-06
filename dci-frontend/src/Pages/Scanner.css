@@ -238,3 +238,8 @@ button:focus {
     font-size: 18px;
     
 }
+
+.swal-large {
+  font-size: 16px;      
+  border-radius: 12px;   
+}

@@ -430,6 +430,38 @@ const MainPage = () => {
             </TableContainer>
         );
     }
+        
+    const openDatabaseSelect = async () => {
+        const value = await swal.fire({
+            title: "Select database",
+            input: "select",
+            inputOptions: {}, 
+            inputPlaceholder: "Select database",
+            showCancelButton: true,
+            confirmButtonText: "Select",
+            confirmButtonColor: '#003566',
+            width: 600,
+            heightAuto: true,
+            padding: '10px',
+            customClass: {popup: 'swal-big'}
+        });
+    }
+     
+     const openDatabaseSelect2 = async () => {
+        const value = await swal.fire({
+            title: "Select database",
+            input: "select",
+            inputOptions: {}, 
+            inputPlaceholder: "Select database",
+            showCancelButton: true,
+            confirmButtonText: "Select",
+            confirmButtonColor: '#003566',
+            width: 600, 
+            heightAuto: true,
+            padding: '10px',
+            customClass: {popup: 'swal-big'}
+        });
+    }
 
     return (
         <div className='scanner-root'> 
@@ -459,20 +491,8 @@ const MainPage = () => {
                                         </div>
 
                                         <div className="line"></div>
-
-                                        <button className='select-btn' onClick={() => {fetchDatabase();}}>Show</button>
-                                        
-                                        {/*
-                                        <input type="file" ref={fileInput} style={{display: 'none'}} onChange={(e) => setSelectedFile(e.target.files[0])} />
-                                        {selectedFile && (
-                                            <img src={URL.createObjectURL(selectedFile)} alt='preview'
-                                            style={{
-                                                    width: 90,
-                                                    height: 90,
-                                                    borderRadius: 6,
-                                                    objectFit: "cover",
-                                                }}/>
-                                        )}*/}
+                                        <button className='select-btn' onClick={() => {fetchDatabase(); }}>Show</button>
+                                        <button className='select-btn' onClick= {() => {openDatabaseSelect(); }}>Select</button>
                                 </>    
                             )}
                                     
@@ -494,18 +514,8 @@ const MainPage = () => {
                                         <div className="line"></div>
 
                                         <button className='select-btn' onClick={() => {fetchDatabase2(); }}>Show</button>
-                                        
-                                        {/*
-                                        <input type="file" ref={fileInput} style={{display: 'none'}} onChange={(e) => setSelectedFile(e.target.files[0])} />
-                                        {selectedFile && (
-                                            <img src={URL.createObjectURL(selectedFile)} alt='preview'
-                                            style={{
-                                                    width: 90,
-                                                    height: 90,
-                                                    borderRadius: 6,
-                                                    objectFit: "cover",
-                                                }}/>
-                                        )}*/}
+                                        <button className='select-btn' onClick= {() => {openDatabaseSelect2(); }}>Select</button>
+                                       
                                 </>    
                             )}
                                     
@@ -527,17 +537,7 @@ const MainPage = () => {
 
                                         <button className='select-btn' onClick={() => fetchResults()}>Scan</button>
                                         
-                                        {/*
-                                        <input type="file" ref={fileInput} style={{display: 'none'}} onChange={(e) => setSelectedFile(e.target.files[0])} />
-                                        {selectedFile && (
-                                            <img src={URL.createObjectURL(selectedFile)} alt='preview'
-                                            style={{
-                                                    width: 90,
-                                                    height: 90,
-                                                    borderRadius: 6,
-                                                    objectFit: "cover",
-                                                }}/>
-                                        )}*/}
+                                    
                                 </>    
                             )}
                         </div>
