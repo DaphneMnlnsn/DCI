@@ -65,4 +65,33 @@ class SchemaReaderService
             'schema' => $schema
         ];
     }
+    
+    public function readAllDatabases(){
+        $conn = config('database.default');
+        $connDetails = config("database.connections.$conn");
+        
+        $databases = [];
+
+        if($connDetails['driver'] == 'mysql'){
+
+            $result = DB::select("SHOW DATABASES");
+            
+            foreach($result as $row){
+                $databases[] = $row->Database;
+            }
+
+        } else if($connDetails['driver'] == 'sqlsrv'){
+
+            $result = DB::select("SELECT name FROM sys.databases");
+
+            foreach($result as $row){
+                $databases[] = $row->name;
+            }
+        }
+
+        return [
+            'databases' => $databases,
+        ];
+        
+    }
 }

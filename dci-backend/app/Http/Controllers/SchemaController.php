@@ -78,4 +78,20 @@ class SchemaController extends Controller
             
         }
     }
+
+    public function readAllDatabases(SchemaReaderService $reader){
+        try{
+
+            $schema = $reader->readAllDatabases();
+            return response()->json($schema);
+
+        }
+        catch(\Throwable $e){
+
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
+
+        }
+    }
 }
