@@ -18,6 +18,7 @@ import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import exportToExcel from './ExcelExport.jsx';
 
 const MainPage = () => {
     const navigate = useNavigate();
@@ -141,6 +142,7 @@ const MainPage = () => {
     const handleConflicts = async () => {
         const decision = await swal.fire({
             title: 'Fix Conflicts',
+            footer: "<span style='font-size:12px;color:#777;'>*extra tables and columns are not included to prevent data loss.</span>",
             text: 'Are you sure you want to fix the conflicts automatically? This will only modify the structure.',
             icon: 'warning',
             confirmButtonColor: '#003566',
@@ -173,10 +175,46 @@ const MainPage = () => {
         }         
     }
 
-    const handleExport = (data, filename) => {
-        alert('yaneyyyyyy');
+    const handleExport = async() => {
+        const { isConfirmed } = await swal.fire({
+            title: "Export Results",
+            html: `
+            <div style="text-align:left; margin-left:20px;">
+                <label>
+                <input type="checkbox" id="exportExcel" />
+                Excel (.xlsx)
+                </label><br/><br/>
 
-    }
+                <label>
+                <input type="checkbox" id="exportPDF" />
+                PDF (.pdf)
+                </label>
+            </div>
+            `,
+            confirmButtonText: "Download",
+            showCancelButton: true,
+
+            preConfirm: () => {
+            const excel = document.getElementById("exportExcel").checked;
+            const pdf = document.getElementById("exportPDF").checked;
+
+            if (!excel && !pdf) {
+                swal.showValidationMessage("Please select at least one format");
+                return false;
+            }
+
+            return { excel, pdf };
+            }
+        });
+
+        if (!isConfirmed) return;
+
+        const excel = document.getElementById("exportExcel").checked;
+        const pdf = document.getElementById("exportPDF").checked;
+
+        if (excel) exportToExcel(results);
+        if (pdf) exportToPDF();
+    };
 
     function Row(props) {
     const { row } = props;
@@ -421,7 +459,7 @@ const MainPage = () => {
                     </TableBody>
                 </Table>
                 <div className='btn-group'>
-                    <button className='export-btn' style={{ backgroundColor: '#FACC1566', color: '#000000'}} onClick={() => handleExport()}>Export Results</button>
+                     <button className='export-btn' style={{ backgroundColor: '#FACC1566', color: '#000000'}} onClick={() => handleExport()}>Export Results</button>
                     {rescan && (
                         <button className='rescan-btn' onClick={() => fetchResults()}>Rescan</button>
                     )}
