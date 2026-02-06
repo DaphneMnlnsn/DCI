@@ -32,6 +32,8 @@ const MainPage = () => {
     const [scan, setScan] = useState(false);
     const [rescan, setRescan] = useState(false);
     const [fixConflicts, setFixConflicts] = useState(false);
+    const [warnings, setWarnings] = useState([]);
+    const [fixed, setFixed] = useState([]);
 
     const handleDBSelect = () => {
         fileInput.current.click();
@@ -157,16 +159,53 @@ const MainPage = () => {
                 });
 
                 if(response.status === 200){
-                    Swal.fire({
-                        title: 'Success',
-                        text: 'Conflicts fixed',
-                        icon: 'success'
+                    const statements = response.data.statements || [];
+                    const localWarnings = [];
+                    const localFixed = [];
                     
-                    })
+                    statements.forEach(stmt => {
+                        if (stmt.startsWith('-- WARNING:')) {
+                            const warning = stmt.replace('-- WARNING: ', '');
+                            console.warn('Warning: ', warning);
+                            localWarnings.push(warning);
+                        } else if (!stmt.startsWith('-- WARNING:')) {
+                            const fixed = stmt;
+                            localFixed.push(fixed);
+                        }
+                        else {
+                            console.log('Executed:', stmt);
+                        }
+                    });
+
+                    setWarnings(localWarnings);
+
+                    if(localWarnings.length > 0){
+                        swal.fire({
+                            title: 'Completed with warnings',
+                            html: `<span class="conflict-count">${localFixed.length} conflict(s) fixed with ${localWarnings.length} warning(s)</span>
+                                <br/><br/>
+                                <div style="text-align:left; max-height:200px; overflow-y:auto;">
+                                    <strong>Warnings:</strong>
+                                    <ul>${localWarnings.map(w => `<li>${w}</li>`).join('')}</ul>
+                                </div>`,
+                            icon: 'warning',
+                            confirmButtonText: 'OK',
+                            confirmButtonColor: '#003566'
+                        })
+                    } else {
+                        swal.fire({
+                            title: 'Success',
+                            text: `${statements.length} conflict(s) fixed`,
+                            icon: 'success',
+                            confirmButtonText: 'OK',
+                            confirmButtonColor: '#003566'
+                        });
+                    }
+                    
                 }
             } catch (error){
                 console.log('Error fixing conflicts: ', error);
-                    Swal.fire({
+                    swal.fire({
                         title: 'Error',
                         text: 'Something went wrong while fixing conflicts.',
                         icon: 'error'
@@ -192,18 +231,19 @@ const MainPage = () => {
             </div>
             `,
             confirmButtonText: "Download",
+            confirmButtonColor: '#003566',
             showCancelButton: true,
 
             preConfirm: () => {
-            const excel = document.getElementById("exportExcel").checked;
-            const pdf = document.getElementById("exportPDF").checked;
+                const excel = document.getElementById("exportExcel").checked;
+                const pdf = document.getElementById("exportPDF").checked;
 
-            if (!excel && !pdf) {
-                swal.showValidationMessage("Please select at least one format");
-                return false;
-            }
+                if (!excel && !pdf) {
+                    swal.showValidationMessage("Please select at least one format");
+                    return false;
+                }
 
-            return { excel, pdf };
+                return { excel, pdf };
             }
         });
 
