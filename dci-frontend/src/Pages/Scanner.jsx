@@ -155,11 +155,20 @@ const MainPage = () => {
                 });
 
                 if(response.status === 200){
-                    //SWAL SUCCESS MESSAGE
+                    Swal.fire({
+                        title: 'Success',
+                        text: 'Conflicts fixed',
+                        icon: 'success'
+                    
+                    })
                 }
             } catch (error){
                 console.log('Error fixing conflicts: ', error);
-                //SWAL ERROR MESSAGE 
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Something went wrong while fixing conflicts.',
+                        icon: 'error'
+                })
             }
         }         
     }
