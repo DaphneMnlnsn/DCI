@@ -19,6 +19,7 @@ import Paper from '@mui/material/Paper';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import exportToExcel from './ExcelExport.jsx';
+import exportToPDF from './PDFExport.jsx';
 
 const MainPage = () => {
     const navigate = useNavigate();
@@ -330,7 +331,7 @@ const MainPage = () => {
         const pdf = document.getElementById("exportPDF").checked;
 
         if (excel) exportToExcel(results);
-        if (pdf) exportToPDF();
+        if (pdf) exportToPDF(results);
     };
 
     function Row(props) {
