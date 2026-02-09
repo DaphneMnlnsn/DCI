@@ -226,7 +226,7 @@ const MainPage = () => {
 
         if (decision.isConfirmed){
             try{
-                const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/fix`, null, {
+                const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/fix`, {
                     params: {
                         source: dbA,
                         target: dbB,
@@ -254,6 +254,7 @@ const MainPage = () => {
                     });
 
                     setWarnings(localWarnings);
+                    fetchDatabase2(dbB);
 
                     if(localWarnings.length > 0){
                         swal.fire({
