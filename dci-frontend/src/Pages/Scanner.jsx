@@ -34,14 +34,15 @@ const MainPage = () => {
     const [fixConflicts, setFixConflicts] = useState(false);
     const [warnings, setWarnings] = useState([]);
     const [fixed, setFixed] = useState([]);
+    const [dbA, setDbA] = useState(null);
+    const [dbB, setDbB] = useState(null);
 
-    const handleDBSelect = () => {
-        fileInput.current.click();
-    }
+    const fetchDatabase = async (dbName) => {
+        if (!dbName) return;
 
-    const fetchDatabase = async () => {
         try {
-            const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/read/master`, {
+            const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/read/schema`, {
+                params: { database: dbName},
                 responseType: 'json',
             });
             if (response.status === 200){
@@ -66,9 +67,12 @@ const MainPage = () => {
         }
     }
 
-    const fetchDatabase2 = async () => {
+    const fetchDatabase2 = async (dbName) => {
+        if (!dbName) return;
+
         try {
-            const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/read/client`, {
+            const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/read/schema`, {
+                params: { database: dbName},
                 responseType: 'json',
             });
             if (response.status === 200){
@@ -92,11 +96,79 @@ const MainPage = () => {
         }
     }
 
+    const openDatabaseSelect = async () => {
+        const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/read/all`, {
+            responseType: 'json',
+        })
+        const allDatabases = response.data.databases || [];
+
+        const value = await swal.fire({
+            title: "Select database",
+            input: "select",
+            inputOptions: allDatabases.reduce((acc, db) => {
+                acc[db] = db;
+                return acc;
+            }, {}),
+            inputPlaceholder: "Select database",
+            showCancelButton: true,
+            confirmButtonText: "Select",
+            confirmButtonColor: '#003566',
+            width: 600,
+            heightAuto: true,
+            padding: '10px',
+            customClass: {popup: 'swal-big'}
+        });
+
+        if (value.isConfirmed){
+            setDbA(value.value);
+            fetchDatabase(value.value);
+        }  
+    }
+     
+    const openDatabaseSelect2 = async () => {
+        const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/read/all`, {
+            responseType: 'json',
+        })
+        const allDatabases = response.data.databases || [];
+
+        const value = await swal.fire({
+            title: "Select database",
+            input: "select",
+            inputOptions: allDatabases.reduce((acc, db) => {
+                acc[db] = db;
+                return acc;
+            }, {}),
+            inputPlaceholder: "Select database",
+            showCancelButton: true,
+            confirmButtonText: "Select",
+            confirmButtonColor: '#003566',
+            width: 600,
+            heightAuto: true,
+            padding: '10px',
+            customClass: {popup: 'swal-big'}
+        });
+
+        if (value.isConfirmed){
+            setDbB(value.value);
+            fetchDatabase2(value.value);
+        }  
+    }
+
     const fetchResults = async () => {
+        if (!dbA || !dbB) {
+            swal.fire("Select two databases first", "", "warning");
+            return;
+        }
+
         try {
             const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/scan`, {
-                responseType: 'json',
-            });
+                    params: {
+                        source: dbA,
+                        target: dbB,
+                    },
+                    responseType: 'json',
+                }
+            );
             if (response.status === 200){
                 const conflicts = response.data.conflicts || {};
                 const conflictArray = Object.entries(conflicts).map(([conflictType, details]) => ({
@@ -154,7 +226,11 @@ const MainPage = () => {
 
         if (decision.isConfirmed){
             try{
-                const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/fix`, {
+                const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/fix`, null, {
+                    params: {
+                        source: dbA,
+                        target: dbB,
+                    },
                     responseType: 'json',
                 });
 
@@ -508,38 +584,6 @@ const MainPage = () => {
             </TableContainer>
         );
     }
-        
-    const openDatabaseSelect = async () => {
-        const value = await swal.fire({
-            title: "Select database",
-            input: "select",
-            inputOptions: {}, 
-            inputPlaceholder: "Select database",
-            showCancelButton: true,
-            confirmButtonText: "Select",
-            confirmButtonColor: '#003566',
-            width: 600,
-            heightAuto: true,
-            padding: '10px',
-            customClass: {popup: 'swal-big'}
-        });
-    }
-     
-     const openDatabaseSelect2 = async () => {
-        const value = await swal.fire({
-            title: "Select database",
-            input: "select",
-            inputOptions: {}, 
-            inputPlaceholder: "Select database",
-            showCancelButton: true,
-            confirmButtonText: "Select",
-            confirmButtonColor: '#003566',
-            width: 600, 
-            heightAuto: true,
-            padding: '10px',
-            customClass: {popup: 'swal-big'}
-        });
-    }
 
     return (
         <div className='scanner-root'> 
@@ -569,7 +613,6 @@ const MainPage = () => {
                                         </div>
 
                                         <div className="line"></div>
-                                        <button className='select-btn' onClick={() => {fetchDatabase(); }}>Show</button>
                                         <button className='select-btn' onClick= {() => {openDatabaseSelect(); }}>Select</button>
                                 </>    
                             )}
@@ -590,8 +633,6 @@ const MainPage = () => {
                                     </div>
 
                                         <div className="line"></div>
-
-                                        <button className='select-btn' onClick={() => {fetchDatabase2(); }}>Show</button>
                                         <button className='select-btn' onClick= {() => {openDatabaseSelect2(); }}>Select</button>
                                        
                                 </>    

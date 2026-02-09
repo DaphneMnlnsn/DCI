@@ -42,32 +42,37 @@ class SchemaController extends Controller
         }
     }
 
-    public function scanSchema(SchemaScannerService $scanner){
-        try{
+    public function readSchema(Request $request, SchemaReaderService $reader)
+    {
+        try {
+            $database = $request->query('database');
 
-            $schema = $scanner->scan();
+            if (!$database) {
+                return response()->json(['error' => 'Database not specified'], 400);
+            }
+
+            $schema = $reader->readSchemaByDatabase($database);
+
             return response()->json($schema);
-
-        }
-        catch(\Throwable $e){
-
+        } catch (\Throwable $e) {
             return response()->json([
                 'error' => $e->getMessage()
             ], 500);
-            
         }
     }
 
-    public function fixSchema(SchemaReaderService $reader, SchemaScannerService $scanner, SchemaFixerService $fixer){
+    public function scanSchema(Request $request, SchemaScannerService $scanner){
         try{
+            $source = $request->query('source');
+            $target = $request->query('target');
 
-            $conflicts = $scanner->scan();
-            $masterSchema = $reader->readSchema('master');
-            $clientSchema = $reader->readSchema('client');
+            if (!$source || !$target) {
+                return response()->json(['error' => 'Databases not specified'], 400);
+            }
 
-            $message = $fixer->fix($conflicts['conflicts'], $masterSchema['schema'], $clientSchema['schema']);
-
-            return response()->json($message);
+            return response()->json(
+                $scanner->scan($source, $target)
+            );
 
         }
         catch(\Throwable $e){
@@ -78,6 +83,27 @@ class SchemaController extends Controller
             
         }
     }
+
+    // public function fixSchema(SchemaReaderService $reader, SchemaScannerService $scanner, SchemaFixerService $fixer){
+    //     try{
+
+    //         $conflicts = $scanner->scan();
+    //         $masterSchema = $reader->readSchema('master');
+    //         $clientSchema = $reader->readSchema('client');
+
+    //         $message = $fixer->fix($conflicts['conflicts'], $masterSchema['schema'], $clientSchema['schema']);
+
+    //         return response()->json($message);
+
+    //     }
+    //     catch(\Throwable $e){
+
+    //         return response()->json([
+    //             'error' => $e->getMessage()
+    //         ], 500);
+            
+    //     }
+    // }
 
     public function readAllDatabases(SchemaReaderService $reader){
         try{
