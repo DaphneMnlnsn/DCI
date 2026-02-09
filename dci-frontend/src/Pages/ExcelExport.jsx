@@ -6,52 +6,77 @@ export const exportToExcel = (results) => {
   if (!results?.conflicts) return;
 
   try {
-    const data = results.conflicts.map((item) => {
+    const data = [];
+    const merges = [];
+
+    let currentRow = 1; // Row 0 = header
+
+    results.conflicts.forEach((item) => {
       const type = item.conflictType;
       const details = item.details || {};
-      let affectedText = '';
+
+      let affectedList = [];
 
       switch (type) {
         case 'missing_client_table':
         case 'extra_client_table':
-          affectedText = Object.keys(details).join(', ');
+          affectedList = Object.keys(details);
           break;
 
         case 'missing_client_column':
         case 'extra_client_column':
-          affectedText = Object.entries(details)
-            .map(([table, columns]) => `${table}: ${Object.keys(columns).join(', ')}`)
-            .join(' | ');
+          Object.entries(details).forEach(([table, columns]) => {
+            Object.keys(columns).forEach((col) => {
+              affectedList.push(`${table}.${col}`);
+            });
+          });
           break;
 
         case 'type_mismatch':
-          affectedText = Object.entries(details)
-            .map(([table, columns]) =>
-              Object.entries(columns)
-                .map(([col, types]) => `${table}.${col} (${types.master} vs ${types.client})`)
-                .join(', ')
-            )
-            .join(' | ');
+          Object.entries(details).forEach(([table, columns]) => {
+            Object.entries(columns).forEach(([col, types]) => {
+              affectedList.push(
+                `${table}.${col} (${types.master} vs ${types.client})`
+              );
+            });
+          });
           break;
 
         case 'length_mismatch':
-          affectedText = Object.entries(details)
-            .map(([table, columns]) =>
-              Object.entries(columns)
-                .map(([col, len]) => `${table}.${col} (${len.master || 'N/A'} vs ${len.client})`)
-                .join(', ')
-            )
-            .join(' | ');
+          Object.entries(details).forEach(([table, columns]) => {
+            Object.entries(columns).forEach(([col, len]) => {
+              affectedList.push(
+                `${table}.${col} (${len.master || 'N/A'} vs ${len.client})`
+              );
+            });
+          });
           break;
 
         default:
-          affectedText = 'None';
+          affectedList.push('None');
       }
 
-      return { Conflicts: type, Affected: affectedText };
+      const startRow = currentRow;
+
+      affectedList.forEach((affected, index) => {
+        data.push({
+          Conflicts: index === 0 ? type : '',
+          Affected: affected,
+        });
+
+        currentRow++;
+      });
+
+      if (affectedList.length > 1) {
+        merges.push({
+          s: { r: startRow, c: 0 },
+          e: { r: currentRow - 1, c: 0 },
+        });
+      }
     });
 
     const worksheet = XLSX.utils.json_to_sheet(data);
+    worksheet['!merges'] = merges
     
     //EXPANDED COLUMN
     const range = XLSX.utils.decode_range(worksheet['!ref']);
@@ -85,7 +110,8 @@ export const exportToExcel = (results) => {
     const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 
     saveAs(blob, 'scan_results.xlsx');
-  } catch (error) {
+  } 
+  catch (error) {
     console.error('Excel export error:', error);
   }
 };

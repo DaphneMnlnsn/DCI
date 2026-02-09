@@ -13,14 +13,14 @@ export const exportToPDF = (results) => {
       switch (type) {
         case 'missing_client_table':
         case 'extra_client_table':
-          affectedText = Object.keys(details).join(', ') || 'None';
+          affectedText = Object.keys(details).join('\n') || 'None';
           break;
 
         case 'missing_client_column':
         case 'extra_client_column':
           affectedText = Object.entries(details)
-            .map(([table, columns]) => `${table}: ${Object.keys(columns).join(', ')}`)
-            .join(' | ') || 'None';
+            .map(([table, columns]) => `${table}: ${Object.keys(columns).join('\n')}`)
+            .join('\n') || 'None';
           break;
 
         case 'type_mismatch':
@@ -31,9 +31,9 @@ export const exportToPDF = (results) => {
                   ([col, types]) =>
                     `${table}.${col} (${types.master} vs ${types.client})`
                 )
-                .join(', ')
+                .join('\n')
             )
-            .join(' | ') || 'None';
+            .join('\n') || 'None';
           break;
 
         case 'length_mismatch':
@@ -44,9 +44,9 @@ export const exportToPDF = (results) => {
                   ([col, len]) =>
                     `${table}.${col} (${len.master || 'N/A'} vs ${len.client})`
                 )
-                .join(', ')
+                .join('\n')
             )
-            .join(' | ') || 'None';
+            .join('\n') || 'None';
           break;
 
         default:
@@ -76,6 +76,8 @@ export const exportToPDF = (results) => {
         fontSize: 10,
         cellPadding: 3,
         overflow: 'linebreak',
+        cellWidth: 'wrap',
+        valign: 'top'
       },
       columnStyles: {
         1: { cellWidth: 120 },
