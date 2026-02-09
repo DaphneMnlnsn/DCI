@@ -8,9 +8,8 @@ use App\database\Schema\Builders\SqlServerSchemaBuilder;
 
 class SchemaSQLBuilderFactory
 {
-    public static function make(){
-        $driver = DB::connection('client')->getDriverName();
-
+    public static function make(string $driver){
+        
         if($driver == 'mysql'){
             return new MySqlSchemaBuilder();
         }

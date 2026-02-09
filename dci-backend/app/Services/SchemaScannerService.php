@@ -15,10 +15,10 @@ class SchemaScannerService
 
     }
 
-    public function scan(){
-        
-        $masterData = $this->reader->readSchema('master');
-        $clientData = $this->reader->readSchema('client');
+    public function scan(string $sourceDb, string $targetDb)
+    {
+        $masterData = $this->reader->readSchemaByDatabase($sourceDb);
+        $clientData = $this->reader->readSchemaByDatabase($targetDb);
 
         $masterSchema = $masterData['schema'];
         $clientSchema = $clientData['schema'];

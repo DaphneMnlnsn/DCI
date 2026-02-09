@@ -3,16 +3,30 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Config;
 
 class SchemaReaderService
 {
-    public function readSchema(string $connectionName){
 
+    public function readSchemaByDatabase(string $dbName)
+    {
         $schema = [];
 
-        $conn = DB::connection($connectionName);
+        $baseConn = config('database.default');
+        $baseConfig = config("database.connections.$baseConn");
+
+        // Overriding the db
+        $dynamicConnName = 'dynamic_schema';
+
+        Config::set(
+            "database.connections.$dynamicConnName",
+            array_merge($baseConfig, ['database' => $dbName])
+        );
+
+        DB::purge($dynamicConnName);
+        $conn = DB::connection($dynamicConnName);
+
         $driver = $conn->getDriverName();
-        $dbName = $conn->getDatabaseName();
 
         if($driver == 'mysql'){
 
@@ -65,6 +79,7 @@ class SchemaReaderService
             'schema' => $schema
         ];
     }
+
     
     public function readAllDatabases(){
         $conn = config('database.default');

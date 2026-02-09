@@ -22,7 +22,6 @@ class SqlServerSchemaBuilder implements SchemaSQLBuilderInterface
             default => strtoupper($columnDef['data_type']),
         };
 
-        // Only append length for NVARCHAR(n) or NCHAR(n), skip NVARCHAR(MAX)
         if (in_array($type, ['NVARCHAR','NCHAR']) && !str_contains($type,'MAX')) {
             if (!empty($columnDef['maximum_characters'])) {
                 $type .= "({$columnDef['maximum_characters']})";
