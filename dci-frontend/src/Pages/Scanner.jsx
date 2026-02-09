@@ -238,16 +238,13 @@ const MainPage = () => {
                 if(response.status === 200){
                     const statements = response.data.statements || [];
                     const localWarnings = [];
-                    const localFixed = [];
+                    const executed = response.data.executed || 0;
                     
                     statements.forEach(stmt => {
                         if (stmt.startsWith('-- WARNING:')) {
                             const warning = stmt.replace('-- WARNING: ', '');
                             console.warn('Warning: ', warning);
                             localWarnings.push(warning);
-                        } else if (!stmt.startsWith('-- WARNING:')) {
-                            const fixed = stmt;
-                            localFixed.push(fixed);
                         }
                         else {
                             console.log('Executed:', stmt);
@@ -260,7 +257,7 @@ const MainPage = () => {
                     if(localWarnings.length > 0){
                         swal.fire({
                             title: 'Completed with warnings',
-                            html: `<span class="conflict-count">${localFixed.length} conflict(s) fixed with ${localWarnings.length} warning(s)</span>
+                            html: `<span class="conflict-count">${executed} conflict(s) fixed with ${localWarnings.length} warning(s)</span>
                                 <br/><br/>
                                 <div style="text-align:left; max-height:200px; overflow-y:auto;">
                                     <strong>Warnings:</strong>
@@ -273,7 +270,7 @@ const MainPage = () => {
                     } else {
                         swal.fire({
                             title: 'Success',
-                            text: `${statements.length} conflict(s) fixed`,
+                            text: `${executed} conflict(s) fixed`,
                             icon: 'success',
                             confirmButtonText: 'OK',
                             confirmButtonColor: '#003566'

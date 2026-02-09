@@ -50,12 +50,36 @@ class SchemaFixerService
         $finalStatements = [];
 
         foreach ($sql as $statement) {
-            try {
-                $conn->statement($statement);
-                $finalStatements[] = $statement;
-                $executed++;
-            } catch (\Throwable $e) {
-                $finalStatements[] = "-- WARNING: cannot execute statement: {$statement}, incompatible data conversion exists.";
+            if ($this->driver === 'pgsql') {
+                $subStatements = array_filter(array_map('trim', explode(';', $statement)));
+                $primarySucceeded = false;
+                
+                foreach ($subStatements as $index => $stmt) {
+                    if (!empty($stmt)) {
+                        try {
+                            $conn->statement($stmt);
+                            $finalStatements[] = $stmt;
+                            
+                            if ($index === 0) {
+                                $primarySucceeded = true;
+                            }
+                        } catch (\Throwable $e) {
+                            $finalStatements[] = "-- WARNING: cannot execute statement: {$stmt}, incompatible data type conversion.";
+                        }
+                    }
+                }
+                
+                if ($primarySucceeded) {
+                    $executed++;
+                }
+            } else {
+                try {
+                    $conn->statement($statement);
+                    $finalStatements[] = $statement;
+                    $executed++;
+                } catch (\Throwable $e) {
+                    $finalStatements[] = "-- WARNING: cannot execute statement: {$statement}, incompatible data type conversion.";
+                }
             }
         }
 
