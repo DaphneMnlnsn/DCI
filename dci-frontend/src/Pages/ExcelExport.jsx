@@ -52,6 +52,32 @@ export const exportToExcel = (results) => {
     });
 
     const worksheet = XLSX.utils.json_to_sheet(data);
+    
+    //EXPANDED COLUMN
+    const range = XLSX.utils.decode_range(worksheet['!ref']);
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const headerCell = worksheet[XLSX.utils.encode_cell({ r: 1, c: C })];
+      if (headerCell) {
+        headerCell.s = {
+          font: { bold: true },
+          alignment: { horizontal: 'center', vertical: 'center' },
+        };
+      }
+    }
+    const maxColWidths = [];
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      let maxLength = 10;
+      for (let R = range.s.r; R <= range.e.r; ++R) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+        const cell = worksheet[cellAddress];
+        if (cell && cell.v) {
+          maxLength = Math.max(maxLength, cell.v.toString().length + 2);
+        }
+      }
+      maxColWidths.push({ wch: maxLength });
+    }
+    worksheet['!cols'] = maxColWidths;
+
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Results');
 
