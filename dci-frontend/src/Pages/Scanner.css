@@ -180,15 +180,15 @@
 }
 
 .table-row { /* Table Row Styling */
-  background-color: #ffffff;
+    background-color: #ffffff;
 }
 
 .table-row td { /* Table Cell Styling */
-  border-bottom: 1px solid #e0e0e0; 
+    border-bottom: 1px solid #e0e0e0; 
 }
 
 .icon-cell {
-  width: 40px;
+    width: 40px;
 }
 
 button:focus {
@@ -201,35 +201,35 @@ button:focus {
 }
 
 .expanded-row td { /* Expanded Row Styling */
-  padding: 0;
-  border-bottom: 1px solid #ffffff; 
-  font-size: 13px;
+    padding: 0;
+    border-bottom: 1px solid #ffffff; 
+    font-size: 13px;
 }
 
 .expanded-cell {
-  padding: 0;
+    padding: 0;
 }
 
 .inner-table {
-  width: 100%;
-  padding: 0;
-  border-collapse: collapse;
+    width: 100%;
+    padding: 0;
+    border-collapse: collapse;
 }
 
 .inner-table th, /* Inner Table Header */
 .inner-table td { /* Inner Table Cell */
-  border: 1px solid rgba(40, 100, 159, 0.116);
-  padding: 10px;
-  font-family: 'Poppins', sans-serif;
+    border: 1px solid rgba(40, 100, 159, 0.116);
+    padding: 10px;
+    font-family: 'Poppins', sans-serif;
 }
 
 .inner-header th {
-  background-color: #f7f3ea;
-  font-weight: 600;
+    background-color: #f7f3ea;
+    font-weight: 600;
 }
 
 .inner-row:nth-child(even) {
-  background-color: #f7f3ea;
+    background-color: #f7f3ea;
 }
 
 .conflict-count{
@@ -239,7 +239,11 @@ button:focus {
     
 }
 
-.swal-large {
-  font-size: 16px;      
-  border-radius: 12px;   
+.swal-big {
+    font-size: 16px;      
+    border-radius: 12px;   
+}
+
+.swal-poppins select {
+    font-family: 'Poppins', sans-serif !important;
 }

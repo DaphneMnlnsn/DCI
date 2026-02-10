@@ -19,7 +19,6 @@ import Paper from '@mui/material/Paper';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import exportToExcel from './ExcelExport.jsx';
-import exportToPDF from './PDFExport.jsx';
 
 const MainPage = () => {
     const navigate = useNavigate();
@@ -117,7 +116,15 @@ const MainPage = () => {
             width: 600,
             heightAuto: true,
             padding: '10px',
-            customClass: {popup: 'swal-big'}
+            customClass: {popup: 'swal-big swal-poppins'},
+
+            preConfirm: (value) => {
+                if (!value) {
+                    swal.showValidationMessage("Please select a database");
+                    return false;
+                }
+                return value;
+            }
         });
 
         if (value.isConfirmed){
@@ -146,7 +153,8 @@ const MainPage = () => {
             width: 600,
             heightAuto: true,
             padding: '10px',
-            customClass: {popup: 'swal-big'}
+            customClass: {
+                popup: 'swal-big swal-poppins'}
         });
 
         if (value.isConfirmed){
@@ -227,7 +235,7 @@ const MainPage = () => {
 
         if (decision.isConfirmed){
             try{
-                const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/fix`, {
+                const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/fix`, null, {
                     params: {
                         source: dbA,
                         target: dbB,
@@ -238,13 +246,16 @@ const MainPage = () => {
                 if(response.status === 200){
                     const statements = response.data.statements || [];
                     const localWarnings = [];
-                    const executed = response.data.executed || 0;
+                    const localFixed = [];
                     
                     statements.forEach(stmt => {
                         if (stmt.startsWith('-- WARNING:')) {
                             const warning = stmt.replace('-- WARNING: ', '');
                             console.warn('Warning: ', warning);
                             localWarnings.push(warning);
+                        } else if (!stmt.startsWith('-- WARNING:')) {
+                            const fixed = stmt;
+                            localFixed.push(fixed);
                         }
                         else {
                             console.log('Executed:', stmt);
@@ -252,12 +263,11 @@ const MainPage = () => {
                     });
 
                     setWarnings(localWarnings);
-                    fetchDatabase2(dbB);
 
                     if(localWarnings.length > 0){
                         swal.fire({
                             title: 'Completed with warnings',
-                            html: `<span class="conflict-count">${executed} conflict(s) fixed with ${localWarnings.length} warning(s)</span>
+                            html: `<span class="conflict-count">${localFixed.length} conflict(s) fixed with ${localWarnings.length} warning(s)</span>
                                 <br/><br/>
                                 <div style="text-align:left; max-height:200px; overflow-y:auto;">
                                     <strong>Warnings:</strong>
@@ -270,7 +280,7 @@ const MainPage = () => {
                     } else {
                         swal.fire({
                             title: 'Success',
-                            text: `${executed} conflict(s) fixed`,
+                            text: `${statements.length} conflict(s) fixed`,
                             icon: 'success',
                             confirmButtonText: 'OK',
                             confirmButtonColor: '#003566'
@@ -328,7 +338,7 @@ const MainPage = () => {
         const pdf = document.getElementById("exportPDF").checked;
 
         if (excel) exportToExcel(results);
-        if (pdf) exportToPDF(results);
+        if (pdf) exportToPDF();
     };
 
     function Row(props) {
@@ -602,7 +612,10 @@ const MainPage = () => {
                     <div className='scanner-select'>
                         <div className="card">
                             {show ? (
-                                <CollapsibleTable /> 
+                                <>
+                                    <CollapsibleTable />
+                                    <button className='select-btn' onClick= {() => {openDatabaseSelect(); }}>Reselect</button>
+                                </>
                             ) : (
                                 <>
                                     <div className="card-header">
@@ -622,7 +635,10 @@ const MainPage = () => {
                     <div className='scanner-select'>
                         <div className="card">
                             {show2 ? (
-                                <CollapsibleTable2 /> 
+                                <>
+                                    <CollapsibleTable2 /> 
+                                    <button className='select-btn' onClick= {() => {openDatabaseSelect2(); }}>Reselect</button>
+                                </>
                             ) : (
                                 <>
                                 <div className="card-header-client">
