@@ -93,11 +93,20 @@ class SchemaReaderService
                 $schema[$tableName] = ["columns" => []];
             }
 
-            $schema[$tableName]["columns"][$columnName] = [
-                "data_type" => strtolower($dataType),
-                "maximum_characters" => $maxLength,
-                "nullable" => strtoupper($isNullable) === 'YES'
-            ];
+            if($driver == 'pgsql'){
+                $schema[$tableName]["columns"][$columnName] = [
+                    "data_type" => strtolower($dataType),
+                    "maximum_characters" => $maxLength,
+                    "nullable" => strtoupper($isNullable) === 'YES'
+                ];
+            }
+            else{
+                $schema[$tableName]["columns"][$columnName] = [
+                    "data_type" => $dataType,
+                    "maximum_characters" => $maxLength,
+                    "nullable" => $isNullable
+                ];
+            }
         }
 
         return [

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\DB;
 use App\Services\SchemaReaderService;
+use Illuminate\Support\Facades\Config;
 
 class SchemaScannerService
 {
@@ -17,6 +18,22 @@ class SchemaScannerService
 
     public function scan(string $sourceDb, string $targetDb)
     {
+        $baseConn = config('database.default');
+        $baseConfig = config("database.connections.$baseConn");
+
+        // Overriding the db
+        $dynamicConnName = 'dynamic_schema';
+
+        Config::set(
+            "database.connections.$dynamicConnName",
+            array_merge($baseConfig, ['database' => $sourceDb])
+        );
+
+        DB::purge($dynamicConnName);
+        $conn = DB::connection($dynamicConnName);
+
+        $driver = $conn->getDriverName();
+
         $masterData = $this->reader->readSchemaByDatabase($sourceDb);
         $clientData = $this->reader->readSchemaByDatabase($targetDb);
 
@@ -24,8 +41,14 @@ class SchemaScannerService
         $clientSchema = $clientData['schema'];
 
         // Identifying table conflicts
-        $masterTables = array_map('strtolower', array_keys($masterSchema));
-        $clientTables = array_map('strtolower', array_keys($clientSchema));
+        if($driver == 'pgsql'){
+            $masterTables = array_map('strtolower', array_keys($masterSchema));
+            $clientTables = array_map('strtolower', array_keys($clientSchema));
+        }
+        else{
+            $masterTables = array_keys($masterSchema);
+            $clientTables = array_keys($clientSchema);
+        }
 
         $conflicts = [];
 
@@ -44,9 +67,16 @@ class SchemaScannerService
         foreach($masterTables as $row){
 
             if(isset($clientSchema[$row])){
-                
-                $masterColumns = array_map('strtolower', array_keys($masterSchema[$row]["columns"]));
-                $clientColumns = array_map('strtolower', array_keys($clientSchema[$row]["columns"]));
+
+                // Identifying table conflicts
+                if($driver == 'pgsql'){
+                    $masterColumns = array_map('strtolower', array_keys($masterSchema[$row]["columns"]));
+                    $clientColumns = array_map('strtolower', array_keys($clientSchema[$row]["columns"]));
+                }
+                else{
+                    $masterColumns = array_keys($masterSchema[$row]["columns"]);
+                    $clientColumns = array_keys($clientSchema[$row]["columns"]);
+                }
 
                 $missingColumns = array_diff($masterColumns, $clientColumns);
                 $extraColumns = array_diff($clientColumns, $masterColumns);
