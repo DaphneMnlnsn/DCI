@@ -6,26 +6,22 @@ class SqlServerSchemaBuilder implements SchemaSQLBuilderInterface
 {
     protected function normalizeType(array $columnDef): string
     {
-        $type = strtolower($columnDef['data_type']);
+        $type = strtoupper($columnDef['data_type']);  // Preserve original casing
 
-        $type = match ($type) {
-            'varchar' => 'NVARCHAR',
-            'char' => 'NCHAR',
-
-            'text',
-            'tinytext',
-            'mediumtext',
-            'longtext' => 'NVARCHAR(MAX)',
-
+        $type = match (strtolower($type)) {
+            // 'varchar' => 'NVARCHAR',
+            // 'char' => 'NCHAR',
+            'text', 'tinytext', 'mediumtext', 'longtext' => 'NVARCHAR(MAX)',
             'timestamp' => 'DATETIME2',
-
-            default => strtoupper($columnDef['data_type']),
+            default => $type,
         };
 
         if (in_array($type, ['NVARCHAR','NCHAR']) && !str_contains($type,'MAX')) {
             if (!empty($columnDef['maximum_characters'])) {
                 $type .= "({$columnDef['maximum_characters']})";
             }
+        } elseif (in_array($type, ['VARCHAR', 'CHAR']) && !empty($columnDef['maximum_characters'])) {
+            $type .= "({$columnDef['maximum_characters']})";
         }
 
         return $type;

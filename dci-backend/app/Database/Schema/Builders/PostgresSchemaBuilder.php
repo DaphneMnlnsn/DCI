@@ -6,6 +6,11 @@ use Illuminate\Support\Facades\Log;
 class PostgresSchemaBuilder implements SchemaSQLBuilderInterface
 {
 
+    protected function quoteIdentifier(string $name): string
+    {
+        return '"' . str_replace('"', '""', $name) . '"';
+    }
+
     protected function normalizeType(array $columnDef): string
     {
         $type = strtolower($columnDef['data_type']);
@@ -47,27 +52,30 @@ class PostgresSchemaBuilder implements SchemaSQLBuilderInterface
 
     public function createMissingTables(string $table, array $tableDef): string
     {
+        $quotedTable = $this->quoteIdentifier($table);
         $columnsSQL = [];
 
         foreach($tableDef['columns'] as $columnName => $column){
+            $quotedColumnName = $this->quoteIdentifier($columnName);
             $type = $this->normalizeType($column);
             $nullable = $column['nullable'] ? "" : "NOT NULL";
 
-            $columnsSQL[] = "{$columnName} {$type} {$nullable}";
+            $columnsSQL[] = "{$quotedColumnName} {$type} {$nullable}";
         }
 
         $columns = implode(", ", $columnsSQL);
 
-        return "CREATE TABLE IF NOT EXISTS {$table} ({$columns});";
+        return "CREATE TABLE IF NOT EXISTS {$quotedTable} ({$columns});";
     }
 
     public function addMissingColumns(string $table, string $column, array $columnDef): string
     {
-
+        $quotedTable = $this->quoteIdentifier($table);
+        $quotedColumn = $this->quoteIdentifier($column);
         $type = $this->normalizeType($columnDef);
         $nullable = $columnDef['nullable'] ? "" : "NOT NULL";
 
-        $sql = "ALTER TABLE {$table} ADD COLUMN {$column} {$type}";
+        $sql = "ALTER TABLE {$quotedTable} ADD COLUMN {$quotedColumn} {$type}";
 
         // Adding not null doesn't work on adding columns in postgres so adding default here, depending on the type
         if (!$columnDef['nullable'] && !isset($columnDef['default'])) {
@@ -88,7 +96,7 @@ class PostgresSchemaBuilder implements SchemaSQLBuilderInterface
         $sql .= " {$nullable};";
 
         if (!$columnDef['nullable'] && !isset($columnDef['default'])) {
-            $sql .= " ALTER TABLE {$table} ALTER COLUMN {$column} DROP DEFAULT;";
+            $sql .= " ALTER TABLE {$quotedTable} ALTER COLUMN {$quotedColumn} DROP DEFAULT;";
         }
 
         return $sql;
@@ -96,10 +104,12 @@ class PostgresSchemaBuilder implements SchemaSQLBuilderInterface
 
     public function modifyMismatchedColumns(string $table, string $column, array $columnDef): string
     {
+        $quotedTable = $this->quoteIdentifier($table);
+        $quotedColumn = $this->quoteIdentifier($column);
         $type = $this->normalizeType($columnDef);
         $nullable = $columnDef['nullable'] ? "DROP NOT NULL" : "SET NOT NULL";
 
-        return "ALTER TABLE {$table} ALTER COLUMN {$column} TYPE {$type}; " .
-               "ALTER TABLE {$table} ALTER COLUMN {$column} {$nullable};";
+        return "ALTER TABLE {$quotedTable} ALTER COLUMN {$quotedColumn} TYPE {$type}; " .
+               "ALTER TABLE {$quotedTable} ALTER COLUMN {$quotedColumn} {$nullable};";
     }
 }

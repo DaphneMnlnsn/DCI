@@ -88,6 +88,11 @@ class SchemaReaderService
 
             $isNullable = property_exists($row, 'is_nullable')
                 ? $row->is_nullable : ($row->IS_NULLABLE ?? 'YES');
+            
+            if ($driver == 'mysql') {
+                $tableName = strtolower($tableName);
+                $columnName = strtolower($columnName);
+            }
 
             if (!isset($schema[$tableName])) {
                 $schema[$tableName] = ["columns" => []];

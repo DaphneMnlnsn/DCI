@@ -41,14 +41,8 @@ class SchemaScannerService
         $clientSchema = $clientData['schema'];
 
         // Identifying table conflicts
-        if($driver == 'pgsql'){
-            $masterTables = array_map('strtolower', array_keys($masterSchema));
-            $clientTables = array_map('strtolower', array_keys($clientSchema));
-        }
-        else{
-            $masterTables = array_keys($masterSchema);
-            $clientTables = array_keys($clientSchema);
-        }
+        $masterTables = array_keys($masterSchema);
+        $clientTables = array_keys($clientSchema);
 
         $conflicts = [];
 
@@ -68,15 +62,8 @@ class SchemaScannerService
 
             if(isset($clientSchema[$row])){
 
-                // Identifying table conflicts
-                if($driver == 'pgsql'){
-                    $masterColumns = array_map('strtolower', array_keys($masterSchema[$row]["columns"]));
-                    $clientColumns = array_map('strtolower', array_keys($clientSchema[$row]["columns"]));
-                }
-                else{
-                    $masterColumns = array_keys($masterSchema[$row]["columns"]);
-                    $clientColumns = array_keys($clientSchema[$row]["columns"]);
-                }
+                $masterColumns = array_keys($masterSchema[$row]["columns"]);
+                $clientColumns = array_keys($clientSchema[$row]["columns"]);
 
                 $missingColumns = array_diff($masterColumns, $clientColumns);
                 $extraColumns = array_diff($clientColumns, $masterColumns);
@@ -99,8 +86,8 @@ class SchemaScannerService
 
                 foreach($masterSchema[$row]["columns"] as $columnName => $columnData){
 
-                    $col = strtolower($columnName);
-
+                    $col = $columnName;
+                    
                     if (!isset($clientSchema[$row]["columns"][$col])) {
                         continue;
                     }
