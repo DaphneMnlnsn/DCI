@@ -254,10 +254,7 @@ const MainPage = () => {
                             const warning = stmt.replace('-- WARNING: ', '');
                             console.warn('Warning: ', warning);
                             localWarnings.push(warning);
-                        } else if (!stmt.startsWith('-- WARNING:')) {
-                            const fixed = stmt;
-                            localFixed.push(fixed);
-                        }
+                        } 
                         else {
                             console.log('Executed:', stmt);
                         }
