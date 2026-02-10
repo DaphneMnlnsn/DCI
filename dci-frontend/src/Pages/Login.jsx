@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import './Login.css';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { Eye, EyeOff } from "lucide-react";
 
 const LoginPage = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const [showPassword, setShowPassword] = useState(false);
     
     const handleLogin = async (e) => {   
         e.preventDefault();
@@ -67,20 +69,32 @@ const LoginPage = () => {
 
                     <form className='login-form' onSubmit={handleLogin}>
                         <div className='input-label'>Username</div>
-                        <input className='login-email' 
-                            type='text' 
-                            placeholder='Enter your username' 
-                            value={username}
-                            onChange={e => setUsername(e.target.value)}/>
+                            <input className='login-email' 
+                                type='text' 
+                                placeholder='Enter your username' 
+                                value={username}
+                                onChange={e => setUsername(e.target.value)}/>
                         
                         <div className='input-label'>Password</div>
-                        <input className='login-password' 
-                            type='password' 
-                            placeholder='Enter your password' 
-                            value={password}
-                            onChange={e => setPassword(e.target.value)}/>
-                        
-                        <div><button className='login-btn' type='submit'>Login</button></div>
+                        <div className="password-wrapper">
+                            <input
+                                className='login-password'
+                                type={showPassword ? 'text' : 'password'}
+                                placeholder='Enter your password'
+                                value={password}
+                                onChange={e => setPassword(e.target.value)}
+                            />
+
+                            <button
+                                type="button"
+                                className="toggle-password"
+                                onClick={() => setShowPassword(!showPassword)}
+                            >
+                                {showPassword ? <EyeOff size={18}/> : <Eye size={18}/>}
+                            </button>
+
+                            <div><button className='login-btn' type='submit'>Login</button></div>
+                        </div>
 
                     </form>
                 </div>

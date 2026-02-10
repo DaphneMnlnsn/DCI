@@ -119,3 +119,19 @@ input::placeholder {
     margin-right: auto;
     box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 3px -1px;
 }
+
+.password-wrapper{
+    position: relative;
+}
+
+.toggle-password{
+    position: absolute;
+    right: 12px;
+    top: 18%;
+    left: 90%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #555;
+}

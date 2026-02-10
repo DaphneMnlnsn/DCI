@@ -19,6 +19,7 @@ import Paper from '@mui/material/Paper';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import exportToExcel from './ExcelExport.jsx';
+import exportToPDF from './PDFExport.jsx';
 
 const MainPage = () => {
     const navigate = useNavigate();
@@ -235,7 +236,7 @@ const MainPage = () => {
 
         if (decision.isConfirmed){
             try{
-                const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/fix`, null, {
+                const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/fix`, {
                     params: {
                         source: dbA,
                         target: dbB,
@@ -246,7 +247,7 @@ const MainPage = () => {
                 if(response.status === 200){
                     const statements = response.data.statements || [];
                     const localWarnings = [];
-                    const localFixed = [];
+                    const executed = response.data.executed || 0;
                     
                     statements.forEach(stmt => {
                         if (stmt.startsWith('-- WARNING:')) {
@@ -263,11 +264,12 @@ const MainPage = () => {
                     });
 
                     setWarnings(localWarnings);
+                    fetchDatabase2(dbB);
 
                     if(localWarnings.length > 0){
                         swal.fire({
                             title: 'Completed with warnings',
-                            html: `<span class="conflict-count">${localFixed.length} conflict(s) fixed with ${localWarnings.length} warning(s)</span>
+                            html: `<span class="conflict-count">${executed} conflict(s) fixed with ${localWarnings.length} warning(s)</span>
                                 <br/><br/>
                                 <div style="text-align:left; max-height:200px; overflow-y:auto;">
                                     <strong>Warnings:</strong>
@@ -280,7 +282,7 @@ const MainPage = () => {
                     } else {
                         swal.fire({
                             title: 'Success',
-                            text: `${statements.length} conflict(s) fixed`,
+                            text: `${executed} conflict(s) fixed`,
                             icon: 'success',
                             confirmButtonText: 'OK',
                             confirmButtonColor: '#003566'
@@ -338,7 +340,7 @@ const MainPage = () => {
         const pdf = document.getElementById("exportPDF").checked;
 
         if (excel) exportToExcel(results);
-        if (pdf) exportToPDF();
+        if (pdf) exportToPDF(results);
     };
 
     function Row(props) {
