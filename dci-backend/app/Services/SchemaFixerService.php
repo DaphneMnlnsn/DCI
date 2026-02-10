@@ -5,41 +5,89 @@ namespace App\Services;
 use App\database\Schema\SchemaSQLBuilderFactory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Config;
 
 class SchemaFixerService
 {
     protected $builder;
+    protected $driver;
 
-    public function __construct(){
-        $this->builder = SchemaSQLBuilderFactory::make();
+    public function getConnection(string $dbName){
+        $baseConn = config('database.default');
+        $baseConfig = config("database.connections.$baseConn");
+
+        // Overriding the db
+        $dynamicConnName = 'dynamic_schema';
+
+        Config::set(
+            "database.connections.$dynamicConnName",
+            array_merge($baseConfig, ['database' => $dbName])
+        );
+
+        DB::purge($dynamicConnName);
+        $conn = DB::connection($dynamicConnName);
+        $this->driver = $conn->getDriverName();
+
+        $this->builder = SchemaSQLBuilderFactory::make($this->driver);
+
+        return $conn;
     }
-    public function fix(array $conflicts, array $masterSchema, array $clientSchema){
+
+    public function fix(array $conflicts, array $masterSchema, array $clientSchema, string $targetDb){
 
         $sql = [];
+
+        $conn = $this->getConnection($targetDb);
 
         $sql = array_merge(
             $sql,
             $this->fixMissingTables($conflicts, $masterSchema),
             $this->fixMissingColumns($conflicts, $masterSchema),
-            $this->fixMismatchedColumns($conflicts, $masterSchema, $clientSchema)
+            $this->fixMismatchedColumns($conflicts, $masterSchema, $clientSchema, $targetDb)
         );
 
-        try {
-            foreach ($sql as $statement) {
-                DB::connection('client')->statement($statement);
+        $executed = 0;
+        $finalStatements = [];
+
+        foreach ($sql as $statement) {
+            if ($this->driver === 'pgsql') {
+                $subStatements = array_filter(array_map('trim', explode(';', $statement)));
+                $primarySucceeded = false;
+                
+                foreach ($subStatements as $index => $stmt) {
+                    if (!empty($stmt)) {
+                        try {
+                            $conn->statement($stmt);
+                            $finalStatements[] = $stmt;
+                            
+                            if ($index === 0) {
+                                $primarySucceeded = true;
+                            }
+                        } catch (\Throwable $e) {
+                            $finalStatements[] = "-- WARNING: cannot execute statement: {$stmt}, incompatible data type conversion.";
+                        }
+                    }
+                }
+                
+                if ($primarySucceeded) {
+                    $executed++;
+                }
+            } else {
+                try {
+                    $conn->statement($statement);
+                    $finalStatements[] = $statement;
+                    $executed++;
+                } catch (\Throwable $e) {
+                    $finalStatements[] = "-- WARNING: cannot execute statement: {$statement}, incompatible data type conversion.";
+                }
             }
-        } catch (\Throwable $e) {
-            return [
-                'error' => $e->getMessage(),
-                'statements' => $sql
-            ];
         }
 
         return [
-            "statements" => $sql,
-            "executed" => count($sql)
+            'statements' => $finalStatements,
+            'executed' => $executed
         ];
-
+        
     }
 
     protected function fixMissingTables(array $conflicts, array $masterSchema):array{
@@ -78,9 +126,11 @@ class SchemaFixerService
         
     }
 
-    protected function fixMismatchedColumns(array $conflicts, array $masterSchema, array $clientSchema):array{
+    protected function fixMismatchedColumns(array $conflicts, array $masterSchema, array $clientSchema, string $targetDb):array{
 
         $sql = [];
+
+        $conn = $this->getConnection($targetDb);
 
         $tables = array_unique(array_merge(
             array_keys($conflicts['type_mismatch'] ?? []),
@@ -97,29 +147,7 @@ class SchemaFixerService
                 $masterColumnDef = $masterSchema[$table]['columns'][$column];
                 $clientColumnDef = $clientSchema[$table]['columns'][$column];
 
-                $skip = false;
-
-                $numericTypes = ['INT','BIGINT','DECIMAL','FLOAT','DOUBLE'];
-                $clientType = strtoupper($clientColumnDef['data_type']);
-                $masterType = strtoupper($masterColumnDef['data_type']);
-
-                if (in_array($masterType, $numericTypes) &&
-                    str_contains($clientType, 'CHAR')) {
-
-                    $count = DB::connection('client')->table($table)
-                        ->whereNotNull($column)
-                        ->whereRaw("{$column} REGEXP '[^0-9]'")
-                        ->count();
-
-                    if ($count > 0) {
-                        $sql[] = "-- WARNING: cannot alter {$table}.{$column} to {$masterType}, incompatible data exists";
-                        $skip = true;
-                    }
-                }
-
-                if (!$skip) {
-                    $sql[] = $this->builder->modifyMismatchedColumns($table, $column, $masterColumnDef);
-                }
+                $sql[] = $this->builder->modifyMismatchedColumns($table, $column, $masterColumnDef);
             }
 
         }

@@ -19,6 +19,7 @@ import Paper from '@mui/material/Paper';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import exportToExcel from './ExcelExport.jsx';
+import exportToPDF from './PDFExport.jsx';
 
 const MainPage = () => {
     const navigate = useNavigate();
@@ -32,14 +33,17 @@ const MainPage = () => {
     const [scan, setScan] = useState(false);
     const [rescan, setRescan] = useState(false);
     const [fixConflicts, setFixConflicts] = useState(false);
+    const [warnings, setWarnings] = useState([]);
+    const [fixed, setFixed] = useState([]);
+    const [dbA, setDbA] = useState(null);
+    const [dbB, setDbB] = useState(null);
 
-    const handleDBSelect = () => {
-        fileInput.current.click();
-    }
+    const fetchDatabase = async (dbName) => {
+        if (!dbName) return;
 
-    const fetchDatabase = async () => {
         try {
-            const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/read/master`, {
+            const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/read/schema`, {
+                params: { database: dbName},
                 responseType: 'json',
             });
             if (response.status === 200){
@@ -64,9 +68,12 @@ const MainPage = () => {
         }
     }
 
-    const fetchDatabase2 = async () => {
+    const fetchDatabase2 = async (dbName) => {
+        if (!dbName) return;
+
         try {
-            const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/read/client`, {
+            const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/read/schema`, {
+                params: { database: dbName},
                 responseType: 'json',
             });
             if (response.status === 200){
@@ -90,11 +97,79 @@ const MainPage = () => {
         }
     }
 
+    const openDatabaseSelect = async () => {
+        const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/read/all`, {
+            responseType: 'json',
+        })
+        const allDatabases = response.data.databases || [];
+
+        const value = await swal.fire({
+            title: "Select database",
+            input: "select",
+            inputOptions: allDatabases.reduce((acc, db) => {
+                acc[db] = db;
+                return acc;
+            }, {}),
+            inputPlaceholder: "Select database",
+            showCancelButton: true,
+            confirmButtonText: "Select",
+            confirmButtonColor: '#003566',
+            width: 600,
+            heightAuto: true,
+            padding: '10px',
+            customClass: {popup: 'swal-big'}
+        });
+
+        if (value.isConfirmed){
+            setDbA(value.value);
+            fetchDatabase(value.value);
+        }  
+    }
+     
+    const openDatabaseSelect2 = async () => {
+        const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/read/all`, {
+            responseType: 'json',
+        })
+        const allDatabases = response.data.databases || [];
+
+        const value = await swal.fire({
+            title: "Select database",
+            input: "select",
+            inputOptions: allDatabases.reduce((acc, db) => {
+                acc[db] = db;
+                return acc;
+            }, {}),
+            inputPlaceholder: "Select database",
+            showCancelButton: true,
+            confirmButtonText: "Select",
+            confirmButtonColor: '#003566',
+            width: 600,
+            heightAuto: true,
+            padding: '10px',
+            customClass: {popup: 'swal-big'}
+        });
+
+        if (value.isConfirmed){
+            setDbB(value.value);
+            fetchDatabase2(value.value);
+        }  
+    }
+
     const fetchResults = async () => {
+        if (!dbA || !dbB) {
+            swal.fire("Select two databases first", "", "warning");
+            return;
+        }
+
         try {
             const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/scan`, {
-                responseType: 'json',
-            });
+                    params: {
+                        source: dbA,
+                        target: dbB,
+                    },
+                    responseType: 'json',
+                }
+            );
             if (response.status === 200){
                 const conflicts = response.data.conflicts || {};
                 const conflictArray = Object.entries(conflicts).map(([conflictType, details]) => ({
@@ -153,20 +228,59 @@ const MainPage = () => {
         if (decision.isConfirmed){
             try{
                 const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/fix`, {
+                    params: {
+                        source: dbA,
+                        target: dbB,
+                    },
                     responseType: 'json',
                 });
 
                 if(response.status === 200){
-                    Swal.fire({
-                        title: 'Success',
-                        text: 'Conflicts fixed',
-                        icon: 'success'
+                    const statements = response.data.statements || [];
+                    const localWarnings = [];
+                    const executed = response.data.executed || 0;
                     
-                    })
+                    statements.forEach(stmt => {
+                        if (stmt.startsWith('-- WARNING:')) {
+                            const warning = stmt.replace('-- WARNING: ', '');
+                            console.warn('Warning: ', warning);
+                            localWarnings.push(warning);
+                        }
+                        else {
+                            console.log('Executed:', stmt);
+                        }
+                    });
+
+                    setWarnings(localWarnings);
+                    fetchDatabase2(dbB);
+
+                    if(localWarnings.length > 0){
+                        swal.fire({
+                            title: 'Completed with warnings',
+                            html: `<span class="conflict-count">${executed} conflict(s) fixed with ${localWarnings.length} warning(s)</span>
+                                <br/><br/>
+                                <div style="text-align:left; max-height:200px; overflow-y:auto;">
+                                    <strong>Warnings:</strong>
+                                    <ul>${localWarnings.map(w => `<li>${w}</li>`).join('')}</ul>
+                                </div>`,
+                            icon: 'warning',
+                            confirmButtonText: 'OK',
+                            confirmButtonColor: '#003566'
+                        })
+                    } else {
+                        swal.fire({
+                            title: 'Success',
+                            text: `${executed} conflict(s) fixed`,
+                            icon: 'success',
+                            confirmButtonText: 'OK',
+                            confirmButtonColor: '#003566'
+                        });
+                    }
+                    
                 }
             } catch (error){
                 console.log('Error fixing conflicts: ', error);
-                    Swal.fire({
+                    swal.fire({
                         title: 'Error',
                         text: 'Something went wrong while fixing conflicts.',
                         icon: 'error'
@@ -192,18 +306,19 @@ const MainPage = () => {
             </div>
             `,
             confirmButtonText: "Download",
+            confirmButtonColor: '#003566',
             showCancelButton: true,
 
             preConfirm: () => {
-            const excel = document.getElementById("exportExcel").checked;
-            const pdf = document.getElementById("exportPDF").checked;
+                const excel = document.getElementById("exportExcel").checked;
+                const pdf = document.getElementById("exportPDF").checked;
 
-            if (!excel && !pdf) {
-                swal.showValidationMessage("Please select at least one format");
-                return false;
-            }
+                if (!excel && !pdf) {
+                    swal.showValidationMessage("Please select at least one format");
+                    return false;
+                }
 
-            return { excel, pdf };
+                return { excel, pdf };
             }
         });
 
@@ -213,7 +328,7 @@ const MainPage = () => {
         const pdf = document.getElementById("exportPDF").checked;
 
         if (excel) exportToExcel(results);
-        if (pdf) exportToPDF();
+        if (pdf) exportToPDF(results);
     };
 
     function Row(props) {
@@ -468,38 +583,6 @@ const MainPage = () => {
             </TableContainer>
         );
     }
-        
-    const openDatabaseSelect = async () => {
-        const value = await swal.fire({
-            title: "Select database",
-            input: "select",
-            inputOptions: {}, 
-            inputPlaceholder: "Select database",
-            showCancelButton: true,
-            confirmButtonText: "Select",
-            confirmButtonColor: '#003566',
-            width: 600,
-            heightAuto: true,
-            padding: '10px',
-            customClass: {popup: 'swal-big'}
-        });
-    }
-     
-     const openDatabaseSelect2 = async () => {
-        const value = await swal.fire({
-            title: "Select database",
-            input: "select",
-            inputOptions: {}, 
-            inputPlaceholder: "Select database",
-            showCancelButton: true,
-            confirmButtonText: "Select",
-            confirmButtonColor: '#003566',
-            width: 600, 
-            heightAuto: true,
-            padding: '10px',
-            customClass: {popup: 'swal-big'}
-        });
-    }
 
     return (
         <div className='scanner-root'> 
@@ -529,7 +612,6 @@ const MainPage = () => {
                                         </div>
 
                                         <div className="line"></div>
-                                        <button className='select-btn' onClick={() => {fetchDatabase(); }}>Show</button>
                                         <button className='select-btn' onClick= {() => {openDatabaseSelect(); }}>Select</button>
                                 </>    
                             )}
@@ -550,8 +632,6 @@ const MainPage = () => {
                                     </div>
 
                                         <div className="line"></div>
-
-                                        <button className='select-btn' onClick={() => {fetchDatabase2(); }}>Show</button>
                                         <button className='select-btn' onClick= {() => {openDatabaseSelect2(); }}>Select</button>
                                        
                                 </>    

@@ -15,17 +15,17 @@ class SchemaScannerService
 
     }
 
-    public function scan(){
-        
-        $masterData = $this->reader->readSchema('master');
-        $clientData = $this->reader->readSchema('client');
+    public function scan(string $sourceDb, string $targetDb)
+    {
+        $masterData = $this->reader->readSchemaByDatabase($sourceDb);
+        $clientData = $this->reader->readSchemaByDatabase($targetDb);
 
         $masterSchema = $masterData['schema'];
         $clientSchema = $clientData['schema'];
 
         // Identifying table conflicts
-        $masterTables = array_keys($masterSchema);
-        $clientTables = array_keys($clientSchema);
+        $masterTables = array_map('strtolower', array_keys($masterSchema));
+        $clientTables = array_map('strtolower', array_keys($clientSchema));
 
         $conflicts = [];
 
@@ -45,8 +45,8 @@ class SchemaScannerService
 
             if(isset($clientSchema[$row])){
                 
-                $masterColumns = array_keys($masterSchema[$row]["columns"]);
-                $clientColumns = array_keys($clientSchema[$row]["columns"]);
+                $masterColumns = array_map('strtolower', array_keys($masterSchema[$row]["columns"]));
+                $clientColumns = array_map('strtolower', array_keys($clientSchema[$row]["columns"]));
 
                 $missingColumns = array_diff($masterColumns, $clientColumns);
                 $extraColumns = array_diff($clientColumns, $masterColumns);
@@ -69,13 +69,23 @@ class SchemaScannerService
 
                 foreach($masterSchema[$row]["columns"] as $columnName => $columnData){
 
-                    if(isset($clientSchema[$row]["columns"][$columnName])){
+                    $col = strtolower($columnName);
+
+                    if (!isset($clientSchema[$row]["columns"][$col])) {
+                        continue;
+                    }
+
+                    if (isset($conflicts['missing_client_column'][$row][$col])) {
+                        continue;
+                    }
+
+                    if(isset($clientSchema[$row]["columns"][$col])){
 
                         $masterColumn = $columnData;
-                        $clientColumn = $clientSchema[$row]["columns"][$columnName];
+                        $clientColumn = $clientSchema[$row]["columns"][$col];
 
                         if($masterColumn['data_type'] != $clientColumn['data_type']){
-                            $conflicts['type_mismatch'][$row][$columnName] = [
+                            $conflicts['type_mismatch'][$row][$col] = [
                                 'master' => $masterColumn['data_type'],
                                 'client' => $clientColumn['data_type']
                             ];
@@ -94,15 +104,24 @@ class SchemaScannerService
 
                 foreach($masterSchema[$row]["columns"] as $columnName => $columnData){
 
-                    if(isset($clientSchema[$row]["columns"][$columnName])){
+                    $col = strtolower($columnName);
+
+                    if (isset($conflicts['missing_client_column'][$row][$col])) {
+                        continue;
+                    }
+
+                    if(isset($clientSchema[$row]["columns"][$col])){
 
                         $masterColumn = $columnData;
-                        $clientColumn = $clientSchema[$row]["columns"][$columnName];
+                        $clientColumn = $clientSchema[$row]["columns"][$col];
 
-                        if($masterColumn['maximum_characters'] != $clientColumn['maximum_characters']){
-                            $conflicts['length_mismatch'][$row][$columnName] = [
-                                'master' => $masterColumn['maximum_characters'],
-                                'client' => $clientColumn['maximum_characters']
+                        $masterMaxLength = $masterColumn['maximum_characters'] ?? 0;
+                        $clientMaxLength = $clientColumn['maximum_characters'] ?? 0;
+
+                        if($masterMaxLength != $clientMaxLength){
+                            $conflicts['length_mismatch'][$row][$col] = [
+                                'master' => $masterMaxLength,
+                                'client' => $clientMaxLength
                             ];
                         }
 
