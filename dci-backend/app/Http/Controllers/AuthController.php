@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -12,7 +13,7 @@ class AuthController extends Controller
         $username = $request->input('username');
         $password = $request->input('password');
 
-        if($username == "IDA_admin" && $password == "IDA12345admin"){
+        if($username == config('auth.admin_username') && Hash::check($password, config('auth.admin_password_hash'))){
             $response = Http::post(config('app.login_url'), [
                 'username'=>config('app.uname_param'),
                 'password'=>config('app.pass_param')
@@ -20,7 +21,7 @@ class AuthController extends Controller
 
             return $response;
         }
-        else if($username != "IDA_admin" && $password != "IDA12345admin"){
+        else if($username == config('auth.admin_username') && Hash::check($password, config('auth.admin_password_hash'))){
             return response()->json(['status'=>'error', 'message'=> 'Wrong credentials.'], 401);
         }
 

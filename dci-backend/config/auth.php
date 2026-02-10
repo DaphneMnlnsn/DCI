@@ -13,6 +13,9 @@ return [
     |
     */
 
+    'admin_username' => env('ADMIN_USERNAME', 'admin'),
+    'admin_password_hash' => env('ADMIN_PASSWORD_HASH', '$2y$12$'),
+
     'defaults' => [
         'guard' => env('AUTH_GUARD', 'web'),
         'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
