@@ -104,102 +104,232 @@ const MainPage = () => {
         );
 
         const allDatabases = response.data.databases || [];
+
         const result = await swal.fire({
-                title: "Select database",
-                html: `
+            title: "Select Master Database",
+            html: `
                 <input 
                     id="swal-text"
-                    class="swal2-input select-input "
+                    class="swal2-input select-input"
                     placeholder="Enter name / label"
+                    autocomplete="off"
                 />
-
+                <div id="swal-suggestion-list" class="swal-suggestion-list"></div>
                 <select id="swal-select" class="swal2-select select-input">
                     <option value="">Select database</option>
-                    ${allDatabases
-                    .map(db => `<option value="${db}">${db}</option>`)
-                    .join("")}
+                    ${allDatabases.map(db => `<option value="${db}">${db}</option>`).join("")}
                 </select>
                 `,
-                    showCancelButton: true,
-                    confirmButtonText: "Select",
-                    confirmButtonColor: "#003566",
-                    width:600,
-                    heightAuto: true,
+                showCancelButton: true,
+                confirmButtonText: "Select",
+                confirmButtonColor: "#003566",
+                width: 600,
+                heightAuto: true,
 
                 customClass: { popup: "swal-big swal-poppins" },
 
-                preConfirm: () => {
-                    const textValue = document.getElementById("swal-text").value;
-                    const selectedDb = document.getElementById("swal-select").value;
+                didOpen: () => {
+                    const search = document.getElementById("swal-text");
+                    const list = document.getElementById("swal-suggestion-list");
+                    const select = document.getElementById("swal-select");
 
-                if (!textValue || !selectedDb) {
-                    swal.showValidationMessage("Please fill out all fields");
+                    const originalOptions = allDatabases.map(db => ({ value: db, label: db }));
+
+                    list.style.position = "absolute";
+                    list.style.top = "40px";
+                    list.style.left = "0";
+                    list.style.right = "0";
+                    list.style.maxHeight = "150px";
+                    list.style.overflowY = "auto";
+                    list.style.border = "1px solid #ccc";
+                    list.style.borderRadius = "4px";
+                    list.style.background = "#fff";
+                    list.style.zIndex = "1000";
+                    list.style.display = "none";
+
+                    const renderSuggestions = (value) => {
+                        const filtered = allDatabases.filter(db =>
+                            db.toLowerCase().includes(value.toLowerCase())
+                        );
+
+                        list.innerHTML = "";
+
+                        if (!value || filtered.length === 0) {
+                            list.style.display = "none";
+                            select.innerHTML = `<option value="">Select database</option>` +
+                                originalOptions.map(opt => `<option value="${opt.value}">${opt.label}</option>`).join("");
+                            return;
+                        }
+
+                        filtered.forEach(db => {
+                                const item = document.createElement("div");
+                                item.textContent = db;
+                                item.className = "swal-suggestion-item";
+                                item.style.padding = "6px 10px";
+                                item.style.cursor = "pointer";
+
+                                item.addEventListener("mouseenter", () => {
+                                    item.style.background = "#f0f0f0";
+                                });
+
+                                item.addEventListener("mouseleave", () => {
+                                item.style.background = "#fff";
+                                });
+
+                            item.onclick = () => {
+                                search.value = db;
+                                select.innerHTML = `<option value="${db}">${db}</option>`;
+                                select.value = db;
+                                list.style.display = "none";
+                            };
+
+                            list.appendChild(item);
+                        });
+
+                        list.style.display = "block";
+                    };
+
+                    search.addEventListener("input", (e) => renderSuggestions(e.target.value));
+                },
+
+                preConfirm: () => {
+                const textValue = document.getElementById("swal-text").value;
+                const selectedDb = document.getElementById("swal-select").value;
+
+                if (!selectedDb) {
+                    swal.showValidationMessage("Please select a database");
                     return false;
                 }
 
-            return {
-                label: textValue,
-                database: selectedDb
-            };
+                return {
+                    label: textValue,
+                    database: selectedDb
+                };
             }
         });
-  
-        if (result.isConfirmed){
+
+        if (result.isConfirmed) {
             setDbA(result.value.database);
             fetchDatabase(result.value.database);
         }
-    }
+    };
      
     const openDatabaseSelect2 = async () => {
-        const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/read/all`, {
-            responseType: 'json',
-        })
+        const response = await axios.get(
+            `${import.meta.env.VITE_APP_BASE_URL}/api/read/all`,
+            { responseType: 'json' }
+        );
+
         const allDatabases = response.data.databases || [];
+
         const result = await swal.fire({
-                title: "Select database",
-                html: `
+            title: "Select Client Database",
+            html: `
                 <input 
                     id="swal-text"
-                    class="swal2-input select-input "
+                    class="swal2-input select-input"
                     placeholder="Enter name / label"
+                    autocomplete="off"
                 />
-
+                <div id="swal-suggestion-list" class="swal-suggestion-list"></div>
                 <select id="swal-select" class="swal2-select select-input">
                     <option value="">Select database</option>
-                    ${allDatabases
-                    .map(db => `<option value="${db}">${db}</option>`)
-                    .join("")}
+                    ${allDatabases.map(db => `<option value="${db}">${db}</option>`).join("")}
                 </select>
-                `,
+                    `,
                     showCancelButton: true,
                     confirmButtonText: "Select",
                     confirmButtonColor: "#003566",
-                    width:600,
+                    width: 600,
                     heightAuto: true,
 
                 customClass: { popup: "swal-big swal-poppins" },
 
-                preConfirm: () => {
-                    const textValue = document.getElementById("swal-text").value;
-                    const selectedDb = document.getElementById("swal-select").value;
+                didOpen: () => {
+                    const search = document.getElementById("swal-text");
+                    const list = document.getElementById("swal-suggestion-list");
+                    const select = document.getElementById("swal-select");
 
-                if (!textValue || !selectedDb) {
-                    swal.showValidationMessage("Please fill out all fields");
+                    const originalOptions = allDatabases.map(db => ({ value: db, label: db }));
+
+                    list.style.position = "absolute";
+                    list.style.top = "40px";
+                    list.style.left = "0";
+                    list.style.right = "0";
+                    list.style.maxHeight = "150px";
+                    list.style.overflowY = "auto";
+                    list.style.border = "1px solid #ccc";
+                    list.style.borderRadius = "4px";
+                    list.style.background = "#fff";
+                    list.style.zIndex = "1000";
+                    list.style.display = "none";
+
+                    const renderSuggestions = (value) => {
+                        const filtered = allDatabases.filter(db =>
+                            db.toLowerCase().includes(value.toLowerCase())
+                        );
+
+                        list.innerHTML = "";
+
+                        if (!value || filtered.length === 0) {
+                            list.style.display = "none";
+                            select.innerHTML = `<option value="">Select database</option>` +
+                                originalOptions.map(opt => `<option value="${opt.value}">${opt.label}</option>`).join("");
+                            return;
+                        }
+
+                        filtered.forEach(db => {
+                                const item = document.createElement("div");
+                                item.textContent = db;
+                                item.className = "swal-suggestion-item";
+                                item.style.padding = "6px 10px";
+                                item.style.cursor = "pointer";
+
+                                item.addEventListener("mouseenter", () => {
+                                    item.style.background = "#f0f0f0";
+                                });
+
+                                item.addEventListener("mouseleave", () => {
+                                item.style.background = "#fff";
+                                });
+
+                            item.onclick = () => {
+                            search.value = db;
+                            select.innerHTML = `<option value="${db}">${db}</option>`;
+                            select.value = db;
+                            list.style.display = "none";
+                        };
+
+                        list.appendChild(item);
+                    });
+
+                    list.style.display = "block";
+                };
+
+                search.addEventListener("input", (e) => renderSuggestions(e.target.value));
+            },
+
+            preConfirm: () => {
+                const textValue = document.getElementById("swal-text").value;
+                const selectedDb = document.getElementById("swal-select").value;
+
+                if (!selectedDb) {
+                    swal.showValidationMessage("Please select a database");
                     return false;
                 }
 
-            return {
-                label: textValue,
-                database: selectedDb
-            };
+                return {
+                    label: textValue,
+                    database: selectedDb
+                };
             }
         });
-  
-        if (result.isConfirmed){
+
+        if (result.isConfirmed) {
             setDbB(result.value.database);
             fetchDatabase2(result.value.database);
         }
-    }
+    };
 
     const fetchResults = async () => {
         if (!dbA || !dbB) {
