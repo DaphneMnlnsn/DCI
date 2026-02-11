@@ -111,7 +111,7 @@ const MainPage = () => {
                 <input 
                     id="swal-text"
                     class="swal2-input select-input"
-                    placeholder="Enter name / label"
+                    placeholder="Search database..."
                     autocomplete="off"
                 />
                 <div id="swal-suggestion-list" class="swal-suggestion-list"></div>
@@ -136,7 +136,7 @@ const MainPage = () => {
                     const originalOptions = allDatabases.map(db => ({ value: db, label: db }));
 
                     list.style.position = "absolute";
-                    list.style.top = "40px";
+                    //list.style.top = "40px";
                     list.style.left = "0";
                     list.style.right = "0";
                     list.style.maxHeight = "150px";
@@ -228,7 +228,7 @@ const MainPage = () => {
                 <input 
                     id="swal-text"
                     class="swal2-input select-input"
-                    placeholder="Enter name / label"
+                    placeholder="Search database..."
                     autocomplete="off"
                 />
                 <div id="swal-suggestion-list" class="swal-suggestion-list"></div>
@@ -253,7 +253,7 @@ const MainPage = () => {
                     const originalOptions = allDatabases.map(db => ({ value: db, label: db }));
 
                     list.style.position = "absolute";
-                    list.style.top = "40px";
+                    //list.style.top = "40px";
                     list.style.left = "0";
                     list.style.right = "0";
                     list.style.maxHeight = "150px";
