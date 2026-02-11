@@ -121,7 +121,7 @@ class SchemaScannerService
 
                 foreach($masterSchema[$row]["columns"] as $columnName => $columnData){
 
-                    $col = strtolower($columnName);
+                    $col = $columnName;
 
                     if (isset($conflicts['missing_client_column'][$row][$col])) {
                         continue;
