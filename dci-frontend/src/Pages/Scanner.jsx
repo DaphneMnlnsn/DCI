@@ -98,40 +98,56 @@ const MainPage = () => {
     }
 
     const openDatabaseSelect = async () => {
-        const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/read/all`, {
-            responseType: 'json',
-        })
+        const response = await axios.get(
+            `${import.meta.env.VITE_APP_BASE_URL}/api/read/all`,
+            { responseType: 'json' }
+        );
+
         const allDatabases = response.data.databases || [];
+        const result = await swal.fire({
+                title: "Select database",
+                html: `
+                <input 
+                    id="swal-text"
+                    class="swal2-input select-input "
+                    placeholder="Enter name / label"
+                />
 
-        const value = await swal.fire({
-            title: "Select database",
-            input: "select",
-            inputOptions: allDatabases.reduce((acc, db) => {
-                acc[db] = db;
-                return acc;
-            }, {}),
-            inputPlaceholder: "Select database",
-            showCancelButton: true,
-            confirmButtonText: "Select",
-            confirmButtonColor: '#003566',
-            width: 600,
-            heightAuto: true,
-            padding: '10px',
-            customClass: {popup: 'swal-big swal-poppins'},
+                <select id="swal-select" class="swal2-select select-input">
+                    <option value="">Select database</option>
+                    ${allDatabases
+                    .map(db => `<option value="${db}">${db}</option>`)
+                    .join("")}
+                </select>
+                `,
+                    showCancelButton: true,
+                    confirmButtonText: "Select",
+                    confirmButtonColor: "#003566",
+                    width:600,
+                    heightAuto: true,
 
-            preConfirm: (value) => {
-                if (!value) {
-                    swal.showValidationMessage("Please select a database");
+                customClass: { popup: "swal-big swal-poppins" },
+
+                preConfirm: () => {
+                    const textValue = document.getElementById("swal-text").value;
+                    const selectedDb = document.getElementById("swal-select").value;
+
+                if (!textValue || !selectedDb) {
+                    swal.showValidationMessage("Please fill out all fields");
                     return false;
                 }
-                return value;
+
+            return {
+                label: textValue,
+                database: selectedDb
+            };
             }
         });
-
-        if (value.isConfirmed){
-            setDbA(value.value);
-            fetchDatabase(value.value);
-        }  
+  
+        if (result.isConfirmed){
+            setDbA(result.value.database);
+            fetchDatabase(result.value.database);
+        }
     }
      
     const openDatabaseSelect2 = async () => {
@@ -139,29 +155,50 @@ const MainPage = () => {
             responseType: 'json',
         })
         const allDatabases = response.data.databases || [];
+        const result = await swal.fire({
+                title: "Select database",
+                html: `
+                <input 
+                    id="swal-text"
+                    class="swal2-input select-input "
+                    placeholder="Enter name / label"
+                />
 
-        const value = await swal.fire({
-            title: "Select database",
-            input: "select",
-            inputOptions: allDatabases.reduce((acc, db) => {
-                acc[db] = db;
-                return acc;
-            }, {}),
-            inputPlaceholder: "Select database",
-            showCancelButton: true,
-            confirmButtonText: "Select",
-            confirmButtonColor: '#003566',
-            width: 600,
-            heightAuto: true,
-            padding: '10px',
-            customClass: {
-                popup: 'swal-big swal-poppins'}
+                <select id="swal-select" class="swal2-select select-input">
+                    <option value="">Select database</option>
+                    ${allDatabases
+                    .map(db => `<option value="${db}">${db}</option>`)
+                    .join("")}
+                </select>
+                `,
+                    showCancelButton: true,
+                    confirmButtonText: "Select",
+                    confirmButtonColor: "#003566",
+                    width:600,
+                    heightAuto: true,
+
+                customClass: { popup: "swal-big swal-poppins" },
+
+                preConfirm: () => {
+                    const textValue = document.getElementById("swal-text").value;
+                    const selectedDb = document.getElementById("swal-select").value;
+
+                if (!textValue || !selectedDb) {
+                    swal.showValidationMessage("Please fill out all fields");
+                    return false;
+                }
+
+            return {
+                label: textValue,
+                database: selectedDb
+            };
+            }
         });
-
-        if (value.isConfirmed){
-            setDbB(value.value);
-            fetchDatabase2(value.value);
-        }  
+  
+        if (result.isConfirmed){
+            setDbB(result.value.database);
+            fetchDatabase2(result.value.database);
+        }
     }
 
     const fetchResults = async () => {

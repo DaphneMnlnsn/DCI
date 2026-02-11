@@ -247,3 +247,13 @@ button:focus {
 .swal-poppins select {
     font-family: 'Poppins', sans-serif !important;
 }
+
+.select-input{
+    width: 80%;
+    font-family: 'Poppins', sans-serif !important;
+    border-color: #333333;
+}
+.select-input:focus{
+    box-shadow: none;
+    border-color: #333333;
+}
