@@ -466,9 +466,7 @@ const MainPage = () => {
                 ))}
                 </TableBody>
             </Table>
-            {fixConflicts && (
-                <button className='fix-btn' style={{ backgroundColor: '#FACC1566', color: '#000000' }} onClick={() => handleConflicts()}>Fix Conflicts</button>
-            )}
+            
             </TableContainer>
         );
     }
@@ -636,11 +634,14 @@ const MainPage = () => {
                             {show2 ? (
                                 <>
                                     <CollapsibleTable2 /> 
+                                    {fixConflicts && (
+                                        <button className='fix-btn' style={{ backgroundColor: '#FACC1566', color: '#000000' }} onClick={() => handleConflicts()}>Fix Conflicts</button>
+                                    )}
                                     <button className='select-btn' onClick= {() => {openDatabaseSelect2(); }}>Reselect</button>
                                 </>
                             ) : (
                                 <>
-                                <div className="card-header-client">
+                                    <div className="card-header-client">
                                     <p className="label">
                                             Please select a database to Compare
                                     </p>
