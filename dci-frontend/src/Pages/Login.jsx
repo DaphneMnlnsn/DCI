@@ -34,7 +34,7 @@ const LoginPage = () => {
             }
         }
         catch (error){
-            if (error.response.status === 500) {
+            if (error.response.status === 401) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Wrong Credentials',

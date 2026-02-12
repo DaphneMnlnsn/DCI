@@ -6,7 +6,7 @@ class SqlServerSchemaBuilder implements SchemaSQLBuilderInterface
 {
     protected function normalizeType(array $columnDef): string
     {
-        $type = strtoupper($columnDef['data_type']);  // Preserve original casing
+        $type = strtoupper($columnDef['data_type']);
 
         $type = match (strtolower($type)) {
             // 'varchar' => 'NVARCHAR',

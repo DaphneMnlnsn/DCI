@@ -9,19 +9,16 @@ use Illuminate\Support\Facades\Config;
 class SchemaReaderService
 {
 
-    public function readSchemaByDatabase(string $dbName)
+    public function readSchemaByDatabase(string $dbName, array $config)
     {
         $schema = [];
-
-        $baseConn = config('database.default');
-        $baseConfig = config("database.connections.$baseConn");
 
         // Overriding the db
         $dynamicConnName = 'dynamic_schema';
 
         Config::set(
             "database.connections.$dynamicConnName",
-            array_merge($baseConfig, ['database' => $dbName])
+            array_merge($config, ['database' => $dbName])
         );
 
         DB::purge($dynamicConnName);
@@ -121,16 +118,22 @@ class SchemaReaderService
     }
 
     
-    public function readAllDatabases(){
-        $conn = config('database.default');
-        $connDetails = config("database.connections.$conn");
+    public function readAllDatabases(array $config){
         
-        $databases = [];
-        $driver = $connDetails['driver'];
+
+        // Overriding the db
+        $dynamicConnName = 'dynamic_schema';
+
+        Config::set("database.connections.$dynamicConnName", $config);
+
+        DB::purge($dynamicConnName);
+        $conn = DB::connection($dynamicConnName);
+
+        $driver = $conn->getDriverName();
 
         if($driver == 'mysql'){
 
-            $result = DB::select("SHOW DATABASES");
+            $result = $conn->select("SHOW DATABASES");
             
             foreach($result as $row){
                 $databases[] = $row->Database;
@@ -138,13 +141,13 @@ class SchemaReaderService
 
         } else if($driver == 'sqlsrv'){
 
-            $result = DB::select("SELECT name FROM sys.databases");
+            $result = $conn->select("SELECT name FROM sys.databases");
 
             foreach($result as $row){
                 $databases[] = $row->name;
             }
         } else if($driver == 'pgsql'){
-            $result = DB::select("SELECT datname FROM pg_database WHERE datistemplate = false");
+            $result = $conn->select("SELECT datname FROM pg_database WHERE datistemplate = false");
             foreach($result as $row){
                 $databases[] = $row->datname;
             }

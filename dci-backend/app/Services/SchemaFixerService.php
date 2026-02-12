@@ -12,20 +12,19 @@ class SchemaFixerService
     protected $builder;
     protected $driver;
 
-    public function getConnection(string $dbName){
-        $baseConn = config('database.default');
-        $baseConfig = config("database.connections.$baseConn");
+    public function getConnection(string $dbName, array $config){
 
         // Overriding the db
         $dynamicConnName = 'dynamic_schema';
 
         Config::set(
             "database.connections.$dynamicConnName",
-            array_merge($baseConfig, ['database' => $dbName])
+            array_merge($config, ['database' => $dbName])
         );
 
         DB::purge($dynamicConnName);
         $conn = DB::connection($dynamicConnName);
+
         $this->driver = $conn->getDriverName();
 
         $this->builder = SchemaSQLBuilderFactory::make($this->driver);
@@ -33,11 +32,11 @@ class SchemaFixerService
         return $conn;
     }
 
-    public function fix(array $conflicts, array $masterSchema, array $clientSchema, string $targetDb){
+    public function fix(array $conflicts, array $masterSchema, array $clientSchema, string $targetDb, array $config){
 
         $sql = [];
 
-        $conn = $this->getConnection($targetDb);
+        $conn = $this->getConnection($targetDb, $config);
 
         $sql = array_merge(
             $sql,
@@ -129,8 +128,6 @@ class SchemaFixerService
     protected function fixMismatchedColumns(array $conflicts, array $masterSchema, array $clientSchema, string $targetDb):array{
 
         $sql = [];
-
-        $conn = $this->getConnection($targetDb);
 
         $tables = array_unique(array_merge(
             array_keys($conflicts['type_mismatch'] ?? []),

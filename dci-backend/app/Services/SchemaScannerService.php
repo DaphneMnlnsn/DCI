@@ -16,17 +16,15 @@ class SchemaScannerService
 
     }
 
-    public function scan(string $sourceDb, string $targetDb)
+    public function scan(string $sourceDb, string $targetDb, array $config)
     {
-        $baseConn = config('database.default');
-        $baseConfig = config("database.connections.$baseConn");
 
         // Overriding the db
         $dynamicConnName = 'dynamic_schema';
 
         Config::set(
             "database.connections.$dynamicConnName",
-            array_merge($baseConfig, ['database' => $sourceDb])
+            array_merge($config, ['database' => $sourceDb])
         );
 
         DB::purge($dynamicConnName);
@@ -34,8 +32,8 @@ class SchemaScannerService
 
         $driver = $conn->getDriverName();
 
-        $masterData = $this->reader->readSchemaByDatabase($sourceDb);
-        $clientData = $this->reader->readSchemaByDatabase($targetDb);
+        $masterData = $this->reader->readSchemaByDatabase($sourceDb, $config);
+        $clientData = $this->reader->readSchemaByDatabase($targetDb, $config);
 
         $masterSchema = $masterData['schema'];
         $clientSchema = $clientData['schema'];
