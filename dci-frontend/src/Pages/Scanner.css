@@ -257,3 +257,7 @@ button:focus {
     box-shadow: none;
     border-color: #333333;
 }
+.select-btn:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}

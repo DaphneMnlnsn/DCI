@@ -37,6 +37,9 @@ const MainPage = () => {
     const [fixed, setFixed] = useState([]);
     const [dbA, setDbA] = useState(null);
     const [dbB, setDbB] = useState(null);
+    const [masterSelected, setMasterSelected] = useState(false);
+    const [clientSelected, setClientSelected] = useState(false);
+   
 
     const fetchDatabase = async (dbName) => {
         if (!dbName) return;
@@ -758,11 +761,12 @@ const MainPage = () => {
         );
     }
 
-    return (
+     return (
         <div className='scanner-root'> 
             <Header />
             <div className='scanner-container'>
                 <div className='scanner-grid-container'>
+          
                     <div className='scanner-select'>
                         <h3 className="card-title">Master Database</h3>
                     </div>
@@ -772,27 +776,24 @@ const MainPage = () => {
                     <div className='scanner-select'>
                         <h3 className="card-title">Results</h3>
                     </div>
-                    
+                 
                     <div className='scanner-select'>
                         <div className="card">
                             {show ? (
                                 <>
                                     <CollapsibleTable />
-                                    <button className='select-btn' onClick= {() => {openDatabaseSelect(); }}>Reselect</button>
+                                    <button
+                                        className='select-btn' onClick={ ()=> openDatabaseSelect()}>Reselect</button>
                                 </>
                             ) : (
                                 <>
-                                    <div className="card-header">
-                                        <p className="label">
-                                            Please select a database to Compare
-                                        </p>
-                                        </div>
-
-                                        <div className="line"></div>
-                                        <button className='select-btn' onClick= {() => {openDatabaseSelect(); }}>Select</button>
-                                </>    
+                    <div className="card-header">
+                        <p className="label">Please select a database to Compare</p>
+                    </div>
+                        <div className="line"></div>
+                                <button
+                                    className='select-btn'onClick={ ()=> openDatabaseSelect()}>Select</button> </>
                             )}
-                                    
                         </div>
                     </div>
 
@@ -802,43 +803,44 @@ const MainPage = () => {
                                 <>
                                     <CollapsibleTable2 /> 
                                     {fixConflicts && (
-                                        <button className='fix-btn' style={{ backgroundColor: '#FACC1566', color: '#000000' }} onClick={() => handleConflicts()}>Fix Conflicts</button>
+                                        <button
+                                            className='fix-btn'
+                                            style={{ backgroundColor: '#FACC1566', color: '#000000' }}>Fix Conflicts</button>
                                     )}
-                                    <button className='select-btn' onClick= {() => {openDatabaseSelect2(); }}>Reselect</button>
+                                    <button
+                                        className='select-btn'onClick={ ()=> openDatabaseSelect2()}> Reselect</button>
                                 </>
                             ) : (
                                 <>
-                                    <div className="card-header-client">
-                                    <p className="label">
-                                            Please select a database to Compare
-                                    </p>
-                                    </div>
-
-                                        <div className="line"></div>
-                                        <button className='select-btn' onClick= {() => {openDatabaseSelect2(); }}>Select</button>
-                                       
-                                </>    
+                                <div className="card-header-client">
+                                        <p className="label">Please select a database to Compare</p></div>
+                                <div className="line"></div>
+                                    <button
+                                        className='select-btn' disabled={!dbA} onClick={ ()=> openDatabaseSelect2()}>Select</button>
+                                </>
                             )}
-                                    
                         </div>
                     </div>
 
                     <div className='scanner-select'>
                         <div className="card">
                             {scan ? (
-                                <CollapsibleTableScanned /> 
+                                <CollapsibleTableScanned />
                             ) : (
                                 <>
-                                <div className="card-scanner-header">
-                                    <p className="label">
-                                            Press Scan to compare the databases
-                                        </p>
-                                </div>
-                                        <div className="line"></div>
-
-                                        <button className='select-btn' onClick={() => fetchResults()}>Scan</button>
-                                        
-                                    
+                    <div className="card-scanner-header">
+                        <p className="label">Press Scan to compare the databases</p> </div>
+                        <div className="line"></div>
+                                    <button
+                                        className='select-btn'
+                                        disabled={!dbA || !dbB} 
+                                        onClick={() => {
+                                            fetchResults();
+                                            setScan(true);
+                                        }}
+                                    >
+                                        Scan
+                                    </button>
                                 </>    
                             )}
                         </div>
