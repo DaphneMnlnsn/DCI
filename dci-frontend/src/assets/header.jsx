@@ -1,14 +1,19 @@
 import React from "react";
 import "./header.css";
-import logo from '../assets/IDA-Logo.png';
-import { useNavigate } from 'react-router-dom';
+import logo from "../assets/IDA-Logo.png";
+import { useNavigate } from "react-router-dom";
+import { LogOut, Settings } from "lucide-react";
 
 const Header = () => {
   const navigate = useNavigate();
 
-  const handleLogout = async (e) => {   
-    navigate('/');
-  }
+  const handleLogout = () => {
+    navigate("/");
+  };
+
+  const handleSettings = () => {
+    navigate("/settings");
+  };
 
   return (
     <header className="app-header">
@@ -21,9 +26,15 @@ const Header = () => {
       </div>
 
       <div className="header-right">
-        <button className="logout-button" onClick={handleLogout}>Logout</button>
-      </div>
+        <button className="icon-button" onClick={handleSettings}>
+          <Settings size={22} />
+        </button>
 
+        <button className="icon-button" onClick={handleLogout}>
+          <LogOut size={22} />
+        </button>
+
+      </div>
     </header>
   );
 };
