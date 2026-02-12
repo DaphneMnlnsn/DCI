@@ -33,6 +33,7 @@ html, body, #root {
 .header-left .logo-img {
   height: 40px;
   width: 70px;
+  cursor: pointer;
 }
 
 /* CENTER: Title */
@@ -49,13 +50,9 @@ html, body, #root {
   color: #003566;
 }
 
-.logout-button {
-  background-color: #F5FFFA;
+.header-icon {
   color: #003566;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  font-size: 26px;
+  margin: 8px;
   cursor: pointer;
-  font-size: 16px;
-  font-weight: bold;
 } 

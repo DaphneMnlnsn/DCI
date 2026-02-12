@@ -26,6 +26,7 @@ const LoginPage = () => {
                     icon: 'success',
                     title: 'Login Successful',
                     text: 'You have been logged in successfully.',
+                    confirmButtonColor: '#003566',
                 }).then(() => {
                     // Redirect to main page after alert
                     navigate('/main');

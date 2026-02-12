@@ -18,7 +18,7 @@ const Header = () => {
   return (
     <header className="app-header">
       <div className="header-left">
-        <img src={logo} alt="IDA Logo" className="logo-img" />
+        <img src={logo} alt="IDA Logo" className="logo-img" onClick={() => navigate('/main')}/>
       </div>
 
       <div className="header-center">
@@ -26,14 +26,8 @@ const Header = () => {
       </div>
 
       <div className="header-right">
-        <button className="icon-button" onClick={handleSettings}>
-          <Settings size={22} />
-        </button>
-
-        <button className="icon-button" onClick={handleLogout}>
-          <LogOut size={22} />
-        </button>
-
+        <Settings className='header-icon' onClick={handleSettings}/>
+        <LogOut className='header-icon' onClick={handleLogout}/>
       </div>
     </header>
   );

@@ -93,6 +93,15 @@ return [
             'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'true'),
         ],
 
+        'dci_system' => [
+            'driver' => 'mysql',
+            'host' => env('DB_SYSTEM_HOST', '127.0.0.1'),
+            'port' => env('DB_SYSTEM_PORT', '3306'),
+            'database' => env('DB_SYSTEM_DATABASE', 'dci_system'),
+            'username' => env('DB_SYSTEM_USERNAME', 'root'),
+            'password' => env('DB_SYSTEM_PASSWORD', ''),
+        ],
+
     ],
 
     /*
