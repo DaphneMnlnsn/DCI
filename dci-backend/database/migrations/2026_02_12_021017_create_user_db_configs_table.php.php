@@ -11,11 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::connection('dci_system')->create('activity_logs', function (Blueprint $table) {
+        Schema::create('user_db_configs', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->string('action');
-            $table->text('description');
+            $table->unsignedBigInteger('user_id')->unique();
+            $table->json('db_config');
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
@@ -27,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::connection('dci_system')->dropIfExists('activity_logs');
+        Schema::dropIfExists('user_db_configs');
     }
 };
