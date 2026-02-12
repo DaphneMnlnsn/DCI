@@ -803,9 +803,9 @@ const MainPage = () => {
                                 <>
                                     <CollapsibleTable2 /> 
                                     {fixConflicts && (
-                                        <button
-                                            className='fix-btn'
-                                            style={{ backgroundColor: '#FACC1566', color: '#000000' }}>Fix Conflicts</button>
+                                        <button className='fix-btn' style={{ backgroundColor: '#FACC1566', color: '#000000' }} 
+                                            onClick={() => handleConflicts()}>Fix Conflicts
+                                        </button>
                                     )}
                                     <button
                                         className='select-btn'onClick={ ()=> openDatabaseSelect2()}> Reselect</button>
