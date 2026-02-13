@@ -4,7 +4,7 @@ import './Settings.css';
 import axios from 'axios';
 import swal from 'sweetalert2';
 import Header from '../assets/header.jsx';
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Plus, Trash, Pencil } from "lucide-react";
 
 const SettingsPage = () => {
     const [username, setUsername] = useState('');
@@ -39,6 +39,7 @@ const SettingsPage = () => {
 
     useEffect(() => {
         //getServers();
+        getUsers();
         getActivityLogs();
     }, []);
 
@@ -74,7 +75,7 @@ const SettingsPage = () => {
                 { responseType: 'json' }
             );
 
-            const allLogs = response.data.activity-log || [];
+            const allLogs = response.data.activity_logs || [];
             setActivityLogs(allLogs);
         } catch (error) {
             console.log('Fetch activity logs error: ', error);
@@ -88,6 +89,18 @@ const SettingsPage = () => {
         setUsername(username);
         setPassword(password);
         alert(tempDb + host + port + username + password);
+    }
+
+    const handleAdd = () => {
+        alert('hi');
+    }
+
+    const handleEdit = () => {
+        alert('hi');
+    }
+
+    const handleDelete = () => {
+        alert('hi');
     }
 
     const renderPageButtons = () => {
@@ -131,7 +144,7 @@ const SettingsPage = () => {
              
             <div className='settings-left'>
                 <div className='left-container'>
-                    <div className='settings-label'>Configure</div>
+                    <div className='settings-configure-label'>Configure</div>
                     <div className="line"></div>
                     <div className='settings-subLabel'>Database Type</div>
                     <div className='radio-group'>
@@ -191,7 +204,8 @@ const SettingsPage = () => {
             <div className='settings-right'>
                 <div className='activity-log-container'>
                     <div className='settings-card-header'>
-                        <p className='settings-label'>Users</p>
+                        <p className='settings-user-label'>Users</p>
+                        <Plus className='settings-icon' onClick={handleAdd}/>
                     </div>
                     <div className="activity-log-table-wrapper">
                         <table id="activity-log-table" className="activity-logs">
@@ -204,17 +218,20 @@ const SettingsPage = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {activityLogs.length === 0 ? (
+                                {users.length === 0 ? (
                                     <tr>
                                         <td className='empty-label' colSpan="4">No users available.</td>
                                     </tr>
                                 ) : (
                                     users.map((user, index) => (
                                         <tr key={index}>
-                                            <td>{user.user_id}</td>
+                                            <td>{user.id}</td>
                                             <td>{user.username}</td>
                                             <td>{user.name}</td>
-                                            <td>Edit Delete</td>
+                                            <td>
+                                                <Pencil className="settings-icon" onClick={handleEdit}/>
+                                                <Trash className="settings-icon" onClick={handleDelete}/>
+                                            </td>
                                         </tr>
                                     ))
                                 )}
@@ -249,7 +266,7 @@ const SettingsPage = () => {
                 </div>
                 <div className='activity-log-container'>
                     <div className='settings-card-header'>
-                        <p className='settings-label'>Activity log</p>
+                        <p className='settings-label'>Activity Log</p>
                     </div>
                     <div className="activity-log-table-wrapper">
                         <table id="activity-log-table" className="activity-logs">

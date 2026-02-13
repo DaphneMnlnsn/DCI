@@ -59,14 +59,39 @@
     margin: 0;
     width: 100%;
     text-align: center;
+    display: flex;
 }
 
-.settings-label {
+.settings-configure-label {
     font-size: 16px;
     color: #333333;
     margin-bottom: 15px;
     text-align: center;
     font-weight: bolder;
+}
+
+.settings-label {
+    flex: 1;
+    font-size: 16px;
+    color: #333333;
+    margin-bottom: 15px;
+    text-align: center;
+    font-weight: bolder;
+}
+
+.settings-user-label {
+    flex: 1;
+    font-size: 16px;
+    color: #333333;
+    margin-bottom: 15px;
+    text-align: center;
+    font-weight: bolder;
+}
+
+.settings-icon {
+    font-size: 26px;
+    width: 26px;
+    height: 26px;
 }
 
 .settings-subLabel {
@@ -153,6 +178,12 @@
 
 .activity-logs th {
     border-bottom: 1px solid #eee;
+}
+
+.activity-logs td {
+    padding: 5px;
+    border-bottom: 1px solid #eee;
+    text-align: center;
 }
 
 .empty-label {

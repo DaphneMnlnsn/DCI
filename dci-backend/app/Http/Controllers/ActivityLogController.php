@@ -9,8 +9,10 @@ use App\Models\ActivityLog;
 class ActivityLogController extends Controller
 {
     public function index(Request $request) {
-        $activityLogs = ActivityLog::orderBy("created_at","desc");
+        $activityLogs = ActivityLog::orderBy("created_at","desc")->get();
 
-        return response()->json($activityLogs);
+        return response()->json([
+            'activity_logs' => $activityLogs,
+        ]);
     }
 }

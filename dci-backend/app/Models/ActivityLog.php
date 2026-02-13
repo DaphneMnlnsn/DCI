@@ -10,7 +10,7 @@ class ActivityLog extends Model
     protected $connection = 'dci_system';
     protected $table = 'activity_logs';
     protected $fillable = [
-        'user',
+        'user_id',
         'action',
         'description',
     ];
