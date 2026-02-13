@@ -1,9 +1,11 @@
-* {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
 }
 
 .settings-root {
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
 }
@@ -17,17 +19,14 @@
 }
 
 .settings-left {
-    flex: 0;
+    flex: 1;
     flex-direction: column;
-    justify-content: center;
-    align-items: flex-start;
     display: flex;
     gap: 20px;
-    text-align: center;
 }
 
 .settings-right {
-    flex: 1;
+    flex: 2;
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -40,6 +39,8 @@
     padding: 40px;
     width: 100%;
     box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
 }
 
 .activity-log-container {
@@ -50,10 +51,10 @@
     box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15);
 }
 
-.card-header{
+.settings-card-header{
     background-color: rgb(250, 204, 21, 0.4);
     color: #333333;
-    padding: 10px;
+    padding: 2px;
     border-radius: 10px 10px 0 0;
     margin: 0;
     width: 100%;
@@ -61,17 +62,24 @@
 }
 
 .settings-label {
-    font-size: 14px;
+    font-size: 16px;
     color: #333333;
     margin-bottom: 15px;
+    text-align: center;
+    font-weight: bolder;
+}
+
+.settings-subLabel {
+    color: #333333;
+    font-size: 14px;
+    margin: 20px 0 10px 0;
 }
 
 .radio-group {
     display: flex;
     gap: 60px;
     justify-content: center;
-    margin-top: 10%;
-    padding: 20px;
+    padding: 10px;
 }
 
 .radio-button-label {
@@ -82,7 +90,8 @@
 
 .settings-btn {
     display: block;
-    margin: 70px auto;
+    margin-top: auto;
+    align-self: center;
     background-color: #003566;
     color: white;   
     border: none;
@@ -96,13 +105,37 @@
 
 .settings-select {
     background-color: #FFFFFF;
-    color: #33333389;
-    border: 1px solid #333333;
-    border-radius: 12px;
-    width: 100%;
+    color: #333333;
+    border: #003566cc solid 1px;
+    border-radius: 15px;
+    width: 95%;
     padding: 15px;
-    font-size: 16px;
-    margin-top: 10%;
+    margin-bottom: 10px;
+    box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 4px -1px;
+    font-family: Poppins, sans-serif;
+}
+
+.settings-form input[type=text], input[type=password] {
+    background-color: white;
+    color: black;
+    padding: 15px;
+    border-radius: 15px;
+    width: 95%;
+    margin-bottom: 10px;
+    border: #003566cc solid 1px;
+    box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 4px -1px;
+    font-family: Poppins, sans-serif;
+}
+
+.settings-toggle-password{
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #555;
 }
 
 .activity-log-table-wrapper {
@@ -116,7 +149,15 @@
     font-size: 14px;
     color: #333333;
     padding: 10px;
+}
+
+.activity-logs th {
     border-bottom: 1px solid #eee;
+}
+
+.empty-label {
+    text-align: center;
+    vertical-align: middle;
 }
 
 .settings-pagination {
@@ -124,9 +165,12 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
+    margin-left: 15px;
 }
 
 .pagination-btn {
-    background-color: #003566;
-    color: #FFFFFF;
+    background-color: #e8e8e85b;
+    color: #003566;
+    font-size: 12px;
+    padding: 5px 10px;
 }

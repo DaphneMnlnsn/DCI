@@ -86,7 +86,7 @@
     font-size: 18px;
 }
 
-input[type=text], input[type=password] {
+.login-form input[type=text], input[type=password] {
     background-color: white;
     color: black;
     padding: 15px;
@@ -96,7 +96,6 @@ input[type=text], input[type=password] {
     border: #003566cc solid 1px;
     box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 4px -1px;
     font-family: Poppins, sans-serif;
-    
 }
 
 input::placeholder {
@@ -124,11 +123,10 @@ input::placeholder {
     position: relative;
 }
 
-.toggle-password{
+.login-toggle-password{
     position: absolute;
-    right: 12px;
+    right: 20px;
     top: 18%;
-    left: 90%;
     transform: translateY(-50%);
     background: none;
     border: none;
