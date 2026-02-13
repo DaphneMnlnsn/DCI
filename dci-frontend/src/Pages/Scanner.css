@@ -261,3 +261,20 @@ button:focus {
   opacity:.5;
   cursor:not-allowed;
 }
+.no-conflict-box {
+  background-color: #e6f9f0;
+  margin-top: 15px;
+  padding: 10px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+  font-weight: 600;
+  font-size: 16px;
+}
+.btn-group {
+    display: flex;
+    gap: 30px;              
+    justify-content: center; 
+    align-items: center;
+    margin-top: 15px;
+}
+

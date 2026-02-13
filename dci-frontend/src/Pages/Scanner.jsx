@@ -33,13 +33,15 @@ const MainPage = () => {
     const [scan, setScan] = useState(false);
     const [rescan, setRescan] = useState(false);
     const [fixConflicts, setFixConflicts] = useState(false);
+    const [noConflicts, setNoConflicts] = useState(false);
     const [warnings, setWarnings] = useState([]);
     const [fixed, setFixed] = useState([]);
     const [dbA, setDbA] = useState(null);
     const [dbB, setDbB] = useState(null);
     const [masterSelected, setMasterSelected] = useState(false);
     const [clientSelected, setClientSelected] = useState(false);
-   
+    
+
 
     const fetchDatabase = async (dbName) => {
         if (!dbName) return;
@@ -339,6 +341,15 @@ const MainPage = () => {
             swal.fire("Select two databases first", "", "warning");
             return;
         }
+         if (dbA === dbB) {
+        swal.fire({
+            title: "Invalid Selection",
+            text: "Please select two different databases",
+            icon: "warning",
+            confirmButtonColor: "#003566"
+        });
+        return;
+    }
 
         try {
             const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/scan`, {
@@ -360,6 +371,7 @@ const MainPage = () => {
 
                 // Calculate total conflict count
                 let totalCount = 0;
+                
                 conflictArray.forEach(({ conflictType, details }) => {
                     switch (conflictType) {
                         case 'missing_client_table':
@@ -373,9 +385,15 @@ const MainPage = () => {
                             Object.values(details).forEach(columns => {
                                 totalCount += Object.keys(columns).length;
                             });
-                            break;
+                            break;  
                     }
                 });
+                if (totalCount === 0) {
+                    setNoConflicts(true);
+                } else {
+                    setNoConflicts(false);
+                }
+
                 swal.fire({
                     title: "Scan Complete",
                     html: `<span class="conflict-count">${totalCount} conflicts found</span>`,
@@ -825,8 +843,24 @@ const MainPage = () => {
                     <div className='scanner-select'>
                         <div className="card">
                             {scan ? (
-                                <CollapsibleTableScanned />
+                            noConflicts ? (
+                                <>
+                                <div className="no-conflict-box">
+                                    No Conflicts found
+                                </div>
+                                
+                             <div className='btn-group'>
+                                <button className='export-btn' style={{ backgroundColor: '#FACC1566', color: '#000000'}} onClick={() => handleExport()}>Export Results</button>
+                                    {rescan && (
+                                <button className='rescan-btn' onClick={() => fetchResults()}>Rescan</button>
+                                    )}
+                                </div></>
+    
                             ) : (
+                                <CollapsibleTableScanned />
+                            )
+                            
+                        ) : (
                                 <>
                     <div className="card-scanner-header">
                         <p className="label">Press Scan to compare the databases</p> </div>
@@ -834,9 +868,7 @@ const MainPage = () => {
                                     <button
                                         className='select-btn'
                                         disabled={!dbA || !dbB} 
-                                        onClick={() => {
-                                            fetchResults();
-                                            setScan(true);
+                                        onClick={async() => {await fetchResults();   
                                         }}
                                     >
                                         Scan
