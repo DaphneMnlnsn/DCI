@@ -53,55 +53,35 @@ class ClientTableController extends Controller
 
         $tables = [];
 
+        $conflictTypes = ['extra_client_table', 'extra_client_column', 'type_mismatch', 'length_mismatch'];
+
         // Restructuring data for easier pagination per table and then putting it in the table array
-        if(!empty($conflicts['extra_client_table'])) {
-            foreach($conflicts['extra_client_table'] as $table => $value){
-                $tables[$table]['issues'][] = [
-                    'type' => 'extra_client_table'
-                ];
-            }
-        }
-
-        if(!empty($conflicts['extra_client_column'])) {
-            foreach($conflicts['extra_client_column'] as $table => $columns){
-
-                foreach($columns as $column => $value){
-                    $tables[$table]['issues'][] = [
-                        'type' => 'extra_client_column',
-                        'column' => $column,
-                    ];
-                }
-            }
-        }
-
-        if(!empty($conflicts['type_mismatch'])) {
-            foreach($conflicts['type_mismatch'] as $table => $columns){
-                foreach($columns as $column => $details){
-                    $tables[$table]['issues'][] = [
-                        'type' => 'type_mismatch',
-                        'column' => $column,
-                        'master' => $details['master'],
-                        'client' => $details['client']
-                    ];
-                }
-            }
-        }
-
-        if(!empty($conflicts['length_mismatch'])) {
-            foreach($conflicts['length_mismatch'] as $table => $columns){
-                foreach($columns as $column => $details){
-                    $tables[$table]['issues'][] = [
-                        'type' => 'length_mismatch',
-                        'column' => $column,
-                        'master' => $details['master'],
-                        'client' => $details['client']
-                    ];
+        foreach($conflictTypes as $type){
+            if(!empty($conflicts[$type])) {
+                foreach($conflicts[$type] as $table => $columns){
+                    if($type == 'extra_client_table'){
+                        $tables[$table]['issues'][] = [
+                            'type' => $type
+                        ];
+                    } else{
+                        foreach($columns as $column => $details){
+                            $issue = ['type' => $type, 'column' => $column];
+                            if(isset($details['master'])){
+                                $issue['master'] = $details['master'];
+                            }
+                            if(isset($details['client'])){
+                                $issue['client'] = $details['client'];
+                            }
+                            $tables[$table]['issues'][] = $issue;
+                        }
+                    }
+                    
                 }
             }
         }
 
         // Getting the first 100 rows from the table
-        foreach ($tables as $tableName => $tableData) {
+        foreach ($tables as $tableName => &$tableData) {
             $tableData['preview'] = $reader->previewTable($target, $tableName, $config);
         }
 
@@ -112,5 +92,13 @@ class ClientTableController extends Controller
             ]);
         }
 
+    }
+
+    public function deleteAllData(){
+
+    }
+
+    public function deleteIncompatibleData(){
+        
     }
 }
