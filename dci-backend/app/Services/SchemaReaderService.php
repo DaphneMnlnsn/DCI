@@ -160,4 +160,21 @@ class SchemaReaderService
         ];
         
     }
+    public function previewTable(string $dbName, string $tableName, array $config)
+    {
+        $dynamicConnName = 'dynamic_schema';
+
+        Config::set(
+            "database.connections.$dynamicConnName",
+            array_merge($config, ['database' => $dbName])
+        );
+
+        DB::purge($dynamicConnName);
+        $conn = DB::connection($dynamicConnName);
+
+        return $conn->table($tableName)
+            ->limit(100)
+            ->get();
+    }
+
 }
