@@ -90,8 +90,16 @@
 
 .settings-icon {
     font-size: 26px;
-    width: 26px;
-    height: 26px;
+    width: 22px;
+    height: 22px;
+    margin-right: 5px;
+    margin-left: 5px;
+    cursor: pointer;
+    color: #003566;
+}
+
+.delete-icon {
+    color: #9e3b3b;
 }
 
 .settings-subLabel {
@@ -140,7 +148,7 @@
     font-family: Poppins, sans-serif;
 }
 
-.settings-form input[type=text], input[type=password] {
+.settings-form input[type=text], input[type=password], input[id=name], input[id=username]  {
     background-color: white;
     color: black;
     padding: 15px;
@@ -204,4 +212,8 @@
     color: #003566;
     font-size: 12px;
     padding: 5px 10px;
+}
+
+.swal-align {
+    text-align: left;
 }

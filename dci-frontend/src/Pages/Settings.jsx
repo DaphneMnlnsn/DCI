@@ -55,10 +55,9 @@ const SettingsPage = () => {
 
     const getUsers = async () => {
         try{
-            const response = await axios.get(
-                `${import.meta.env.VITE_APP_BASE_URL}/api/users`,
-                { responseType: 'json' }
-            );
+            const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/users`, { 
+                responseType: 'json' 
+            });
 
             const allUsers = response.data.users || [];
             setUsers(allUsers);
@@ -91,16 +90,155 @@ const SettingsPage = () => {
         alert(tempDb + host + port + username + password);
     }
 
-    const handleAdd = () => {
-        alert('hi');
+    const handleAdd = async () => {
+        try {
+            const { value: formValues, isConfirmed }  = await swal.fire({
+                title: 'Add User',
+                html:`
+                    <label>Name</label>
+                    <br>
+                    <input
+                        id="name" class="swal2-input" placeholder="Enter name"
+                    /> 
+                    <label>Username</label>
+                    <br>
+                    <input
+                        id="username" class="swal2-input" placeholder="Enter username"
+                    />
+                    <br>
+                    <label>Password</label>
+                    <br>
+                    <input
+                        type="password" id="password" class="swal2-input" placeholder="Enter password"
+                    /> 
+                    <br>
+                    <label>Confirm Password</label>
+                    <br>
+                    <input
+                        type="password" id="confirm-password" class="swal2-input" placeholder="Confirm password"
+                    /> 
+                `,
+                showCancelButton: true,
+                confirmButtonText: "Add",
+                confirmButtonColor: "#003566",
+                customClass: { popup: 'swal-big swal-poppins swal-align'},
+                
+                preConfirm: () => {
+                    const name = document.getElementById('name').value;
+                    const username = document.getElementById('username').value;
+                    const password = document.getElementById('password').value;
+                    const confirmPassword = document.getElementById('confirm-password').value;
+                    
+                    if (!name || !username || !password || !confirmPassword) {
+                        swal.showValidationMessage("All fields are required");
+                        return false;
+                    }
+
+                    if (password !== confirmPassword) {
+                        swal.showValidationMessage("Passwords do not match");
+                        return false;
+                    }
+
+                    return { name, username, password };
+                }
+            });
+
+            if(isConfirmed){
+                const response = await axios.post(`${import.meta.env.VITE_APP_BASE_URL}/api/users/create`, 
+                    formValues,
+                );
+                if(response.status === 201){
+                    swal.fire({
+                        icon: 'success',
+                        title: 'Add User Successful',
+                        text: 'User created successfully.',
+                        confirmButtonColor: '#003566',
+                    });
+                    getUsers();
+                }
+            }
+        } catch (error) {
+            console.log('Add user error: ', error);
+        }
     }
 
-    const handleEdit = () => {
-        alert('hi');
+    const handleEdit = async (user) => {
+        try {
+            const { value: formValues, isConfirmed } = await swal.fire({
+                title: 'Edit User',
+                html:`
+                    <label>Username</label>
+                    <br>
+                    <input
+                        id="username" class="swal2-input" value="${user.username}"
+                    />
+                    <br>
+                    <label>Name</label>
+                    <br>
+                    <input
+                        id="name" class="swal2-input" value="${user.name}"
+                    /> 
+                `,
+                showCancelButton: true,
+                confirmButtonText: "Save",
+                confirmButtonColor: "#003566",
+                customClass: { popup: 'swal-big swal-poppins swal-align'},
+                
+                preConfirm: () => {
+                    return {
+                        username: document.getElementById('username').value,
+                        name: document.getElementById('name').value
+                    };
+                }
+            });
+
+            if(isConfirmed){
+                const response = await axios.put(`${import.meta.env.VITE_APP_BASE_URL}/api/users/update/${user.id}`, 
+                    formValues,
+                );
+                if(response.status === 200){
+                    swal.fire({
+                        icon: 'success',
+                        title: 'Edit Successful',
+                        text: 'User edited successfully.',
+                        confirmButtonColor: '#003566',
+                    });
+                    getUsers();
+                }
+            }
+            
+        } catch (error) {
+            console.log('Edit user error: ', error);
+        }
     }
 
-    const handleDelete = () => {
-        alert('hi');
+    const handleDelete = async (id) => {
+        try {
+            const decision = await swal.fire({
+                title: "Warning",
+                text: "Are you sure you want to delete this user?",
+                icon: "warning",
+                confirmButtonColor: "#003566",
+                showCancelButton: true,
+            });
+
+            if(decision.isConfirmed){
+                const response = await axios.delete(`${import.meta.env.VITE_APP_BASE_URL}/api/users/delete/${id}`, {
+                    responseType: 'json',
+                });
+
+                if(response.status === 200){
+                    swal.fire({
+                        icon: 'success',
+                        title: 'Delete Successful',
+                        text: 'User deleted successfully.',
+                        confirmButtonColor: '#003566',
+                    });
+                }
+            }
+        } catch (error) {
+            console.log('Delete user error: ', error);
+        }
     }
 
     const renderPageButtons = () => {
@@ -160,10 +298,12 @@ const SettingsPage = () => {
                     </div>
                     <form className='settings-form'>
                         <div className='settings-subLabel'>Host/Server</div>
-                        <select className='settings-select'>
-                            <option value=''>Select Server</option>
-                            {/*${allServers.map(db => `<option value="${db}">${db}</option>`).join("")}*/}
-                        </select>
+                        <input className='login-email' 
+                            type='text' 
+                            placeholder='Enter server' 
+                            value={port}
+                            onChange={e => setPort(e.target.value)}/>
+
                         <div className='settings-subLabel'>Port</div>
                         <input className='login-email' 
                             type='text' 
@@ -229,8 +369,8 @@ const SettingsPage = () => {
                                             <td>{user.username}</td>
                                             <td>{user.name}</td>
                                             <td>
-                                                <Pencil className="settings-icon" onClick={handleEdit}/>
-                                                <Trash className="settings-icon" onClick={handleDelete}/>
+                                                <Pencil className="settings-icon" onClick={() => handleEdit(user)}/>
+                                                <Trash className="settings-icon delete-icon" onClick={() => handleDelete(user)}/>
                                             </td>
                                         </tr>
                                     ))
