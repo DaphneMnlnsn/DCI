@@ -452,19 +452,26 @@ const MainPage = () => {
                     fetchDatabase2(dbB);
 
                     if(localWarnings.length > 0){
-                        swal.fire({
+                        const result = await swal.fire({
                             title: 'Completed with warnings',
                             html: `<span class="conflict-count">${executed} conflict(s) fixed with ${localWarnings.length} warning(s)</span>
                                 <br/><br/>
                                 <div style="text-align:left; max-height:200px; overflow-y:auto;">
                                     <strong>Warnings:</strong>
-                                    <ul>${localWarnings.map(w => `<li>${w}</li>`).join('')}</ul>
-                                </div>`,
+                                    <ul>${localWarnings.map(w => `<li>${w}</li>`).join('')}</ul>    
+                                </div>`, 
                             icon: 'warning',
-                            confirmButtonText: 'OK',
-                            confirmButtonColor: '#003566'
-                        })
-                    } else {
+                            showCancelButton: true,
+                            confirmButtonText: 'View & Manage Data',
+                            confirmButtonColor: '#003566',
+                            cancelButtonColor: '#6E7881'
+                        });
+
+                        if (result.isConfirmed){
+                            navigate('/manage-data', {state: {conflictedTables: results.conflicts}});
+                        }
+                    }
+                    else {
                         swal.fire({
                             title: 'Success',
                             text: `${executed} conflict(s) fixed`,
