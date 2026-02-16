@@ -142,7 +142,6 @@ class SchemaFixerService
 
             foreach ($columns as $column) {
                 $masterColumnDef = $masterSchema[$table]['columns'][$column];
-                $clientColumnDef = $clientSchema[$table]['columns'][$column];
 
                 $sql[] = $this->builder->modifyMismatchedColumns($table, $column, $masterColumnDef);
             }

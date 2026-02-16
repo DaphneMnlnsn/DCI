@@ -20,5 +20,5 @@ Route::post('/users/create', [UserController::class, 'store']);
 Route::put('/users/update/{id}', [UserController::class, 'update']);
 Route::delete('/users/delete/{id}', [UserController::class, 'destroy']);
 Route::get('/conflicted-tables', [ClientTableController::class, 'getTables']);
-//Route::delete('/conflicted-tables/delete-all', [ClientTableController::class, 'deleteAllData']);
-//Route::delete('/conflicted-tables/delete-some', [ClientTableController::class, 'deleteIncompatibleData']);
+Route::delete('/conflicted-tables/delete-all', [ClientTableController::class, 'deleteAllData']);
+Route::delete('/conflicted-tables/delete-some', [ClientTableController::class, 'deleteIncompatibleData']);

@@ -49,7 +49,19 @@ class DatabaseController extends Controller
                 'prefix' => '',
             ];
         }
-        
+
+        // For testing the connection
+        Config::set('database.connections.dynamic_test', $config);
+
+        try {
+            DB::purge('dynamic_test');
+            DB::connection('dynamic_test')->getPdo();
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'Connection failed',
+                'error' => $e->getMessage()
+            ], 500);
+        }
 
         DB::table('user_db_configs')->updateOrInsert(
             ['user_id' => $userID],

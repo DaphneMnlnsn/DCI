@@ -106,10 +106,20 @@ class PostgresSchemaBuilder implements SchemaSQLBuilderInterface
     {
         $quotedTable = $this->quoteIdentifier($table);
         $quotedColumn = $this->quoteIdentifier($column);
+        $baseType = strtoupper($columnDef['data_type']);
         $type = $this->normalizeType($columnDef);
-        $nullable = $columnDef['nullable'] ? "DROP NOT NULL" : "SET NOT NULL";
 
-        return "ALTER TABLE {$quotedTable} ALTER COLUMN {$quotedColumn} TYPE {$type}; " .
-               "ALTER TABLE {$quotedTable} ALTER COLUMN {$quotedColumn} {$nullable};";
+        $nullableSQL = $columnDef['nullable']
+            ? "ALTER TABLE {$quotedTable} ALTER COLUMN {$quotedColumn} DROP NOT NULL;"
+            : "ALTER TABLE {$quotedTable} ALTER COLUMN {$quotedColumn} SET NOT NULL;";
+
+        $typeOnly = preg_replace('/\s+DEFAULT\s+.*/i', '', $type);
+
+        $alterTypeSQL = "ALTER TABLE {$quotedTable} 
+                        ALTER COLUMN {$quotedColumn} 
+                        TYPE {$typeOnly} 
+                        USING {$quotedColumn}::{$baseType};";
+
+        return "{$alterTypeSQL} {$nullableSQL}";
     }
 }
