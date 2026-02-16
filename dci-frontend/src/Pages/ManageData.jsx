@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Header from "../assets/header.jsx";
 import "./ManageData.css";
+import Swal from 'sweetalert2';
 
 export default function ManageData() {
   const location = useLocation();
@@ -101,16 +102,42 @@ export default function ManageData() {
         <section className="action-bar">
           <div className="delete-group">
             <button
-              className="btn btn-delete" onClick={() =>
-                console.log("Delete All for:", currentTable?.table)
+              className="btn btn-delete" onClick={() =>{
+                Swal.fire({
+                  title: "Are you sure?",
+                  text: "This will delete all data for this table.",
+                  icon: "warning",
+                  showCancelButton: true,
+                  confirmButtonColor: "#ba2f2f",
+                  confirmButtonText: "Yes, Delete All",
+                  cancelButtonText: "Cancel",
+                  cancelButtonColor: "#003566",
+                }).then ((Result) => {
+                  if (result.isConfirmed){
+                    console.log ("Delete All for:", currentTable?.table);
+                  }
+                })
+              }
               }
             >
               Delete All and Fix
             </button>
-
             <button
               className="btn btn-delete" onClick={() =>
-                console.log("Delete Incompatible for:", currentTable?.table)
+                Swal.fire({
+                  title: "Are you sure?",
+                  text: "This will delete all incompatible data for this table.",
+                  icon: "warning",
+                  showCancelButton: true,
+                  confirmButtonColor: "#ba2f2f",
+                  cancelButtonColor: "#003566",
+                  confirmButtonText: "Yes, Delete All",
+                  cancelButtonText: "Cancel"
+                }).then ((result) => {
+                  if (result.isConfirmed){
+                       console.log("Delete Incompatible for:", currentTable?.table);
+                  }
+                })
               }
             >
               Delete Incompatible

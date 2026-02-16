@@ -77,6 +77,7 @@ const LoginPage = () => {
                                 onChange={e => setUsername(e.target.value)}/>
                         
                         <div className='input-label'>Password</div>
+                      
                         <div className="password-wrapper">
                             <input
                                 className='login-password'
@@ -93,10 +94,8 @@ const LoginPage = () => {
                             >
                                 {showPassword ? <EyeOff size={18}/> : <Eye size={18}/>}
                             </button>
-
-                            <div><button className='login-btn' type='submit'>Login</button></div>
                         </div>
-
+                            <div><button className='login-btn' type='submit'>Login</button></div>
                     </form>
                 </div>
             </div>

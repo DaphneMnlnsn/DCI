@@ -48,13 +48,14 @@
 
 .login-form-container{
     background-color: rgba(65, 101, 137, 0.8);
-    padding: 50px;
+    padding: 40px;
     border-radius: 15px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    height: 60%;
-    width: 30vw;
+    max-width: 420px;
+    width: 100%;
     margin: 10px;
     box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 3px -1px;
+   
 }
 
 .title {
@@ -86,16 +87,18 @@
     font-size: 18px;
 }
 
-.login-form input[type=text], input[type=password] {
+.login-form input[type=text], 
+.login-form input[type=password] {
     background-color: white;
-    color: black;
     padding: 15px;
     border-radius: 15px;
-    width: 95%;
-    margin-bottom: 40px;
+    width: 100%;
+    margin-bottom: 20px;
     border: #003566cc solid 1px;
     box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 4px -1px;
     font-family: Poppins, sans-serif;
+    outline: none;
+    
 }
 
 input::placeholder {
@@ -121,12 +124,14 @@ input::placeholder {
 
 .password-wrapper{
     position: relative;
+    height: 55px;
+    
 }
 
 .login-toggle-password{
     position: absolute;
-    right: 20px;
-    top: 18%;
+    right: 5px;
+    top: 50%;
     transform: translateY(-50%);
     background: none;
     border: none;
