@@ -857,7 +857,7 @@ const MainPage = () => {
                                 </div>
                                 
                              <div className='btn-group'>
-                                <button className='export-btn' style={{ backgroundColor: '#FACC1566', color: '#000000'}} onClick={() => handleExport()}>Export Results</button>
+                                
                                     {rescan && (
                                 <button className='rescan-btn' onClick={() => fetchResults()}>Rescan</button>
                                     )}
