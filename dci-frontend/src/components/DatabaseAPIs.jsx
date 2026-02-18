@@ -118,7 +118,7 @@ export const fetchConflicts = async (dbA, dbB) => {
     }
 }
 
-export const fixAllConflicts = async (dbA, dbB) => {
+export const fixAllConflicts = async (dbA, dbB, navigate, results) => {
 
     const decision = await swal.fire({
         title: 'Fix Conflicts',

@@ -219,12 +219,42 @@ class ClientTableController extends Controller
         }
 
         $clientSchema = $reader->readSchemaByDatabase($target, $targetConfig);
-        $result = $fixer->fix($tableConflicts, $masterSchema, $clientSchema, $target, $targetConfig);
+        $fixer->fix($tableConflicts, $masterSchema, $clientSchema, $target, $targetConfig);
+
+        $updatedTable = [
+            'issues' => [],
+            'preview' => []
+        ];
+
+        $conflictTypes = ['extra_client_table', 'extra_client_column', 'type_mismatch', 'length_mismatch'];
+
+        foreach ($conflictTypes as $type) {
+            if (!empty($newConflicts[$type][$tableName])) {
+                if ($type === 'extra_client_table') {
+                    $updatedTable['issues'][] = ['type' => $type];
+                } else {
+                    foreach ($newConflicts[$type][$tableName] as $column => $details) {
+                        $issue = ['type' => $type, 'column' => $column];
+                        if (isset($details['master'])) $issue['master'] = $details['master'];
+                        if (isset($details['client'])) $issue['client'] = $details['client'];
+                        $updatedTable['issues'][] = $issue;
+                    }
+                }
+            }
+        }
+
+        if (Schema::connection($dynamicConnName)->hasTable($tableName)) {
+            $updatedTable['preview'] = $reader->previewTable($target, $tableName, $config);
+        }
 
         return response()->json([
             'status' => 'success',
-            'message' => $executed > 0 ? `All conflicts resolved for table: $tableName` : `No conflicts found for table: $tableName`,
-            'details' => $result
+            'table' => $tableName,
+            'issues' => $updatedTable['issues'],
+            'preview' => $updatedTable['preview'],
+            'message' => count($updatedTable['issues']) === 0
+                ? "No remaining conflicts."
+                : "Some conflicts still remain."
         ]);
 
     }
@@ -394,12 +424,42 @@ class ClientTableController extends Controller
         }
 
         $clientSchema = $reader->readSchemaByDatabase($target, $targetConfig);
-        $result = $fixer->fix($tableConflicts, $masterSchema, $clientSchema, $target, $targetConfig);
+        $fixer->fix($tableConflicts, $masterSchema, $clientSchema, $target, $targetConfig);
+
+        $updatedTable = [
+            'issues' => [],
+            'preview' => []
+        ];
+
+        $conflictTypes = ['extra_client_table', 'extra_client_column', 'type_mismatch', 'length_mismatch'];
+
+        foreach ($conflictTypes as $type) {
+            if (!empty($newConflicts[$type][$tableName])) {
+                if ($type === 'extra_client_table') {
+                    $updatedTable['issues'][] = ['type' => $type];
+                } else {
+                    foreach ($newConflicts[$type][$tableName] as $column => $details) {
+                        $issue = ['type' => $type, 'column' => $column];
+                        if (isset($details['master'])) $issue['master'] = $details['master'];
+                        if (isset($details['client'])) $issue['client'] = $details['client'];
+                        $updatedTable['issues'][] = $issue;
+                    }
+                }
+            }
+        }
+
+        if (Schema::connection($dynamicConnName)->hasTable($tableName)) {
+            $updatedTable['preview'] = $reader->previewTable($target, $tableName, $config);
+        }
 
         return response()->json([
             'status' => 'success',
-            'message' => $executed > 0 ? "All conflicts resolved for table: $tableName" : "No conflicts found for table: $tableName",
-            'details' => $result
+            'table' => $tableName,
+            'issues' => $updatedTable['issues'],
+            'preview' => $updatedTable['preview'],
+            'message' => count($updatedTable['issues']) === 0
+                ? "No remaining conflicts."
+                : "Some conflicts still remain."
         ]);
 
     }

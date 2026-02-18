@@ -175,7 +175,7 @@ const MainPage = () => {
     };
 
     const handleConflicts = async () => {
-        setWarnings(await fixAllConflicts(dbA, dbB));
+        setWarnings(await fixAllConflicts(dbA, dbB, navigate, results));
         await fetchDatabase2(dbB);
     }
 

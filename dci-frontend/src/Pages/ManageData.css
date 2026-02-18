@@ -68,18 +68,20 @@
 .table-wrapper {
   flex: 1;
   overflow-y: auto;
+  overflow-x: auto;
 }
 
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed;
+  table-layout: auto;
 }
 
 .data-table th,
 .data-table td {
   padding: 12px;
   text-align: center;
+  word-break: break-word;
 }
 
 .data-table th {

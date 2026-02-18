@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Header from "../assets/header.jsx";
 import "./ManageData.css";
-import Swal from 'sweetalert2';
+import axios from 'axios';
+import Swal from "sweetalert2";
 
 export default function ManageData() {
   const location = useLocation();
@@ -11,14 +12,41 @@ export default function ManageData() {
   const [tables, setTables] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  useEffect(() => {
-    if (conflictedTables.length) {
-      setTables(conflictedTables);
-      setCurrentIndex(0);
+  const fetchDatabase = async () => {
+        try {
+            const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/conflicted-tables`, {
+                    params: {
+                        source: 'dci_master',
+                        target: 'dci_sample1',
+                    },
+                    responseType: 'json',
+            });
+            if (response.status === 200){
+                const raw = response.data || {};
+                const conflicted = raw.conflicted_tables || {};
+                const tableArray = Object.entries(conflicted).map(([tableName, tableData]) => ({
+                    table: tableName,
+                    issues: tableData.issues || [],
+                    preview: tableData.preview || []
+                }));
+
+                setTables(tableArray);
+            }
+
+        }
+        catch (error) {
+            console.log('Fetch database error: ', error);
+        }
     }
+
+  useEffect(() => {
+
+    fetchDatabase();
+    
   }, [conflictedTables]);
 
   const currentTable = tables[currentIndex];
+  const rows = currentTable?.preview || [];
 
   const next = () => {
     if (currentIndex < tables.length - 1) setCurrentIndex((prev) => prev + 1);
@@ -27,8 +55,6 @@ export default function ManageData() {
   const prev = () => {
     if (currentIndex > 0) setCurrentIndex((prev) => prev - 1);
   };
-
-  const rows = currentTable?.preview || [];
 
   return (
     <div className="manage-page">
@@ -70,18 +96,16 @@ export default function ManageData() {
             <table className="data-table">
               <thead>
                 <tr>
-                  {rows.length > 0 ? Object.keys(rows[0]).map((col) => (
+                  {rows.length > 0 && Object.keys(rows[0]).map((col) => (
                       <th key={col}>{col}</th>
-                    )) 
-                    : null 
-                  }
+                    ))}
                 </tr>
               </thead>
 
               <tbody>
                 {rows.length === 0 ? (
                   <tr>
-                    <td colSpan={3} className="empty-state">
+                    <td colSpan={10} className="empty-state">
                       No data to display
                     </td>
                   </tr>
@@ -99,11 +123,11 @@ export default function ManageData() {
           </div>
         </section>
 
-        <section className="action-bar">
+       <section className="action-bar">
           <div className="delete-group">
             <button
-              className="btn btn-delete" onClick={() =>{
-                Swal.fire({
+              className="btn btn-delete" onClick={async() => {
+                const result = await Swal.fire({
                   title: "Are you sure?",
                   text: "This will delete all data for this table.",
                   icon: "warning",
@@ -112,19 +136,50 @@ export default function ManageData() {
                   confirmButtonText: "Yes, Delete All",
                   cancelButtonText: "Cancel",
                   cancelButtonColor: "#003566",
-                }).then ((Result) => {
-                  if (result.isConfirmed){
-                    console.log ("Delete All for:", currentTable?.table);
+                });
+
+                if (result.isConfirmed && currentTable?.table) {
+                  try {
+                    const response = await axios.delete(`${import.meta.env.VITE_APP_BASE_URL}/api/conflicted-tables/delete-all`, {
+                      params: {
+                        source: "dci_master",
+                        target: "dci_sample1",
+                        table: currentTable.table
+                      }
+                    });
+                    
+                    if(response.status == 200) {
+                      alert("Conflicted data fixed!");
+                      console.log("Delete All for: ", currentTable.table);
+                      setTables(prev => prev.map(t =>
+                      t.table === response.data.table
+                        ? {
+                            ...t,
+                            issues: response.data.issues || [],
+                            preview: response.data.preview || [],
+                            resolved: (response.data.issues || []).length === 0
+                          }
+                        : t
+                    ));
+                    }
+                    else {
+                      console.warn("Unexpected response: ", response);
+                    }    
+
                   }
-                })
+                  catch (error) {
+                    console.error(error);
+                    alert("Failed to delete all and fix data.");
+                  }
+                }                   
               }
-              }
-            >
-              Delete All and Fix
+            }
+            > Delete All and Fix
             </button>
+
             <button
-              className="btn btn-delete" onClick={() =>
-                Swal.fire({
+              className="btn btn-delete" onClick={async() => {
+                const result = await Swal.fire({
                   title: "Are you sure?",
                   text: "This will delete all incompatible data for this table.",
                   icon: "warning",
@@ -133,14 +188,45 @@ export default function ManageData() {
                   cancelButtonColor: "#003566",
                   confirmButtonText: "Yes, Delete All",
                   cancelButtonText: "Cancel"
-                }).then ((result) => {
-                  if (result.isConfirmed){
-                       console.log("Delete Incompatible for:", currentTable?.table);
+                });
+
+                if (result.isConfirmed && currentTable?.table) {
+                  try {
+                    const response = await axios.delete(`${import.meta.env.VITE_APP_BASE_URL}/api/conflicted-tables/delete-some`, {
+                      params: {
+                        source: "dci_master",
+                        target: "dci_sample1",
+                        table: currentTable.table
+                      }
+                    });
+                    
+                    if(response.status == 200) {
+                      alert("Conflicted incompatible data fixed!");
+                      console.log("Delete Incompatible for: ", currentTable.table);
+                      setTables(prev => prev.map(t =>
+                      t.table === response.data.table
+                        ? {
+                            ...t,
+                            issues: response.data.issues || [],
+                            preview: response.data.preview || [],
+                            resolved: (response.data.issues || []).length === 0
+                          }
+                        : t
+                    ));
+                    }
+                    else {
+                      console.warn("Unexpected response: ", response);
+                    }    
+
                   }
-                })
+                  catch (error) {
+                    console.error(error);
+                    alert("Failed to delete all and fix incompatible data.");
+                  }
+                }                   
               }
-            >
-              Delete Incompatible
+            }
+            > Delete Incompatible
             </button>
           </div>
 
@@ -149,8 +235,8 @@ export default function ManageData() {
           >
             Cancel
           </button>
-        </section>
-      </main>
+        </section>      
+	    </main>
     </div>
   );
 };
