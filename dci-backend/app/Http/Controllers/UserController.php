@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Services\ActivityLogService;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -28,6 +30,12 @@ class UserController extends Controller
             'username' => $validated['username'],
             'password' => Hash::make($validated['password']),
         ]);
+        
+        $admin = Auth::user();
+        ActivityLogService::log(
+            'ADD USER', 
+            "User {$admin->username} added user {$user->username}",
+        );
 
         return response()->json([ 'message' => 'User added successfully', 'user' => $user], 201);
     }
@@ -44,6 +52,12 @@ class UserController extends Controller
             'name' => $validated['name'],
             'username' => $validated['username'],
         ]);
+        
+        $admin = Auth::user();
+        ActivityLogService::log(
+            'EDIT USER', 
+            "User {$admin->username} edited user {$user->username}",
+        );
 
         return response()->json(['message' => 'User updated successfully', 'user' => $user], 200);
     }
@@ -56,6 +70,12 @@ class UserController extends Controller
         }
 
         $user->delete();
+
+        $admin = Auth::user();
+        ActivityLogService::log(
+            'DELETE USER', 
+            "User {$admin->username} deleted user {$user->username}",
+        );
 
         return response()->json(['message', 'User deleted successfully', 'user' => $user], 200);
     }

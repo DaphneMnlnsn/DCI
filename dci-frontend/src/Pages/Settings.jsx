@@ -17,41 +17,45 @@ const SettingsPage = () => {
     const [error, setError] = useState('');
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
-    const [page, setPage] = useState(1);
-    const [perPage, setPerPage] = useState(10);
     const [users, setUsers] = useState([]);
     const [activityLogs, setActivityLogs] = useState([]);
 
-    const [pagination, setPagination] = useState({
-        current_page: 1,
-        last_page: 1,
-        per_page: 10,
-        total: 0,
-    });
-    const [page2, setPage2] = useState(1);
-    const [perPage2, setPerPage2] = useState(10);
-    const [pagination2, setPagination2] = useState({
-        current_page: 1,
-        last_page: 1,
-        per_page: 10,
-        total: 0,
-    });
+    // User table pagination
+    const [usersPage, setUsersPage] = useState(1);
+    const usersPerPage = 6;
+
+    const usersTotal = users.length;
+    const usersLastPage = Math.max(1, Math.ceil(usersTotal / usersPerPage));
+
+    const usersCurrentItems = users.slice(
+        (usersPage - 1) * usersPerPage,
+        usersPage * usersPerPage
+    );
+
+    // Activity log pagination
+    const [logsPage, setLogsPage] = useState(1);
+    const logsPerPage = 7;
+
+    const logsTotal = activityLogs.length;
+    const logsLastPage = Math.max(1, Math.ceil(logsTotal / logsPerPage));
+
+    const logsCurrentItems = activityLogs.slice(
+        (logsPage - 1) * logsPerPage,
+        logsPage * logsPerPage
+    );  
 
     useEffect(() => {
-        //getServers();
         getUsers();
         getActivityLogs();
     }, []);
 
-    const getServers = async () => {
-        const response = await axios.get(
-            `${import.meta.env.VITE_APP_BASE_URL}/api/servers`,
-            { responseType: 'json' }
-        );
+    useEffect(() => {
+        setUsersPage(1);
+    }, [users]);
 
-        const allServers = response.data.databases || [];
-        setTempHost(allServers);
-    }
+    useEffect(() => {
+        setLogsPage(1);
+    }, [activityLogs]);
 
     const getUsers = async () => {
         try{
@@ -69,10 +73,9 @@ const SettingsPage = () => {
 
     const getActivityLogs = async () => {
         try{
-            const response = await axios.get(
-                `${import.meta.env.VITE_APP_BASE_URL}/api/activity-logs`,
-                { responseType: 'json' }
-            );
+            const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/activity-logs`, { 
+                responseType: 'json' 
+            });
 
             const allLogs = response.data.activity_logs || [];
             setActivityLogs(allLogs);
@@ -81,13 +84,37 @@ const SettingsPage = () => {
         }
     }
 
-    const handleSave = () => {
-        setDbType(tempDb);
-        setHost(host);
-        setPort(port);
-        setUsername(username);
-        setPassword(password);
-        alert(tempDb + host + port + username + password);
+    const handleSave = async () => {
+        const driver = tempDb;
+        try {
+            const response = await axios.post(`${import.meta.env.VITE_APP_BASE_URL}/api/set-database`, {
+                driver: driver,
+                host: host,
+                port: port,
+                username: username,
+                password: password,
+                responseType: 'json'
+            }, {
+                withCredentials: true,
+            });
+
+            if (response.status === 200) {
+                swal.fire({
+                    icon: 'success',
+                    title: 'Configuration Successful',
+                    text: 'Settings configured successfully.',
+                    confirmButtonColor: '#003566',
+                });
+            }
+        } catch (error) {
+            console.log('Saving configurations error: ', error);
+            swal.fire({
+                title: "Configuration Failed",
+                text: "Please make sure every input is correct.",
+                icon: "warning",
+                confirmButtonColor: "#003566"
+            });
+        }
     }
 
     const handleAdd = async () => {
@@ -146,6 +173,9 @@ const SettingsPage = () => {
             if(isConfirmed){
                 const response = await axios.post(`${import.meta.env.VITE_APP_BASE_URL}/api/users/create`, 
                     formValues,
+                    {
+                        withCredentials: true,
+                    }
                 );
                 if(response.status === 201){
                     swal.fire({
@@ -195,6 +225,9 @@ const SettingsPage = () => {
             if(isConfirmed){
                 const response = await axios.put(`${import.meta.env.VITE_APP_BASE_URL}/api/users/update/${user.id}`, 
                     formValues,
+                    {
+                        withCredentials: true,
+                    }
                 );
                 if(response.status === 200){
                     swal.fire({
@@ -212,19 +245,21 @@ const SettingsPage = () => {
         }
     }
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (user) => {
         try {
             const decision = await swal.fire({
                 title: "Warning",
                 text: "Are you sure you want to delete this user?",
                 icon: "warning",
-                confirmButtonColor: "#003566",
+                confirmButtonColor: "#9e3b3b",
+                confirmButtonText: "Delete",
                 showCancelButton: true,
             });
 
             if(decision.isConfirmed){
-                const response = await axios.delete(`${import.meta.env.VITE_APP_BASE_URL}/api/users/delete/${id}`, {
+                const response = await axios.delete(`${import.meta.env.VITE_APP_BASE_URL}/api/users/delete/${user.id}`, {
                     responseType: 'json',
+                    withCredentials: true,
                 });
 
                 if(response.status === 200){
@@ -235,27 +270,27 @@ const SettingsPage = () => {
                         confirmButtonColor: '#003566',
                     });
                 }
+                getUsers();
+                getActivityLogs();
             }
         } catch (error) {
             console.log('Delete user error: ', error);
         }
     }
 
-    const renderPageButtons = () => {
+    const renderPageButtons = (page, lastPage, setPage) => {
         const pages = [];
-        const current = pagination.current_page || page;
-        const last = pagination.last_page || 1;
-        const start = Math.max(1, current - 3);
-        const end = Math.min(last, current + 3);
+        const start = Math.max(1, page - 2);
+        const end = Math.min(lastPage, page + 2);
 
         if (start > 1) {
             pages.push(1);
             if (start > 2) pages.push('gap-start');
         }
         for (let p = start; p <= end; p++) pages.push(p);
-        if (end < last) {
-            if (end < last - 1) pages.push('gap-end');
-            pages.push(last);
+        if (end < lastPage) {
+            if (end < lastPage - 1) pages.push('gap-end');
+            pages.push(lastPage);
         }
 
         return pages.map((p, i) => {
@@ -265,9 +300,8 @@ const SettingsPage = () => {
         return (
             <button
                 key={p}
-                className={`pagination-btn ${p === current ? 'active' : ''}`}
+                className={`pagination-btn ${p === page ? 'active' : ''}`}
                 onClick={() => setPage(p)}
-                disabled={p === current || loading}
             >
             {p}
             </button>
@@ -301,8 +335,8 @@ const SettingsPage = () => {
                         <input className='login-email' 
                             type='text' 
                             placeholder='Enter server' 
-                            value={port}
-                            onChange={e => setPort(e.target.value)}/>
+                            value={host}
+                            onChange={e => setHost(e.target.value)}/>
 
                         <div className='settings-subLabel'>Port</div>
                         <input className='login-email' 
@@ -358,12 +392,12 @@ const SettingsPage = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {users.length === 0 ? (
+                                {usersTotal === 0 ? (
                                     <tr>
                                         <td className='empty-label' colSpan="4">No users available.</td>
                                     </tr>
                                 ) : (
-                                    users.map((user, index) => (
+                                    usersCurrentItems.map((user, index) => (
                                         <tr key={index}>
                                             <td>{user.id}</td>
                                             <td>{user.username}</td>
@@ -382,24 +416,26 @@ const SettingsPage = () => {
                         <div className="settings-pagination" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px' }}>
                             <button
                                 className="pagination-btn"
-                                onClick={() => setPage(prev => Math.max(1, prev - 1))}
-                                disabled={page <= 1 || loading}
+                                onClick={() => setUsersPage(p => Math.max(1, p - 1))}
+                                disabled={usersPage === 1}
                             >
                             Prev
                             </button>
 
-                            {renderPageButtons()}
+                            {renderPageButtons(usersPage, usersLastPage, setUsersPage)}
 
                             <button
                                 className="pagination-btn"
-                                onClick={() => setPage(prev => Math.min(pagination.last_page || prev + 1, (pagination.last_page || prev + 1)))}
-                                disabled={page >= (pagination.last_page || 1) || loading}
+                                onClick={() => setUsersPage(p => Math.min(usersLastPage, p + 1))}
+                                disabled={usersPage === usersLastPage}
                             >
                             Next
                             </button>
 
-                            <div style={{ marginLeft: 'auto' }}>
-                            <small>Page {pagination.current_page} of {pagination.last_page} — {pagination.total} total</small>
+                            <div style={{ marginLeft: 'auto', color: 'gray', fontSize: '14px' }}>
+                                <small className='pagination-small'>
+                                    Page {usersPage} of {usersLastPage} — {usersTotal} total
+                                </small>
                             </div>
                         </div>
                     </div>
@@ -419,12 +455,12 @@ const SettingsPage = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {activityLogs.length === 0 ? (
+                                {logsTotal === 0 ? (
                                     <tr>
                                         <td className='empty-label' colSpan="4">No activity logs available.</td>
                                     </tr>
                                 ) : (
-                                    activityLogs.map((log, index) => (
+                                    logsCurrentItems.map((log, index) => (
                                         <tr key={index}>
                                             <td>{log.user_id}</td>
                                             <td>{log.action}</td>
@@ -440,24 +476,23 @@ const SettingsPage = () => {
                         <div className="settings-pagination" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px' }}>
                             <button
                                 className="pagination-btn"
-                                onClick={() => setPage(prev => Math.max(1, prev - 1))}
-                                disabled={page <= 1 || loading}
+                                onClick={() => setLogsPage(p => Math.max(1, p - 1))}
+                                disabled={logsPage === 1}
                             >
                             Prev
                             </button>
 
-                            {renderPageButtons()}
+                            {renderPageButtons(logsPage, logsLastPage, setLogsPage)}
 
                             <button
                                 className="pagination-btn"
-                                onClick={() => setPage(prev => Math.min(pagination.last_page || prev + 1, (pagination.last_page || prev + 1)))}
-                                disabled={page >= (pagination.last_page || 1) || loading}
+                                onClick={() => setLogsPage(p => Math.min(logsLastPage, p + 1))}
+                                disabled={logsPage === logsLastPage}
                             >
                             Next
                             </button>
-
-                            <div style={{ marginLeft: 'auto' }}>
-                            <small>Page {pagination.current_page} of {pagination.last_page} — {pagination.total} total</small>
+                            <div style={{ marginLeft: 'auto', color: 'gray', fontSize: '14px' }}>
+                                <small className='pagination-small'>Page {logsPage} of {logsLastPage} — {logsTotal} total</small>
                             </div>
                         </div>
                     </div>

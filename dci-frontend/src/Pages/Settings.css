@@ -49,6 +49,9 @@
     border-radius: 12px;
     width: 100%;
     box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15);
+    height: 400px;
+    display: flex;
+    flex-direction: column;
 }
 
 .settings-card-header{
@@ -134,6 +137,7 @@
     font-size: 18px;
     font-weight: bolder;
     box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 3px -1px;
+    margin-top: 10%;
 }
 
 .settings-select {
@@ -172,9 +176,8 @@
 }
 
 .activity-log-table-wrapper {
+    flex: 1;
     display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .activity-logs{
@@ -182,6 +185,7 @@
     font-size: 14px;
     color: #333333;
     padding: 10px;
+    max-height: 17px;
 }
 
 .activity-logs th {
@@ -212,6 +216,10 @@
     color: #003566;
     font-size: 12px;
     padding: 5px 10px;
+}
+
+.table-footer {
+    margin: 10px;
 }
 
 .swal-align {

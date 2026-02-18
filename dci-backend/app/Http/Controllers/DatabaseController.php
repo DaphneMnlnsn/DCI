@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
@@ -22,6 +23,7 @@ class DatabaseController extends Controller
         
         $driver = $request->driver;
 
+        $user = Auth::user();
         $userID = Auth::id();
 
         if($driver == 'mysql'){
@@ -66,6 +68,11 @@ class DatabaseController extends Controller
         DB::table('user_db_configs')->updateOrInsert(
             ['user_id' => $userID],
             ['db_config' => json_encode($config), 'updated_at' => now()]
+        );
+
+        ActivityLogService::log(
+            'DATABASE CONFIGURATION', 
+            "User {$user->username} logged in",
         );
 
         return response()->json([
