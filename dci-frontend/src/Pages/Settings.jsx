@@ -198,15 +198,16 @@ const SettingsPage = () => {
                 title: 'Edit User',
                 html:`
                     <label>Username</label>
-                    <br>
                     <input
-                        id="username" class="swal2-input" value="${user.username}"
-                    />
-                    <br>
+                        id="username" class="swal2-input"
+                        value="${user.username}"
+                        style="margin: 1em auto; display: block; width: 100%;"
+                        />
                     <label>Name</label>
-                    <br>
                     <input
-                        id="name" class="swal2-input" value="${user.name}"
+                        id="name" class="swal2-input"
+                        value="${user.name}"
+                        style="margin: 1em auto; display: block; width: 100%;"
                     /> 
                 `,
                 showCancelButton: true,
@@ -235,6 +236,7 @@ const SettingsPage = () => {
                         title: 'Edit Successful',
                         text: 'User edited successfully.',
                         confirmButtonColor: '#003566',
+                        
                     });
                     getUsers();
                 }
