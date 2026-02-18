@@ -42,13 +42,20 @@ class SchemaFixerService
             $sql,
             $this->fixMissingTables($conflicts, $masterSchema),
             $this->fixMissingColumns($conflicts, $masterSchema),
-            $this->fixMismatchedColumns($conflicts, $masterSchema, $clientSchema, $targetDb)
+            $this->fixMismatchedColumns($conflicts, $masterSchema, $clientSchema, $targetDb),
+            $this->fixExtraTables($conflicts, $masterSchema),
+            $this->fixExtraColumns($conflicts, $masterSchema),
         );
 
         $executed = 0;
         $finalStatements = [];
 
         foreach ($sql as $statement) {
+            if (str_starts_with(trim($statement), '-- WARNING')) {
+                $finalStatements[] = $statement;
+                continue;
+            }
+            
             if ($this->driver === 'pgsql') {
                 $subStatements = array_filter(array_map('trim', explode(';', $statement)));
                 $primarySucceeded = false;
@@ -106,6 +113,22 @@ class SchemaFixerService
 
     }
 
+    protected function fixExtraTables(array $conflicts, array $masterSchema):array{
+
+        $sql = [];
+
+        if(empty($conflicts['extra_client_table'])){
+            return $sql;
+        }
+
+        foreach($conflicts['extra_client_table'] as $table => $_){
+            $sql[] = "-- WARNING: extra tables cannot be deleted to prevent data loss.";
+        }
+
+        return $sql;
+
+    }
+
     protected function fixMissingColumns(array $conflicts, array $masterSchema):array{
 
         $sql = [];
@@ -118,6 +141,25 @@ class SchemaFixerService
             foreach($columns as $column => $_){
                 $columnDef = $masterSchema[$table]['columns'][$column];
                 $sql[] = $this->builder->addMissingColumns($table, $column, $columnDef);
+            }
+        }
+
+        return $sql;
+        
+    }
+
+    protected function fixExtraColumns(array $conflicts, array $masterSchema):array{
+
+        $sql = [];
+
+        if(empty($conflicts['extra_client_column'])){
+            return $sql;
+        }
+
+        foreach($conflicts['extra_client_column'] as $table => $columns){
+            foreach($columns as $column => $_){
+                $columnDef = $masterSchema[$table]['columns'][$column];
+                $sql[] = "-- WARNING: extra columns cannot be deleted to prevent data loss.";
             }
         }
 
