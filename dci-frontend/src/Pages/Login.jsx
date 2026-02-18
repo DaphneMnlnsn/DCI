@@ -23,6 +23,9 @@ const LoginPage = () => {
                 withCredentials: true,
             });
             
+            const userId = response.data.user_id;
+            localStorage.setItem('currentUserId', userId);
+
             if (response.status === 200) {
                 Swal.fire({
                     icon: 'success',
@@ -30,7 +33,6 @@ const LoginPage = () => {
                     text: 'You have been logged in successfully.',
                     confirmButtonColor: '#003566',
                 }).then(() => {
-                    // Redirect to main page after alert
                     navigate('/main');
                 });
             }
