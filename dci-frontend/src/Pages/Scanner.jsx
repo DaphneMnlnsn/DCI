@@ -140,6 +140,8 @@ const MainPage = () => {
 
                     const originalOptions = allDatabases.map(db => ({ value: db, label: db }));
 
+                    search.parentElement.style.position = "relative";
+
                     list.style.position = "absolute";
                     //list.style.top = "40px";
                     list.style.left = "0";
