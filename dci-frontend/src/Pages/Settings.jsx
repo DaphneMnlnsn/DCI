@@ -111,9 +111,9 @@ const SettingsPage = () => {
         } catch (error) {
             console.log('Saving configurations error: ', error);
             swal.fire({
-                title: "Configuration Failed",
-                text: "Please make sure every input is correct.",
-                icon: "warning",
+                title: "Connection Failed",
+                text: "Please check your inputs.",
+                icon: "error",
                 confirmButtonColor: "#003566"
             });
         }

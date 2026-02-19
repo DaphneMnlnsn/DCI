@@ -52,14 +52,116 @@ html, body, #root {
   cursor: pointer;
 } 
 
+.logout-icon {
+  color: #9e3b3b;
+  font-size: 26px;
+  margin: 8px;
+  cursor: pointer;
+}
+
 .settings-popup {
   position: absolute;
   top: 75px;
   right: 10px;
   width: 400px;
-  background: #F5FFFA;
+  background: #FFFFFF;
   border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-  padding: 20px;
   z-index: 200;
+  max-height: 550px;
+}
+
+.popup-container {
+    flex: 1;
+    border-radius: 12px;
+    padding: 20px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.settings-icon {
+    font-size: 26px;
+    width: 22px;
+    height: 22px;
+    margin-right: 5px;
+    margin-left: 5px;
+    cursor: pointer;
+    color: #003566;
+}
+
+.delete-icon {
+    color: #9e3b3b;
+}
+
+.popup-subLabel {
+    color: #333333;
+    font-size: 13px;
+    margin-top: 10px;
+}
+
+.popup-radio-group {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    padding: 10px;
+    accent-color: #facc15;
+}
+
+.popup-radio-button-label {
+    display: flex;
+    font-size: 13px;
+    color: #333333;
+    font-weight: lighter;
+}
+
+.popup-btn {
+    display: block;
+    margin-top: auto;
+    align-self: center;
+    background-color: #003566;
+    color: white;   
+    border: none;
+    padding: 7px 45px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bolder;
+    box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 3px -1px;
+    margin-top: 5%;
+}
+
+.settings-select {
+    background-color: #FFFFFF;
+    color: #333333;
+    border: #003566cc solid 1px;
+    border-radius: 15px;
+    width: 95%;
+    padding: 15px;
+    margin-bottom: 10px;
+    box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 4px -1px;
+    font-family: Poppins, sans-serif;
+}
+
+.popup-form input[type=text], .popup-form input[type=password], input[id=name], input[id=username]  {
+    background-color: white;
+    color: black;
+    padding: 8px;
+    border-radius: 15px;
+    width: 100%;
+    margin-bottom: 10px;
+    border: #003566cc solid 1px;
+    box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 4px -1px;
+    font-family: Poppins, sans-serif;
+}
+
+.popup-toggle-password{
+    position: absolute;
+    right: 20px;
+    top: 82%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #555;
 }

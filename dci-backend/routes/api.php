@@ -24,5 +24,5 @@ Route::middleware(['auth'])->group(function (){
     Route::get('/conflicted-tables', [ClientTableController::class, 'getTables']);
     Route::delete('/conflicted-tables/delete-all', [ClientTableController::class, 'deleteAllData']);
     Route::delete('/conflicted-tables/delete-some', [ClientTableController::class, 'deleteIncompatibleData']);
-    Route::get('/logout', [AuthController::class, 'logout']);
+    Route::post('/logout', [AuthController::class, 'logout']);
 });
