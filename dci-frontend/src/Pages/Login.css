@@ -51,8 +51,8 @@
     padding: 40px;
     border-radius: 15px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    max-width: 480px;
-    height: 80vh;
+    max-width: 550px;
+    height: 70%;
     width: 100%;
     margin: 20px;
     box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 3px -1px;
@@ -115,7 +115,7 @@ input::placeholder {
     cursor: pointer;
     font-size: 18px;
     font-weight: bolder;
-    margin: 25px;
+    margin: 70px; /*30px*/
     display: block;
     justify-content: center;
     margin-left: auto;

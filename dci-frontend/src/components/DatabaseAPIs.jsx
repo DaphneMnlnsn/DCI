@@ -134,7 +134,7 @@ export const fixAllConflicts = async (dbA, dbB, navigate, results) => {
 
     if (decision.isConfirmed){
         try{
-            const response = await axios.post(`${import.meta.env.VITE_APP_BASE_URL}/api/fix`, {
+            const response = await axios.post(`${import.meta.env.VITE_APP_BASE_URL}/api/fix`, {}, {
                 params: {
                     source: dbA,
                     target: dbB,
