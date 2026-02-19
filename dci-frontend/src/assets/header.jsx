@@ -28,6 +28,7 @@ const Header = () => {
         },{
           withCredentials: true
         });
+        localStorage.removeItem('currentUserId');
         navigate("/");
       } catch (error) {
         console.log('Logout error: ', error);

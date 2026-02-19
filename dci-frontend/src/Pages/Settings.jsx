@@ -293,7 +293,7 @@ const SettingsPage = () => {
 
         return pages.map((p, i) => {
         if (p === 'gap-start' || p === 'gap-end') {
-            return <button key={`gap-${i}`} className="page-gap" disabled>...</button>;
+            return <button key={`gap-${i}`} className="pagination-btn" disabled>...</button>;
         }
         return (
             <button

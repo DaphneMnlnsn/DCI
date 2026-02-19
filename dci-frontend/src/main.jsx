@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './Pages/Login.jsx'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 import LoginPage from './Pages/Login.jsx';
 import MainPage from './Pages/Scanner.jsx';
@@ -14,9 +15,9 @@ createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <Routes>
         <Route path='/' element={<LoginPage />} />
-        <Route path='/main' element={<MainPage />} />
-        <Route path='/settings' element={<SettingsPage />} />
-        <Route path='/manage-data' element={<ManageData />} />
+        <Route path='/main' element={<ProtectedRoute><MainPage /></ProtectedRoute>} />
+        <Route path='/settings' element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+        <Route path='/manage-data' element={<ProtectedRoute><ManageData /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   </StrictMode>
