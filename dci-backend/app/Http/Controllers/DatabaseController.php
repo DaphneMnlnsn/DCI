@@ -75,7 +75,7 @@ class DatabaseController extends Controller
 
         ActivityLogService::log(
             'DATABASE CONFIGURATION', 
-            "User {$user->username} logged in",
+            "User {$user->username} changed the database configuration.",
         );
 
         return response()->json([

@@ -24,8 +24,9 @@ const Header = () => {
     const handleLogout = async () => {
       try{
         const response = await axios.post(`${import.meta.env.VITE_APP_BASE_URL}/api/logout`, { 
-            responseType: 'json',
-            withCredentials: true
+          responseType: 'json',  
+        },{
+          withCredentials: true
         });
         navigate("/");
       } catch (error) {
@@ -37,10 +38,8 @@ const Header = () => {
       const currentUserId = parseInt(localStorage.getItem('currentUserId'));
 
       if (currentUserId === 1) {
-        alert('hi admin!');
         navigate("/settings");
       } else {
-        alert('hi normal person!');
         setOpen(prev => !prev);
       } 
     };
@@ -116,10 +115,10 @@ const Header = () => {
                     <input type='radio' value={'mysql'} name='database-type' checked={tempDb === 'mysql'} onChange={() => setTempDb('mysql')}/>MySQL
                   </label>
                   <label className='popup-radio-button-label'>
-                    <input type='radio' value={'pgsql'} name='database-type' checked={tempDb === 'postgres'} onChange={() => setTempDb('postgres')}/>Postgres
+                    <input type='radio' value={'pgsql'} name='database-type' checked={tempDb === 'pgsql'} onChange={() => setTempDb('pgsql')}/>Postgres
                   </label>
                   <label className='popup-radio-button-label'>
-                    <input type='radio' value={'sqlsrv'} name='database-type' checked={tempDb === 'mssql'} onChange={() => setTempDb('mssql')}/>MSSQL
+                    <input type='radio' value={'sqlsrv'} name='database-type' checked={tempDb === 'sqlsrv'} onChange={() => setTempDb('sqlsrv')}/>MSSQL
                   </label>
                 </div>
 
