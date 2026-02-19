@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 
 class DatabaseController extends Controller
@@ -59,6 +60,8 @@ class DatabaseController extends Controller
             DB::purge('dynamic_test');
             DB::connection('dynamic_test')->getPdo();
         } catch (\Throwable $e) {
+            Log::error($e);
+
             return response()->json([
                 'message' => 'Connection failed',
                 'error' => $e->getMessage()
@@ -67,7 +70,7 @@ class DatabaseController extends Controller
 
         DB::table('user_db_configs')->updateOrInsert(
             ['user_id' => $userID],
-            ['db_config' => json_encode($config), 'updated_at' => now()]
+            ['db_config' => Crypt::encryptString(json_encode($config)), 'updated_at' => now()]
         );
 
         ActivityLogService::log(

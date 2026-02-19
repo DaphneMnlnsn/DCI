@@ -8,6 +8,7 @@ use App\Services\SchemaScannerService;
 use Illuminate\Http\Request;
 use Throwable;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 
 class SchemaController extends Controller
@@ -32,7 +33,7 @@ class SchemaController extends Controller
             ->value('db_config');
 
         if($configJson){
-            return json_decode($configJson, true);
+            return json_decode(Crypt::decryptString($configJson), true);
         }
         else{
             return $defaultConfig;

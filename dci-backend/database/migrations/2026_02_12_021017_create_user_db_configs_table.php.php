@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('user_db_configs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id')->unique();
-            $table->json('db_config');
+            $table->longtext('db_config');
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

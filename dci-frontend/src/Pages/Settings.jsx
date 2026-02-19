@@ -60,7 +60,8 @@ const SettingsPage = () => {
     const getUsers = async () => {
         try{
             const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/users`, { 
-                responseType: 'json' 
+                responseType: 'json',
+                withCredentials: true
             });
 
             const allUsers = response.data.users || [];
@@ -74,7 +75,8 @@ const SettingsPage = () => {
     const getActivityLogs = async () => {
         try{
             const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/activity-logs`, { 
-                responseType: 'json' 
+                responseType: 'json',
+                withCredentials: true
             });
 
             const allLogs = response.data.activity_logs || [];
@@ -326,10 +328,10 @@ const SettingsPage = () => {
                             <input type='radio' value={'mysql'} name='database-type' checked={tempDb === 'mysql'} onChange={() => setTempDb('mysql')}/>MySQL
                         </label>
                         <label className='radio-button-label'>
-                            <input type='radio' value={'postgres'} name='database-type' checked={tempDb === 'postgres'} onChange={() => setTempDb('postgres')}/>Postgres
+                            <input type='radio' value={'pgsql'} name='database-type' checked={tempDb === 'pgsql'} onChange={() => setTempDb('pgsql')}/>Postgres
                         </label>
                         <label className='radio-button-label'>
-                            <input type='radio' value={'mssql'} name='database-type' checked={tempDb === 'mssql'} onChange={() => setTempDb('mssql')}/>MSSQL
+                            <input type='radio' value={'sqlsrv'} name='database-type' checked={tempDb === 'sqlsrv'} onChange={() => setTempDb('sqlsrv')}/>MSSQL
                         </label>
                     </div>
                     <form className='settings-form'>

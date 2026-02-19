@@ -8,6 +8,7 @@ use App\Services\SchemaScannerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Log;
@@ -34,7 +35,7 @@ class ClientTableController extends Controller
             ->value('db_config');
 
         if($configJson){
-            return json_decode($configJson, true);
+            return json_decode(Crypt::decryptString($configJson), true);
         }
         else{
             return $defaultConfig;
