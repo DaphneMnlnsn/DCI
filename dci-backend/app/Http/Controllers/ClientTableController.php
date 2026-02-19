@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Log;
+use App\Services\ActivityLogService;
 
 class ClientTableController extends Controller
 {
@@ -248,6 +249,12 @@ class ClientTableController extends Controller
             $updatedTable['preview'] = $reader->previewTable($target, $tableName, $config);
         }
 
+        $user = Auth::user();
+        ActivityLogService::log(
+            'DELETE USER', 
+            "User {$user->username} deleted all data",
+        );
+
         return response()->json([
             'status' => 'success',
             'table' => $tableName,
@@ -452,6 +459,12 @@ class ClientTableController extends Controller
         if (Schema::connection($dynamicConnName)->hasTable($tableName)) {
             $updatedTable['preview'] = $reader->previewTable($target, $tableName, $config);
         }
+
+        $user = Auth::user();
+        ActivityLogService::log(
+            'DELETE USER', 
+            "User {$user->username} deleted all incompatible data",
+        );
 
         return response()->json([
             'status' => 'success',

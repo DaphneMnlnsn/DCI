@@ -20,6 +20,7 @@ export default function ManageData() {
                         target: 'dci_sample1',
                     },
                     responseType: 'json',
+                    withCredentials: true
             });
             if (response.status === 200){
                 const raw = response.data || {};
@@ -39,11 +40,10 @@ export default function ManageData() {
         }
     }
 
-  useEffect(() => {
+      useEffect(() => {
 
-    fetchDatabase();
-    
-  }, [conflictedTables]);
+      fetchDatabase();
+    }, [conflictedTables]);
 
   const currentTable = tables[currentIndex];
   const rows = currentTable?.preview || [];
@@ -145,11 +145,20 @@ export default function ManageData() {
                         source: "dci_master",
                         target: "dci_sample1",
                         table: currentTable.table
-                      }
+                      }, 
+                      withCredentials: true
                     });
                     
                     if(response.status == 200) {
-                      alert("Conflicted data fixed!");
+
+                      Swal.fire({
+                        title: 'Success',
+                        text: 'Conflicted data fixed!',
+                        icon: 'success',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#003566'
+                      })
+
                       console.log("Delete All for: ", currentTable.table);
                       setTables(prev => prev.map(t =>
                       t.table === response.data.table
@@ -169,7 +178,13 @@ export default function ManageData() {
                   }
                   catch (error) {
                     console.error(error);
-                    alert("Failed to delete all and fix data.");
+                    Swal.fire({
+                      title: 'Failed',
+                      text: 'Failed to delete all and fix data.',
+                      icon: 'error',
+                      confirmButtonText: 'OK',
+                      confirmButtonColor: '#003566'
+                    })
                   }
                 }                   
               }
@@ -197,11 +212,21 @@ export default function ManageData() {
                         source: "dci_master",
                         target: "dci_sample1",
                         table: currentTable.table
-                      }
+                      },
+                      withCredentials: true
                     });
                     
                     if(response.status == 200) {
-                      alert("Conflicted incompatible data fixed!");
+
+                      Swal.fire({ //SWAL ALERT DELETE SOME
+                        title: 'Success',
+                        text: 'Conflicted data fixed!',
+                        icon: 'success',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#003566'
+                      })
+
+                      /*alert("Conflicted incompatible data fixed!");*/
                       console.log("Delete Incompatible for: ", currentTable.table);
                       setTables(prev => prev.map(t =>
                       t.table === response.data.table
@@ -221,7 +246,15 @@ export default function ManageData() {
                   }
                   catch (error) {
                     console.error(error);
-                    alert("Failed to delete all and fix incompatible data.");
+                      Swal.fire({
+                      title: 'Failed',
+                      text: 'Failed to delete all and fix data.',
+                      icon: 'error',
+                      confirmButtonText: 'OK',
+                      confirmButtonColor: '#003566'
+                    })
+                    
+                    /*alert("Failed to delete all and fix incompatible data.");*/
                   }
                 }                   
               }
@@ -231,7 +264,14 @@ export default function ManageData() {
           </div>
 
           <button 
-            className="btn btn-cancel" onClick={() => navigate(-1)}
+            className="btn btn-cancel" onClick={() => 
+              navigate('/main', {
+                state: {
+                  master: location.state?.master,
+                  client: location.state?.client
+                }
+              })
+            }
           >
             Cancel
           </button>
