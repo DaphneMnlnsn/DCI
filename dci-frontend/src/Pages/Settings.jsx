@@ -124,27 +124,21 @@ const SettingsPage = () => {
             const { value: formValues, isConfirmed }  = await swal.fire({
                 title: 'Add User',
                 html:`
-                    <label>Name</label>
-                    <br>
+                    <label class="add-label">Name</label>
                     <input
-                        id="name" class="swal2-input" placeholder="Enter name"
+                        id="name" class="swal2-input textbox-input" placeholder="Enter name"
                     /> 
-                    <label>Username</label>
-                    <br>
+                    <label class="add-label">Username</label>
                     <input
-                        id="username" class="swal2-input" placeholder="Enter username"
+                        id="username" class="swal2-input textbox-input" placeholder="Enter username"
                     />
-                    <br>
-                    <label>Password</label>
-                    <br>
+                    <label class="add-label">Password</label>
                     <input
-                        type="password" id="password" class="swal2-input" placeholder="Enter password"
+                        type="password" id="password" class="swal2-input textbox-input" placeholder="Enter password"
                     /> 
-                    <br>
-                    <label>Confirm Password</label>
-                    <br>
+                    <label class="add-label">Confirm Password</label>
                     <input
-                        type="password" id="confirm-password" class="swal2-input" placeholder="Confirm password"
+                        type="password" id="confirm-password" class="swal2-input textbox-input" placeholder="Confirm password"
                     /> 
                 `,
                 showCancelButton: true,

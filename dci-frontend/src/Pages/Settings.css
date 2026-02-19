@@ -116,6 +116,7 @@
     gap: 60px;
     justify-content: center;
     padding: 10px;
+    accent-color: #facc15;
 }
 
 .radio-button-label {
@@ -203,6 +204,10 @@
     padding: 5px;
     border-bottom: 1px solid #eee;
     text-align: center;
+}
+
+.add-label {
+    margin-top: 5% !important;
 }
 
 .empty-label {
