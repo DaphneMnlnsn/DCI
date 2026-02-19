@@ -60,8 +60,7 @@ const SettingsPage = () => {
     const getUsers = async () => {
         try{
             const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/users`, { 
-                responseType: 'json',
-                withCredentials: true
+                responseType: 'json' 
             });
 
             const allUsers = response.data.users || [];
@@ -75,8 +74,7 @@ const SettingsPage = () => {
     const getActivityLogs = async () => {
         try{
             const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/activity-logs`, { 
-                responseType: 'json',
-                withCredentials: true
+                responseType: 'json' 
             });
 
             const allLogs = response.data.activity_logs || [];
@@ -97,7 +95,7 @@ const SettingsPage = () => {
                 password: password,
                 responseType: 'json'
             }, {
-                withCredentials: true
+                withCredentials: true,
             });
 
             if (response.status === 200) {
@@ -201,13 +199,13 @@ const SettingsPage = () => {
                 html:`
                     <label>Username</label>
                     <input
-                        id="username" class="swal2-input"
+                        id="username" class="swal2-input textbox-input" 
                         value="${user.username}"
                         style="margin: 1em auto; display: block; width: 100%;"
                         />
                     <label>Name</label>
                     <input
-                        id="name" class="swal2-input"
+                        id="name" class="swal2-input textbox-input"
                         value="${user.name}"
                         style="margin: 1em auto; display: block; width: 100%;"
                     /> 
@@ -328,10 +326,10 @@ const SettingsPage = () => {
                             <input type='radio' value={'mysql'} name='database-type' checked={tempDb === 'mysql'} onChange={() => setTempDb('mysql')}/>MySQL
                         </label>
                         <label className='radio-button-label'>
-                            <input type='radio' value={'pgsql'} name='database-type' checked={tempDb === 'pgsql'} onChange={() => setTempDb('pgsql')}/>Postgres
+                            <input type='radio' value={'postgres'} name='database-type' checked={tempDb === 'postgres'} onChange={() => setTempDb('postgres')}/>Postgres
                         </label>
                         <label className='radio-button-label'>
-                            <input type='radio' value={'sqlsrv'} name='database-type' checked={tempDb === 'sqlsrv'} onChange={() => setTempDb('sqlsrv')}/>MSSQL
+                            <input type='radio' value={'mssql'} name='database-type' checked={tempDb === 'mssql'} onChange={() => setTempDb('mssql')}/>MSSQL
                         </label>
                     </div>
                     <form className='settings-form'>

@@ -163,7 +163,14 @@
     box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 4px -1px;
     font-family: Poppins, sans-serif;
 }
-
+.textbox-input:focus{
+    border-color: #333333;
+    box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 4px -1px;
+}
+.textbox-input:hover{
+    border-color: #333333;
+    box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 4px -1px;
+}
 .settings-toggle-password{
     position: absolute;
     right: 20px;
@@ -225,6 +232,13 @@
 .swal-align {
     text-align: left;
 }
-.swal2-html-container {
-    text-align: left;
+.swal-align label {
+    display: block;
+    width: 100%;
+    text-align: left !important;
+    margin-bottom: 3px; 
+}
+.swal-align .swal2-input {
+    width: 100% !important;
+    margin: 0 0 10px 0 !important;
 }
