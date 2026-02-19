@@ -44,7 +44,6 @@ class ClientTableController extends Controller
     }
 
     public function getTables(Request $request, SchemaScannerService $scanner, SchemaReaderService $reader){
-        $config = $this->getUserDbConfig();
 
         $source = $request->query('source');
         $target = $request->query('target');
@@ -52,6 +51,12 @@ class ClientTableController extends Controller
         if (!$source || !$target) {
             return response()->json(['error' => 'Databases not specified'], 400);
         }
+
+        $config = $this->getUserDbConfig();
+        $config['database'] = $target;
+
+        // Overriding the db
+        $dynamicConnName = 'dynamic_schema';
 
         $rawConflicts = $scanner->scan($source, $target, $config);
         $conflicts = $rawConflicts['conflicts'];
@@ -85,9 +90,64 @@ class ClientTableController extends Controller
             }
         }
 
-        // Getting the first 100 rows from the table
+        Config::set("database.connections.$dynamicConnName", $config);
+        DB::purge($dynamicConnName);
+        DB::reconnect($dynamicConnName);
+        $conn = DB::connection($dynamicConnName);
+
+        $driver = $conn->getDriverName();
+
         foreach ($tables as $tableName => &$tableData) {
-            $tableData['preview'] = $reader->previewTable($target, $tableName, $config);
+
+            $preview = $reader->previewTable($target, $tableName, $config);
+
+            switch ($driver) {
+                case 'mysql':
+                    $columns = $conn->select("
+                        SELECT COLUMN_NAME
+                        FROM INFORMATION_SCHEMA.COLUMNS
+                        WHERE TABLE_SCHEMA = DATABASE()
+                        AND TABLE_NAME = ?
+                        ORDER BY ORDINAL_POSITION
+                    ", [$tableName]);
+                    break;
+
+                case 'pgsql':
+                    $columns = $conn->select("
+                        SELECT column_name AS COLUMN_NAME
+                        FROM information_schema.columns
+                        WHERE table_catalog = current_database()
+                        AND table_schema = 'public'
+                        AND table_name = ?
+                        ORDER BY ordinal_position
+                    ", [$tableName]);
+                    break;
+
+                case 'sqlsrv':
+                    $columns = $conn->select("
+                        SELECT COLUMN_NAME
+                        FROM INFORMATION_SCHEMA.COLUMNS
+                        WHERE TABLE_CATALOG = DB_NAME()
+                        AND TABLE_NAME = ?
+                        ORDER BY ORDINAL_POSITION
+                    ", [$tableName]);
+                    break;
+
+                default:
+                    throw new \Exception("Unsupported driver: $driver");
+            }
+
+            $columnNames = array_map(fn($col) => $col->COLUMN_NAME, $columns);
+            $columnStructure = array_fill_keys($columnNames, null);
+            
+            if (empty($preview)) {
+                $preview = [(object)$columnStructure];
+            } else {
+                $preview[] = (object)$columnStructure;
+            }
+            
+            $tableData['preview'] = $preview;
+
         }
 
         if(!empty($tables)) {
