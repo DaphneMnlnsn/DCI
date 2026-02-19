@@ -242,3 +242,9 @@
     width: 100% !important;
     margin: 0 0 10px 0 !important;
 }
+
+.disabled-icon {
+    opacity: 0.3;
+    pointer-events: none;
+    cursor: not-allowed;
+}

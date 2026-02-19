@@ -406,9 +406,19 @@ const SettingsPage = () => {
                                             <td>{user.id}</td>
                                             <td>{user.username}</td>
                                             <td>{user.name}</td>
-                                            <td>
-                                                <Pencil className="settings-icon" onClick={() => handleEdit(user)}/>
-                                                <Trash className="settings-icon delete-icon" onClick={() => handleDelete(user)}/>
+                                           <td>
+                                                <Pencil 
+                                                    className="settings-icon" 
+                                                    onClick={() => handleEdit(user)}
+                                                />
+                                                <Trash
+                                                    className={`settings-icon delete-icon ${user.id === 1 ? 'disabled-icon' : ''}`}
+                                                    onClick={() => {
+                                                        if (user.id !== 1) {
+                                                            handleDelete(user);
+                                                        }
+                                                    }}
+                                                />
                                             </td>
                                         </tr>
                                     ))
