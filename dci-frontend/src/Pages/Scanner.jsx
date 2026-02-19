@@ -58,7 +58,7 @@ const MainPage = () => {
     const openDatabaseSelect = async (title, setDb, fetchFn) => {
         const response = await axios.get(
             `${import.meta.env.VITE_APP_BASE_URL}/api/read/all`,
-            { responseType: 'json' }
+            { responseType: 'json', withCredentials: true },
         );
 
         const allDatabases = response.data.databases || [];

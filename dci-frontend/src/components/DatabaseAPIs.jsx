@@ -11,6 +11,7 @@ export const fetchSchema = async (dbName) => {
         const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/read/schema`, {
             params: { database: dbName},
             responseType: 'json',
+            withCredentials: true
         });
         if (response.status === 200){
             const raw = response.data || {};
@@ -61,6 +62,7 @@ export const fetchConflicts = async (dbA, dbB) => {
                     target: dbB,
                 },
                 responseType: 'json',
+                withCredentials: true
             }
         );
         if (response.status === 200){
@@ -138,6 +140,7 @@ export const fixAllConflicts = async (dbA, dbB, navigate, results) => {
                     target: dbB,
                 },
                 responseType: 'json',
+                withCredentials: true
             });
 
             if(response.status === 200){
