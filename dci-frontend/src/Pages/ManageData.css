@@ -118,7 +118,7 @@
 .btn-delete {
   background: #9e3b3b;
   color: white;
-  width: 350px;
+  padding: 12px 60px;
 }
 
 .btn-delete:hover {
@@ -128,7 +128,7 @@
 .btn-cancel {
   background: #003566;
   color: white;
-  width: 150px;
+  width: 10%;
 }
 
 .btn-cancel:hover {
