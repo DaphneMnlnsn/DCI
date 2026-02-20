@@ -135,6 +135,13 @@
   background: #0e5495;
 }
 
+.btn.btn-delete:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  background-color: #6a6a6a !important;
+  color: #eee !important;
+}
+
 .table-nav {
   display: flex;
   align-items: center;

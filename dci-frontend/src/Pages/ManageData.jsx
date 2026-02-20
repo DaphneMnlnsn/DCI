@@ -48,6 +48,22 @@ export default function ManageData() {
   const currentTable = tables[currentIndex];
   const rows = currentTable?.preview || [];
 
+  const issues = currentTable?.issues || [];
+
+  const hasExtraConflict = issues.some(
+    issue =>
+      issue.type === "extra_client_table" ||
+      issue.type === "extra_client_column"
+  );
+
+  const hasMismatchConflict = issues.some(
+    issue =>
+      issue.type === "type_mismatch" ||
+      issue.type === "length_mismatch"
+  );
+
+  const hasAnyIssue = issues.length > 0;
+
   const next = () => {
     if (currentIndex < tables.length - 1) setCurrentIndex((prev) => prev + 1);
   };
@@ -126,7 +142,8 @@ export default function ManageData() {
        <section className="action-bar">
           <div className="delete-group">
             <button
-              className="btn btn-delete" onClick={async() => {
+              className="btn btn-delete" 
+              disabled={!hasAnyIssue} onClick={async() => {
                 const result = await Swal.fire({
                   title: "Are you sure?",
                   text: "This will delete all data for this table.",
@@ -193,7 +210,8 @@ export default function ManageData() {
             </button>
 
             <button
-              className="btn btn-delete" onClick={async() => {
+              className="btn btn-delete" 
+              disabled={!hasMismatchConflict} onClick={async() => {
                 const result = await Swal.fire({
                   title: "Are you sure?",
                   text: "This will delete all incompatible data for this table.",
@@ -259,7 +277,7 @@ export default function ManageData() {
                 }                   
               }
             }
-            > Delete Incompatible
+            > Delete Incompatible and Fix
             </button>
           </div>
 

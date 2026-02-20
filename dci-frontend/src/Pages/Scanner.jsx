@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './Scanner.css';
 import axios from 'axios';
 import swal from 'sweetalert2';
@@ -28,6 +28,20 @@ const MainPage = () => {
     const [fixed, setFixed] = useState([]);
     const [dbA, setDbA] = useState(null);
     const [dbB, setDbB] = useState(null);
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.state?.master && location.state?.client) {
+            setDbA(location.state.master);
+            setDbB(location.state.client);
+            setScan
+
+            fetchDatabase(location.state.master);
+            fetchDatabase2(location.state.client);
+
+            window.history.replaceState({}, document.title);
+        }
+    }, [location.state]);
 
     const fetchDatabase = async (dbName) => {
         if (!dbName) return;

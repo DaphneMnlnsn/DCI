@@ -176,7 +176,13 @@ export const fixAllConflicts = async (dbA, dbB, navigate, results) => {
                     });
 
                     if (result.isConfirmed){
-                        navigate('/manage-data', {state: {conflictedTables: results.conflicts}});
+                        navigate('/manage-data', {
+                            state: {
+                                conflictedTables: results.conflicts,
+                                master: dbA,
+                                client: dbB
+                            }
+                        });
                     }
                 }
                 else {
