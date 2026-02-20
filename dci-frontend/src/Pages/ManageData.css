@@ -128,7 +128,7 @@
 .btn-cancel {
   background: #003566;
   color: white;
-  width: 10%;
+  padding: 12px 40px;
 }
 
 .btn-cancel:hover {
