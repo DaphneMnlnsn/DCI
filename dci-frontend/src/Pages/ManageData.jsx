@@ -72,6 +72,13 @@ export default function ManageData() {
     if (currentIndex > 0) setCurrentIndex((prev) => prev - 1);
   };
 
+  const getColumnsWithIssues = () => {
+    if (!currentTable?.issues) return [];
+    return [...new Set(currentTable.issues.filter(i => i.column).map(i => i.column))];
+  };
+
+  const columnsWithIssues = getColumnsWithIssues();
+
   return (
     <div className="manage-page">
       <Header />
@@ -111,10 +118,49 @@ export default function ManageData() {
           <div className="table-wrapper">
             <table className="data-table">
               <thead>
+                {currentTable?.issues?.length > 0 && rows.length > 0 && (
+                  <tr className="issues-row">
+                    {currentTable.issues.some(i => i.type === 'extra_client_table') ? (
+                      <th colSpan={Object.keys(rows[0]).length} className="issue-cell table-issue">
+                        <span className="issue-message">
+                          ! Extra Client Table - This table exists in client but not in master
+                        </span>
+                      </th>
+                    ) : (
+                      Object.keys(rows[0]).map((col) => {
+                        const colIssues = currentTable.issues.filter(i => i.column === col);
+                        
+                        if (colIssues.length > 0) {
+                          return (
+                            <th key={`issue-${col}`} className="issue-cell">
+                              {colIssues.map((issue, idx) => (
+                                <div key={idx} className="issue-message">
+                                  {issue.type === 'type_mismatch' && (
+                                    <span>Type Mismatch: {issue.client} should be {issue.master}</span>
+                                  )}
+                                  {issue.type === 'length_mismatch' && (
+                                    <span>Length Mismatch: {issue.client} should be {issue.master}</span>
+                                  )}
+                                  {issue.type === 'extra_client_column' && (
+                                    <span>Extra Column</span>
+                                  )}
+                                </div>
+                              ))}
+                            </th>
+                          );
+                        }
+                        return <th key={`issue-${col}`} className="issue-cell empty"></th>;
+                      })
+                    )}
+                  </tr>
+                )}
+
                 <tr>
                   {rows.length > 0 && Object.keys(rows[0]).map((col) => (
-                      <th key={col}>{col}</th>
-                    ))}
+                    <th key={col} className={columnsWithIssues.includes(col) ? "col-has-issue" : ""}>
+                      {col}
+                    </th>
+                  ))}
                 </tr>
               </thead>
 
@@ -128,8 +174,10 @@ export default function ManageData() {
                 ) : (
                   rows.map((row, index) => (
                     <tr key={index}>
-                      {Object.values(row).map((value, i) => (
-                        <td key={i}>{value}</td>
+                      {Object.keys(row).map((col, i) => (
+                        <td key={i} className={columnsWithIssues.includes(col) ? "col-has-issue" : ""}>
+                          {row[col]}
+                        </td>
                       ))}
                     </tr>
                   ))
@@ -146,7 +194,7 @@ export default function ManageData() {
               disabled={!hasAnyIssue} onClick={async() => {
                 const result = await Swal.fire({
                   title: "Are you sure?",
-                  text: "This will delete all data for this table.",
+                  text: "This will delete all data for this table. This will also delete extra columns automatically.",
                   icon: "warning",
                   showCancelButton: true,
                   confirmButtonColor: "#ba2f2f",
@@ -176,17 +224,16 @@ export default function ManageData() {
                         confirmButtonColor: '#003566'
                       })
 
-                      console.log("Delete All for: ", currentTable.table);
                       setTables(prev => prev.map(t =>
-                      t.table === response.data.table
-                        ? {
-                            ...t,
-                            issues: response.data.issues || [],
-                            preview: response.data.preview || [],
-                            resolved: (response.data.issues || []).length === 0
-                          }
-                        : t
-                    ));
+                        t.table === response.data.table
+                          ? {
+                              ...t,
+                              issues: response.data.issues || [],
+                              preview: response.data.preview || [],
+                              resolved: (response.data.issues || []).length === 0
+                            }
+                          : t
+                      ));
                     }
                     else {
                       console.warn("Unexpected response: ", response);
@@ -214,12 +261,12 @@ export default function ManageData() {
               disabled={!hasMismatchConflict} onClick={async() => {
                 const result = await Swal.fire({
                   title: "Are you sure?",
-                  text: "This will delete all incompatible data for this table.",
+                  text: "This will delete all incompatible data for this table. This will also delete extra columns automatically.",
                   icon: "warning",
                   showCancelButton: true,
                   confirmButtonColor: "#ba2f2f",
                   cancelButtonColor: "#003566",
-                  confirmButtonText: "Yes, Delete All",
+                  confirmButtonText: "Yes, Delete Incompatible",
                   cancelButtonText: "Cancel"
                 });
 
@@ -247,15 +294,15 @@ export default function ManageData() {
                       /*alert("Conflicted incompatible data fixed!");*/
                       console.log("Delete Incompatible for: ", currentTable.table);
                       setTables(prev => prev.map(t =>
-                      t.table === response.data.table
-                        ? {
-                            ...t,
-                            issues: response.data.issues || [],
-                            preview: response.data.preview || [],
-                            resolved: (response.data.issues || []).length === 0
-                          }
-                        : t
-                    ));
+                        t.table === response.data.table
+                          ? {
+                              ...t,
+                              issues: response.data.issues || [],
+                              preview: response.data.preview || [],
+                              resolved: (response.data.issues || []).length === 0
+                            }
+                          : t
+                      ));
                     }
                     else {
                       console.warn("Unexpected response: ", response);

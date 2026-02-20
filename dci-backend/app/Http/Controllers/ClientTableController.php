@@ -263,7 +263,7 @@ class ClientTableController extends Controller
             }
         }
         
-        $newScanResult = $scanner->scan($source, $target, $config);
+        $newScanResult = $scanner->scan($source, $target, $targetConfig);
         $newConflicts = $newScanResult['conflicts'] ?? [];
 
         $conflictTypes = ['missing_client_table', 'extra_client_table', 'missing_client_column', 'extra_client_column', 'type_mismatch', 'length_mismatch'];
@@ -282,6 +282,23 @@ class ClientTableController extends Controller
 
         $clientSchema = $reader->readSchemaByDatabase($target, $targetConfig);
         $fixer->fix($tableConflicts, $masterSchema, $clientSchema, $target, $targetConfig);
+
+        $newScanResult = $scanner->scan($source, $target, $targetConfig);
+        $newConflicts = $newScanResult['conflicts'] ?? [];
+
+        $conflictTypes = ['missing_client_table', 'extra_client_table', 'missing_client_column', 'extra_client_column', 'type_mismatch', 'length_mismatch'];
+
+        $tableConflicts = [];
+
+        foreach ($conflictTypes as $type) {
+            $tableConflicts[$type] = [];
+        }
+
+        foreach ($conflictTypes as $type) {
+            if (!empty($newConflicts[$type][$tableName])) {
+                $tableConflicts[$type][$tableName] = $newConflicts[$type][$tableName];
+            }
+        }
 
         $updatedTable = [
             'issues' => [],
@@ -474,7 +491,7 @@ class ClientTableController extends Controller
             }
         }
 
-        $newScanResult = $scanner->scan($source, $target, $config);
+        $newScanResult = $scanner->scan($source, $target, $targetConfig);
         $newConflicts = $newScanResult['conflicts'] ?? [];
 
         $conflictTypes = ['missing_client_table', 'missing_client_column', 'type_mismatch', 'length_mismatch'];
@@ -494,6 +511,23 @@ class ClientTableController extends Controller
         $clientSchema = $reader->readSchemaByDatabase($target, $targetConfig);
         $fixer->fix($tableConflicts, $masterSchema, $clientSchema, $target, $targetConfig);
 
+        $newScanResult = $scanner->scan($source, $target, $targetConfig);
+        $newConflicts = $newScanResult['conflicts'] ?? [];
+
+        $conflictTypes = ['missing_client_table', 'extra_client_table', 'missing_client_column', 'extra_client_column', 'type_mismatch', 'length_mismatch'];
+
+        $tableConflicts = [];
+
+        foreach ($conflictTypes as $type) {
+            $tableConflicts[$type] = [];
+        }
+
+        foreach ($conflictTypes as $type) {
+            if (!empty($newConflicts[$type][$tableName])) {
+                $tableConflicts[$type][$tableName] = $newConflicts[$type][$tableName];
+            }
+        }
+        
         $updatedTable = [
             'issues' => [],
             'preview' => []

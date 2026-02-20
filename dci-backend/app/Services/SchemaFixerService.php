@@ -122,7 +122,7 @@ class SchemaFixerService
         }
 
         foreach($conflicts['extra_client_table'] as $table => $_){
-            $sql[] = "-- WARNING: extra tables cannot be deleted to prevent data loss.";
+            $sql[] = "-- WARNING: extra table '$table' cannot be deleted to prevent data loss.";
         }
 
         return $sql;
@@ -158,6 +158,11 @@ class SchemaFixerService
 
         foreach($conflicts['extra_client_column'] as $table => $columns){
             foreach($columns as $column => $_){
+                if (!isset($masterSchema[$table]['columns'][$column])) {
+                    $sql[] = "-- WARNING: extra column '$column' in table '$table' cannot be deleted to prevent data loss.";
+                    continue;
+                }
+                
                 $columnDef = $masterSchema[$table]['columns'][$column];
                 $sql[] = "-- WARNING: extra columns cannot be deleted to prevent data loss.";
             }

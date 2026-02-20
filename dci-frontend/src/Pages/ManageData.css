@@ -155,3 +155,36 @@
   cursor: pointer;
   background-color:transparent;
 }
+
+.issue-cell {
+  padding: 8px;
+  border-bottom: 1px solid #ffeeba;
+  vertical-align: middle;
+  background-color: #c05151;
+}
+
+.issue-cell.empty {
+  background-color: transparent;
+}
+
+.issue-message {
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.issue-message span {
+  display: block;
+}
+
+.data-table th.col-has-issue {
+  background-color: #e9383834 !important;
+  color: black;
+  font-weight: bold;
+}
+
+.data-table td.col-has-issue {
+  background-color: #e9383834 !important;
+  color: black;
+}
