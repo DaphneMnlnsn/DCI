@@ -90,6 +90,10 @@ class ClientTableController extends Controller
             }
         }
 
+        if ($config['driver'] === 'pgsql' && !isset($config['schema'])) {
+            $config['schema'] = 'public';
+        }
+
         Config::set("database.connections.$dynamicConnName", $config);
         DB::purge($dynamicConnName);
         DB::reconnect($dynamicConnName);
@@ -98,7 +102,8 @@ class ClientTableController extends Controller
         $driver = $conn->getDriverName();
 
         foreach ($tables as $tableName => &$tableData) {
-
+            Log::info($conn->getDriverName());
+Log::info($config);
             $preview = $reader->previewTable($target, $tableName, $config);
 
             switch ($driver) {
@@ -114,7 +119,7 @@ class ClientTableController extends Controller
 
                 case 'pgsql':
                     $columns = $conn->select("
-                        SELECT column_name AS COLUMN_NAME
+                        SELECT column_name AS \"COLUMN_NAME\"
                         FROM information_schema.columns
                         WHERE table_catalog = current_database()
                         AND table_schema = 'public'
@@ -328,7 +333,7 @@ class ClientTableController extends Controller
 
         $user = Auth::user();
         ActivityLogService::log(
-            'DELETE USER', 
+            'DELETE ALL', 
             "User {$user->username} deleted all data",
         );
 
@@ -556,7 +561,7 @@ class ClientTableController extends Controller
 
         $user = Auth::user();
         ActivityLogService::log(
-            'DELETE USER', 
+            'DELETE INCOMPATIBLE', 
             "User {$user->username} deleted all incompatible data",
         );
 
