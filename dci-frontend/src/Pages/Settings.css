@@ -141,6 +141,10 @@
     margin-top: 10%;
 }
 
+.settings-btn:hover {
+    background-color: #0a4b8a;
+}
+
 .settings-select {
     background-color: #FFFFFF;
     color: #333333;
@@ -229,6 +233,10 @@
     color: #003566;
     font-size: 12px;
     padding: 5px 10px;
+}
+
+.pagination-btn:hover {
+    background-color: #b6b6b65b;
 }
 
 .table-footer {

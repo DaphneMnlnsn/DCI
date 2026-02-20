@@ -123,6 +123,10 @@ input::placeholder {
     box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 3px -1px;
 }
 
+.login-btn:hover {
+    background-color: #0c447d;
+}
+
 .password-wrapper{
     position: relative;
     height: 55px;

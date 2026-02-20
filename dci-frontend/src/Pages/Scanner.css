@@ -31,6 +31,10 @@
     box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 3px -1px;
 }
 
+.select-btn:hover {
+    background-color: #0a4b8a;
+}
+
 .rescan-btn, .export-btn {
     background-color: #003566;
     color: white;   
@@ -44,6 +48,10 @@
     box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 3px -1px;
     margin-left: auto;
     margin-right: auto;
+}
+
+.rescan-btn:hover {
+    background-color: #0a4b8a;
 }
 
 .btn-group {
@@ -261,6 +269,7 @@ button:focus {
   opacity:.5;
   cursor:not-allowed;
 }
+
 .no-conflict-box {
   margin-top: 40px;
   text-align: center;
