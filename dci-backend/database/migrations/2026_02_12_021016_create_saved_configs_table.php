@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('user_db_configs', function (Blueprint $table) {
+        Schema::create('saved_configs', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id')->unique();
+            $table->string('config_name')->unique();
+            $table->string('config_driver');
             $table->longtext('db_config');
+            $table->unsignedBigInteger('created_by');
             $table->timestamps();
 
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('created_by')->references('id')->on('users')->onDelete('cascade');
         });
     }
 
@@ -26,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('user_db_configs');
+        Schema::dropIfExists('saved_configs');
     }
 };

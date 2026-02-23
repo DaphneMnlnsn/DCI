@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SavedDatabase;
+use App\Models\UserDBConfig;
 use App\Services\SchemaFixerService;
 use App\Services\SchemaReaderService;
 use App\Services\SchemaScannerService;
@@ -10,11 +12,17 @@ use Throwable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class SchemaController extends Controller
 {
-    protected function getUserDbConfig(){
-        $userId = Auth::id();
+    protected function getUserDbConfig($role){
+
+        $userID = Auth::id();
+
+        $dbConfig = UserDBConfig::where('user_id', $userID)
+                ->where('role', $role)
+                ->first();
 
         $defaultConfig = [
             'driver' => 'mysql',
@@ -28,20 +36,26 @@ class SchemaController extends Controller
             'strict' => true,
         ];
 
-        $configJson = DB::table('user_db_configs')
-            ->where('user_id', $userId)
-            ->value('db_config');
+        if (!$dbConfig) return $defaultConfig;
 
-        if($configJson){
-            return json_decode(Crypt::decryptString($configJson), true);
-        }
-        else{
-            return $defaultConfig;
-        }
+        $savedConfig = SavedDatabase::find($dbConfig->config_id);
+
+        if (!$savedConfig) return $defaultConfig;
+
+        $config = json_decode(Crypt::decryptString($savedConfig->db_config), true);
+
+        return $config;
     }
 
     public function readSchema(Request $request, SchemaReaderService $reader){
-        $config = $this->getUserDbConfig();
+        
+        $request->validate([
+            'role' => 'required|in:master,client',
+        ]);
+
+        $role = $request->role;
+
+        $config = $this->getUserDbConfig($role);
 
         try {
             $database = $request->query('database');
@@ -61,7 +75,8 @@ class SchemaController extends Controller
     }
 
     public function scanSchema(Request $request, SchemaScannerService $scanner){
-        $config = $this->getUserDbConfig();
+        $sourceConfig = $this->getUserDbConfig('master');
+        $targetConfig = $this->getUserDbConfig('client');
 
         try{
             $source = $request->query('source');
@@ -72,7 +87,7 @@ class SchemaController extends Controller
             }
 
             return response()->json(
-                $scanner->scan($source, $target, $config)
+                $scanner->scan($source, $target, $sourceConfig, $targetConfig)
             );
 
         }
@@ -86,19 +101,20 @@ class SchemaController extends Controller
     }
 
     public function fixSchema(Request $request, SchemaReaderService $reader, SchemaScannerService $scanner, SchemaFixerService $fixer){
-        $config = $this->getUserDbConfig();
+        $sourceConfig = $this->getUserDbConfig('master');
+        $targetConfig = $this->getUserDbConfig('client');
 
         try{
 
             $source = $request->query('source');
             $target = $request->query('target');
 
-            $masterSchema = $reader->readSchemaByDatabase($source, $config);
-            $clientSchema = $reader->readSchemaByDatabase($target, $config);
+            $masterSchema = $reader->readSchemaByDatabase($source, $sourceConfig);
+            $clientSchema = $reader->readSchemaByDatabase($target, $targetConfig);
 
-            $conflicts = $scanner->scan($source, $target, $config);
+            $conflicts = $scanner->scan($source, $target, $sourceConfig, $targetConfig);
             
-            $message = $fixer->fix($conflicts['conflicts'], $masterSchema['schema'], $clientSchema['schema'], $target, $config);
+            $message = $fixer->fix($conflicts['conflicts'], $masterSchema['schema'], $clientSchema['schema'], $target, $sourceConfig, $targetConfig);
 
             return response()->json($message);
 
@@ -112,8 +128,14 @@ class SchemaController extends Controller
         }
     }
 
-    public function readAllDatabases(SchemaReaderService $reader){
-        $config = $this->getUserDbConfig();
+    public function readAllDatabases(Request $request, SchemaReaderService $reader){
+        $request->validate([
+            'role' => 'required|in:master,client',
+        ]);
+
+        $role = $request->role;
+
+        $config = $this->getUserDbConfig($role);
 
         try{
 

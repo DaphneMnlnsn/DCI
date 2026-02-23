@@ -332,7 +332,7 @@ const SettingsPage = () => {
                         <input className='login-email' 
                             type='text' 
                             placeholder='Enter config name' 
-                            value={host}
+                            value={configName}
                             onChange={e => setConfigName(e.target.value)}/>
 
                         <div className='settings-subLabel'>Host/Server</div>

@@ -18,8 +18,15 @@ class MySqlSchemaBuilder implements SchemaSQLBuilderInterface
 
         if (!in_array($type, $skipLength)) {
             $lengthAllowed = in_array($type, ['VARCHAR','CHAR','VARBINARY','BINARY']);
-            if ($lengthAllowed && !empty($columnDef['maximum_characters'])) {
-                $type .= "({$columnDef['maximum_characters']})";
+            if ($lengthAllowed) {
+
+                $length = $columnDef['maximum_characters'] ?? null;
+
+                if (empty($length)) {
+                    $length = 255;
+                }
+
+                $type .= "({$length})";
             }
         }
 

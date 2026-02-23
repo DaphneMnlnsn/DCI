@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import swal from 'sweetalert2';
 
-export const fetchSchema = async (dbName) => {
+export const fetchSchema = async (dbName, role) => {
 
     if (!dbName) return null;
 
     try {
         const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/read/schema`, {
-            params: { database: dbName},
+            params: { database: dbName, role: role},
             responseType: 'json',
             withCredentials: true
         });
@@ -176,13 +176,13 @@ export const fixAllConflicts = async (dbA, dbB, navigate, results) => {
                     });
 
                     if (result.isConfirmed){
-                        navigate('/manage-data', {
+                        /*navigate('/manage-data', {
                             state: {
                                 conflictedTables: results.conflicts,
                                 master: dbA,
                                 client: dbB
                             }
-                        });
+                        });*/
                     }
                 }
                 else {

@@ -47,7 +47,7 @@ const MainPage = () => {
     const fetchDatabase = async (dbName) => {
         if (!dbName) return;
 
-        const data = await fetchSchema(dbName);
+        const data = await fetchSchema(dbName, 'master');
         setDatabase({ raw: data.raw, database: data.database, tables: data.tables });
         setShow(true);
     }
@@ -55,25 +55,19 @@ const MainPage = () => {
     const fetchDatabase2 = async (dbName) => {
         if (!dbName) return;
 
-        const data = await fetchSchema(dbName);
+        const data = await fetchSchema(dbName, 'client');
         setDatabase2({ raw: data.raw, database2: data.database, tables2: data.tables });
         setShow2(true);
     }
 
-    const fetchResults = async () => {
-        const results = await fetchConflicts(dbA, dbB);
-
-        setResults({ raw: results.raw, conflicts: results.conflictsArray });
-        setNoConflicts(results.hasConflicts);
-        setScan(true);
-        setRescan(true);
-        setFixConflicts(true);
-    }
-
-    const openDatabaseSelect = async (title, setDb, fetchFn) => {
+    const openDatabaseSelect = async (title, setDb, fetchFn, role) => {
         const response = await axios.get(
             `${import.meta.env.VITE_APP_BASE_URL}/api/read/all`,
-            { responseType: 'json', withCredentials: true },
+            { responseType: 'json', withCredentials: true,
+                params: {
+                    role: role
+                },
+            },
         );
 
         const allDatabases = response.data.databases || [];
@@ -304,7 +298,7 @@ const MainPage = () => {
                                     <CollapsibleTable database={database}/>
                                     <div className='master-button-group'>
                                         <button
-                                            className='select-btn' onClick={ ()=> openDatabaseSelect("Select Master Database", setDbA, fetchDatabase)}>Reselect
+                                            className='select-btn' onClick={ ()=> openDatabaseSelect("Select Master Database", setDbA, fetchDatabase, "master")}>Reselect
                                         </button>
 
                                         <button className='export-btn' 
@@ -322,7 +316,7 @@ const MainPage = () => {
                     </div>
                         <div className="line"></div>
                                 <button
-                                    className='select-btn'onClick={ ()=> openDatabaseSelect("Select Master Database", setDbA, fetchDatabase)}>Select</button> </>
+                                    className='select-btn'onClick={ ()=> openDatabaseSelect("Select Master Database", setDbA, fetchDatabase, "master")}>Select</button> </>
                             )}
                         </div>
                     </div>
@@ -335,7 +329,7 @@ const MainPage = () => {
                                     <div className='client-button-group'>
                               
                                         <button
-                                            className='client-btn-select'onClick={ ()=> openDatabaseSelect("Select Client Database", setDbB, fetchDatabase2)}> Reselect
+                                            className='client-btn-select'onClick={ ()=> openDatabaseSelect("Select Client Database", setDbB, fetchDatabase2, "client")}> Reselect
                                         </button>
 
                                         <button
@@ -364,7 +358,7 @@ const MainPage = () => {
                                         <p className="label">Please select a database to Compare</p></div>
                                 <div className="line"></div>
                                     <button
-                                        className='select-btn' disabled={!dbA} onClick={ ()=> openDatabaseSelect("Select Client Database", setDbB, fetchDatabase2)}>Select</button>
+                                        className='select-btn' disabled={!dbA} onClick={ ()=> openDatabaseSelect("Select Client Database", setDbB, fetchDatabase2, "client")}>Select</button>
                                 </>
                             )}
                         </div>

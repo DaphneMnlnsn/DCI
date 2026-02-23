@@ -32,16 +32,19 @@ class SchemaFixerService
         return $conn;
     }
 
-    public function fix(array $conflicts, array $masterSchema, array $clientSchema, string $targetDb, array $config){
+    public function fix(array $conflicts, array $masterSchema, array $clientSchema, string $targetDb, array $sourceConfig, $targetConfig){
 
         $sql = [];
 
-        $conn = $this->getConnection($targetDb, $config);
+        $masterDriver = $sourceConfig['driver'];
+        $clientDriver = $targetConfig['driver'];
+
+        $conn = $this->getConnection($targetDb, $targetConfig);
 
         $sql = array_merge(
             $sql,
-            $this->fixMissingTables($conflicts, $masterSchema),
-            $this->fixMissingColumns($conflicts, $masterSchema),
+            $this->fixMissingTables($conflicts, $masterSchema, $masterDriver, $clientDriver),
+            $this->fixMissingColumns($conflicts, $masterSchema, $masterDriver, $clientDriver),
             $this->fixMismatchedColumns($conflicts, $masterSchema, $clientSchema, $targetDb),
             $this->fixExtraTables($conflicts, $masterSchema),
             $this->fixExtraColumns($conflicts, $masterSchema),
@@ -84,7 +87,7 @@ class SchemaFixerService
                     $finalStatements[] = $statement;
                     $executed++;
                 } catch (\Throwable $e) {
-                    $finalStatements[] = "-- WARNING: cannot execute statement: {$statement}, incompatible data type conversion.";
+                    $finalStatements[] = "-- WARNING: cannot execute statement: {$statement}, {$e->getMessage()}.";
                 }
             }
         }
@@ -96,7 +99,7 @@ class SchemaFixerService
         
     }
 
-    protected function fixMissingTables(array $conflicts, array $masterSchema):array{
+    protected function fixMissingTables(array $conflicts, array $masterSchema, $masterDriver, $clientDriver):array{
 
         $sql = [];
 
@@ -106,6 +109,15 @@ class SchemaFixerService
 
         foreach($conflicts['missing_client_table'] as $table => $_){
             $tableDef = $masterSchema[$table];
+
+            foreach ($tableDef['columns'] as $columnName => $columnDef) {
+                $tableDef['columns'][$columnName] = $this->mapColumnDefinition(
+                    $columnDef,
+                    $masterDriver,
+                    $clientDriver
+                );
+            }
+            
             $sql[] = $this->builder->createMissingTables($table, $tableDef);
         }
 
@@ -122,14 +134,14 @@ class SchemaFixerService
         }
 
         foreach($conflicts['extra_client_table'] as $table => $_){
-            $sql[] = "-- WARNING: extra table '$table' cannot be deleted to prevent data loss.";
+            $sql[] = "-- WARNING: extra table '$table' was not deleted to prevent data loss.";
         }
 
         return $sql;
 
     }
 
-    protected function fixMissingColumns(array $conflicts, array $masterSchema):array{
+    protected function fixMissingColumns(array $conflicts, array $masterSchema, $masterDriver, $clientDriver):array{
 
         $sql = [];
 
@@ -140,7 +152,13 @@ class SchemaFixerService
         foreach($conflicts['missing_client_column'] as $table => $columns){
             foreach($columns as $column => $_){
                 $columnDef = $masterSchema[$table]['columns'][$column];
-                $sql[] = $this->builder->addMissingColumns($table, $column, $columnDef);
+                $mappedDef = $this->mapColumnDefinition(
+                    $columnDef,
+                    $masterDriver,
+                    $clientDriver
+                );
+
+                $sql[] = $this->builder->addMissingColumns($table, $column, $mappedDef);
             }
         }
 
@@ -159,12 +177,12 @@ class SchemaFixerService
         foreach($conflicts['extra_client_column'] as $table => $columns){
             foreach($columns as $column => $_){
                 if (!isset($masterSchema[$table]['columns'][$column])) {
-                    $sql[] = "-- WARNING: extra column '$column' in table '$table' cannot be deleted to prevent data loss.";
+                    $sql[] = "-- WARNING: extra column '$column' in table '$table' was not deleted to prevent data loss.";
                     continue;
                 }
                 
                 $columnDef = $masterSchema[$table]['columns'][$column];
-                $sql[] = "-- WARNING: extra columns cannot be deleted to prevent data loss.";
+                $sql[] = "-- WARNING: extra columns was not deleted to prevent data loss.";
             }
         }
 
@@ -190,12 +208,25 @@ class SchemaFixerService
             foreach ($columns as $column) {
                 $masterColumnDef = $masterSchema[$table]['columns'][$column];
 
-                $sql[] = $this->builder->modifyMismatchedColumns($table, $column, $masterColumnDef);
+                $sql[] = "-- WARNING: mismatched column '$column' in table '$table' was not modified to prevent data loss.";
+                continue;
             }
 
         }
 
         return $sql;
         
+    }
+
+    protected function mapColumnDefinition(array $columnDef, string $masterDriver, string $clientDriver): array
+    {
+        $columnDef['data_type'] = CrossDbTypeMapper::map(
+            $columnDef['data_type'],
+            $masterDriver,
+            $clientDriver,
+            $columnDef['maximum_characters'] ?? null
+        );
+
+        return $columnDef;
     }
 }
