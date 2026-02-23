@@ -17,13 +17,14 @@ const MainPage = () => {
     const [error, setError] = useState('');
     const [database, setDatabase] = useState(null);
     const [database2, setDatabase2] = useState(null);
-    const [results, setResults] = useState(null);
+    //const [results, setResults] = useState(null);
     const [show, setShow] = useState(false);
     const [show2, setShow2] = useState(false);
-    const [scan, setScan] = useState(false);
-    const [rescan, setRescan] = useState(false);
+    //const [scan, setScan] = useState(false);
+    //const [rescan, setRescan] = useState(false);
     const [fixConflicts, setFixConflicts] = useState(false);
-    const [noConflicts, setNoConflicts] = useState(false);
+    //const [noConflicts, setNoConflicts] = useState(false);
+    const [hasScanned, setHasScanned] = useState(false);
     const [warnings, setWarnings] = useState([]);
     const [fixed, setFixed] = useState([]);
     const [dbA, setDbA] = useState(null);
@@ -34,7 +35,7 @@ const MainPage = () => {
         if (location.state?.master && location.state?.client) {
             setDbA(location.state.master);
             setDbB(location.state.client);
-            setScan
+            //setScan
 
             fetchDatabase(location.state.master);
             fetchDatabase2(location.state.client);
@@ -231,8 +232,8 @@ const MainPage = () => {
         const excel = document.getElementById("exportExcel").checked;
         const pdf = document.getElementById("exportPDF").checked;
 
-        if (excel) exportToExcel(results);
-        if (pdf) exportToPDF(results);
+        if (excel) exportToExcel(results); // not exporting
+        if (pdf) exportToPDF(results); 
     };
 
     Row.propTypes = {
@@ -259,22 +260,61 @@ const MainPage = () => {
           
                     <div className='scanner-select'>
                         <h3 className="card-title">Master Database</h3>
+
+                         <div className="dropdown-group">
+                            <select>
+                                <option value="">Select host</option>
+                                <option value="server1">Server 1</option>
+                                <option value="server2">Server 2</option>
+                            </select>
+
+
+                            <select>
+                                <option value="">Select Port</option>
+                                <option value="server1">Port 1</option>
+                                <option value="server2">Port 2</option>
+                            </select>
+                        </div>
+
                     </div>
                     <div className='scanner-select'>
                         <h3 className="card-title">Client Database</h3>
+                        <div className="dropdown-group">
+                            <select>
+                            <option value="">Select Host</option>
+                            <option value="server1">Server 1</option>
+                            <option value="server2">Server 2</option>
+                            </select>
+
+                            <select>
+                            <option value="">Select Port</option>
+                            <option value="server1">Port 1</option>
+                            <option value="server2">Port 2</option>
+                            </select>
+                        </div>
                     </div>
-                    <div className='scanner-select'>
+                    {/*<div className='scanner-select'>
                         <h3 className="card-title">Results</h3>
-                    </div>
+                    </div>*/}
                  
                     <div className='scanner-select'>
                         <div className="card">
                             {show ? (
                                 <>
                                     <CollapsibleTable database={database}/>
-                                    <button
-                                        className='select-btn' onClick={ ()=> openDatabaseSelect("Select Master Database", setDbA, fetchDatabase)}>Reselect</button>
+                                    <div className='master-button-group'>
+                                        <button
+                                            className='select-btn' onClick={ ()=> openDatabaseSelect("Select Master Database", setDbA, fetchDatabase)}>Reselect
+                                        </button>
+
+                                        <button className='export-btn' 
+                                            style={{ backgroundColor: hasScanned ? '#FACC1566' : '#ccc', color: '#000000'}}
+                                            disabled={!hasScanned}
+                                            onClick={() => handleExport(database2)}>Export Results
+                                        </button>
+                                    </div>
                                 </>
+                                
                             ) : (
                                 <>
                     <div className="card-header">
@@ -291,14 +331,32 @@ const MainPage = () => {
                         <div className="card">
                             {show2 ? (
                                 <>
-                                    <CollapsibleTable2 database2={database2}/> 
-                                    {fixConflicts && (
-                                        <button className='fix-btn' style={{ backgroundColor: '#FACC1566', color: '#000000' }} 
+                                    <CollapsibleTable2 database2={database2}/>
+                                    <div className='client-button-group'>
+                              
+                                        <button
+                                            className='client-btn-select'onClick={ ()=> openDatabaseSelect("Select Client Database", setDbB, fetchDatabase2)}> Reselect
+                                        </button>
+
+                                        <button
+                                            className='select-btn'
+                                            disabled={!dbA || !dbB} 
+                                            onClick={async() => {await fetchConflicts(dbA, dbB);
+                                                setFixConflicts(true);
+                                                setHasScanned(true);
+                                            }}
+                                        >
+                                            {hasScanned ? "Rescan" : "Scan"}
+                                        </button>
+
+                                        <button className='fix-btn' style={{ backgroundColor: (fixConflicts && hasScanned) ? '#FACC1566' : '#ccc', 
+                                            color: (fixConflicts && hasScanned) ? '#000000' : '#888888',
+                                            cursor: (fixConflicts && hasScanned) ? 'pointer' : 'not-allowed' }}
+                                            
+                                            disabled={!(fixConflicts && hasScanned)}
                                             onClick={() => handleConflicts()}>Fix Conflicts
                                         </button>
-                                    )}
-                                    <button
-                                        className='select-btn'onClick={ ()=> openDatabaseSelect("Select Client Database", setDbB, fetchDatabase2)}> Reselect</button>
+                                    </div>
                                 </>
                             ) : (
                                 <>
@@ -311,8 +369,8 @@ const MainPage = () => {
                             )}
                         </div>
                     </div>
-
-                    <div className='scanner-select'>
+                    
+                    {/*<div className='scanner-select'>
                         <div className="card">
                             {scan ? (
                             noConflicts ? (
@@ -349,7 +407,7 @@ const MainPage = () => {
                                 </>    
                             )}
                         </div>
-                    </div>
+                    </div>*/}
                 </div>
             </div>      
         </div>
