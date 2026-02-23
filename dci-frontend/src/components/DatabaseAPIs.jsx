@@ -170,7 +170,7 @@ export const fixAllConflicts = async (dbA, dbB, navigate, results) => {
                             </div>`, 
                         icon: 'warning',
                         showCancelButton: true,
-                        confirmButtonText: 'View & Manage Data',
+                        confirmButtonText: 'Ignore Conflicts',
                         confirmButtonColor: '#003566',
                         cancelButtonColor: '#6E7881'
                     });
