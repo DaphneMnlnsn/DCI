@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import './Settings.css';
 import axios from 'axios';
 import swal from 'sweetalert2';
@@ -10,12 +9,11 @@ const SettingsPage = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [port, setPort] = useState('');
-    const [tempHost, setTempHost] = useState([]);
     const [host, setHost] = useState('');
     const [tempDb, setTempDb] = useState('');
     const [dbType, setDbType] = useState('');
+    const [configName, setConfigName] = useState('');
     const [error, setError] = useState('');
-    const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
     const [users, setUsers] = useState([]);
     const [activityLogs, setActivityLogs] = useState([]);
@@ -89,7 +87,8 @@ const SettingsPage = () => {
     const handleSave = async () => {
         const driver = tempDb;
         try {
-            const response = await axios.post(`${import.meta.env.VITE_APP_BASE_URL}/api/set-database`, {
+            const response = await axios.post(`${import.meta.env.VITE_APP_BASE_URL}/api/save-config`, {
+                configName: configName,
                 driver: driver,
                 host: host,
                 port: port,
@@ -329,6 +328,13 @@ const SettingsPage = () => {
                         </label>
                     </div>
                     <form className='settings-form'>
+                        <div className='settings-subLabel'>Config Name</div>
+                        <input className='login-email' 
+                            type='text' 
+                            placeholder='Enter config name' 
+                            value={host}
+                            onChange={e => setConfigName(e.target.value)}/>
+
                         <div className='settings-subLabel'>Host/Server</div>
                         <input className='login-email' 
                             type='text' 
