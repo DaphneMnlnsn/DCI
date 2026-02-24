@@ -6,6 +6,7 @@ use App\Http\Controllers\ClientTableController;
 use App\Http\Controllers\SchemaController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DatabaseController;
+use App\Http\Controllers\IgnoredConflictController;
 use App\Http\Controllers\UserController;
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -27,6 +28,12 @@ Route::middleware(['auth'])->group(function (){
     Route::post('/users/create', [UserController::class, 'store']);
     Route::put('/users/update/{id}', [UserController::class, 'update']);
     Route::delete('/users/delete/{id}', [UserController::class, 'destroy']);
+
+    Route::get('/conflicts', [IgnoredConflictController::class, 'index']);
+    Route::post('/conflicts/create', [IgnoredConflictController::class, 'store']);
+    Route::post('/conflicts/create-multiple', [IgnoredConflictController::class, 'storeMultiple']);
+    Route::delete('/conflicts/unignore', [IgnoredConflictController::class, 'unignore']);
+    Route::delete('/conflicts/unignore-multiple', [IgnoredConflictController::class, 'unignoreMultiple']);
 
     Route::get('/conflicted-tables', [ClientTableController::class, 'getTables']);
     Route::delete('/conflicted-tables/delete-all', [ClientTableController::class, 'deleteAllData']);

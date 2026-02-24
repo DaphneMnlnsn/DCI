@@ -14,13 +14,17 @@ class CrossDbTypeMapper
         $masterType = self::normalize($masterType);
 
         if ($masterDriver === $clientDriver) {
-            return self::applyLength($masterType, $length, $clientDriver);
+            $normalized = self::normalizeSameDriver($masterType, $masterDriver);
+            return self::applyLength($normalized, $length, $clientDriver);
         }
 
         $map = self::mappingTable();
 
-        $mapped = $map[$masterDriver][$clientDriver][$masterType] 
-            ?? self::fallback($masterType, $clientDriver);
+        if (isset($map[$masterDriver][$clientDriver][$masterType])) {
+            $mapped = $map[$masterDriver][$clientDriver][$masterType];
+        } else {
+            $mapped = self::fallback($masterType, $clientDriver);
+        }
 
         return self::applyLength($mapped, $length, $clientDriver);
     }
@@ -34,12 +38,14 @@ class CrossDbTypeMapper
 
     private static function applyLength(string $type, ?int $length, string $driver): string
     {
-        if (!$length) {
+        if ($length === null || $length <= 0) {
             return $type;
         }
 
-        if (in_array($type, ['varchar','nvarchar','character varying'])) {
-            return "{$type}(" . min($length, 255) . ")";
+        $baseType = strtolower($type);
+
+        if (in_array($baseType, ['varchar','nvarchar','character varying'])) {
+            return "{$baseType}(" . min($length, 255) . ")";
         }
 
         return $type;
@@ -52,6 +58,33 @@ class CrossDbTypeMapper
             'pgsql'  => 'text',
             'sqlsrv' => 'nvarchar(max)',
             default  => $type,
+        };
+    }
+
+    private static function normalizeSameDriver(string $type, string $driver): string
+    {
+        $type = self::normalize($type);
+
+        return match ($driver) {
+
+            'mysql' => match ($type) {
+                'tinytext', 'text', 'mediumtext', 'longtext' => 'longtext',
+                'tinyint', 'smallint', 'mediumint', 'int', 'bigint' => $type,
+                default => $type,
+            },
+
+            'pgsql' => match ($type) {
+                'character varying' => 'varchar',
+                default => $type,
+            },
+
+            'sqlsrv' => match ($type) {
+                'nvarchar', 'varchar' => 'nvarchar',
+                'ntext', 'text' => 'ntext',
+                default => $type,
+            },
+
+            default => $type,
         };
     }
 

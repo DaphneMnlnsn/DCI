@@ -86,8 +86,18 @@ class SchemaController extends Controller
                 return response()->json(['error' => 'Databases not specified'], 400);
             }
 
+            $userId = Auth::id();
+
+            $clientConfig = UserDBConfig::where('user_id', $userId)
+                ->where('role', 'client')
+                ->first();
+
+            if (!$clientConfig) {
+                return response()->json(['error' => 'Client DB config not found'], 404);
+            }
+
             return response()->json(
-                $scanner->scan($source, $target, $sourceConfig, $targetConfig)
+                $scanner->scan($source, $target, $sourceConfig, $targetConfig, $clientConfig->id)
             );
 
         }
@@ -112,7 +122,17 @@ class SchemaController extends Controller
             $masterSchema = $reader->readSchemaByDatabase($source, $sourceConfig);
             $clientSchema = $reader->readSchemaByDatabase($target, $targetConfig);
 
-            $conflicts = $scanner->scan($source, $target, $sourceConfig, $targetConfig);
+            $userId = Auth::id();
+
+            $clientConfig = UserDBConfig::where('user_id', $userId)
+                ->where('role', 'client')
+                ->first();
+
+            if (!$clientConfig) {
+                return response()->json(['error' => 'Client DB config not found'], 404);
+            }
+
+            $conflicts = $scanner->scan($source, $target, $sourceConfig, $targetConfig, $clientConfig->id);
             
             $message = $fixer->fix($conflicts['conflicts'], $masterSchema['schema'], $clientSchema['schema'], $target, $sourceConfig, $targetConfig);
 

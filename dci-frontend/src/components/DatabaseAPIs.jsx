@@ -3,6 +3,65 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import swal from 'sweetalert2';
 
+export const ignoreAllConflicts = async (results, dbA, dbB) => {
+    if (!results?.raw?.conflicts) return;
+
+    const conflicts = results.raw.conflicts;
+    const flattened = [];
+
+    Object.entries(conflicts).forEach(([conflictType, tables]) => {
+
+        if (['missing_client_table', 'extra_client_table'].includes(conflictType)) {
+            Object.keys(tables).forEach(tableName => {
+                flattened.push({
+                    database_name: dbB,
+                    table_name: tableName,
+                    column_name: null,
+                    conflict_type: conflictType
+                });
+            });
+        }
+
+        if ([
+            'missing_client_column',
+            'extra_client_column',
+            'type_mismatch',
+            'length_mismatch'
+        ].includes(conflictType)) {
+
+            Object.entries(tables).forEach(([tableName, columns]) => {
+                Object.keys(columns).forEach(columnName => {
+                    flattened.push({
+                        database_name: dbB,
+                        table_name: tableName,
+                        column_name: columnName,
+                        conflict_type: conflictType
+                    });
+                });
+            });
+        }
+    });
+
+    try {
+        await axios.post(
+            `${import.meta.env.VITE_APP_BASE_URL}/api/conflicts/create-multiple`,
+            { conflicts: flattened },
+            { withCredentials: true }
+        );
+
+        swal.fire({
+            title: "Ignored",
+            text: "All conflicts have been ignored.",
+            icon: "success",
+            confirmButtonColor: "#003566"
+        });
+
+    } catch (error) {
+        console.error(error);
+        swal.fire("Error ignoring conflicts", "", "error");
+    }
+};
+
 export const fetchSchema = async (dbName, role) => {
 
     if (!dbName) return null;
@@ -73,6 +132,13 @@ export const fetchConflicts = async (dbA, dbB) => {
             }));
             const raw = response.data;
             const conflictsArray = conflictArray;
+            const conflictMap = {};
+            conflictArray.forEach(({ conflictType, details }) => {
+                Object.entries(details).forEach(([table, cols]) => {
+                    if (!conflictMap[table]) conflictMap[table] = {};
+                    conflictMap[table][conflictType] = cols;
+                });
+            });
             let hasConflicts = true;
 
             // Calculate total conflict count
@@ -109,7 +175,7 @@ export const fetchConflicts = async (dbA, dbB) => {
                 confirmButtonColor: '#003566'
             });
 
-            return {raw, conflictsArray, hasConflicts};
+            return {raw, conflictsArray, conflictMap, hasConflicts};
         }
 
         return null;

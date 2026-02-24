@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\IgnoredConflict;
 use Illuminate\Support\Facades\DB;
 use App\Services\SchemaReaderService;
 use Illuminate\Support\Facades\Config;
@@ -17,7 +18,7 @@ class SchemaScannerService
 
     }
 
-    public function scan(string $sourceDb, string $targetDb, array $sourceConfig, $targetConfig)
+    public function scan(string $sourceDb, string $targetDb, array $sourceConfig, $targetConfig, $clientConfigId)
     {
 
         $masterData = $this->reader->readSchemaByDatabase($sourceDb, $sourceConfig);
@@ -125,11 +126,15 @@ class SchemaScannerService
                         $masterColumn = $columnData;
                         $clientColumn = $clientSchema[$row]["columns"][$col];
 
-                        $masterMaxLength = $masterColumn['maximum_characters'] ?? 0;
-                        $clientMaxLength = $clientColumn['maximum_characters'] ?? 0;
+                        $masterMaxLength = $masterColumn['maximum_characters'] ?? null;
+                        $clientMaxLength = $clientColumn['maximum_characters'] ?? null;
 
                         $masterType = $masterColumn['data_type'];
                         $clientType = $clientColumn['data_type'];
+
+                        if (isset($conflicts['type_mismatch'][$row][$col])) {
+                            continue;
+                        }
 
                         if(!$this->dbLengthMapping($masterMaxLength, $clientMaxLength, $masterType, $clientType)){
                             $conflicts['length_mismatch'][$row][$col] = [
@@ -142,6 +147,40 @@ class SchemaScannerService
 
                 }
                 
+            }
+        }
+
+        $ignored = IgnoredConflict::where('user_config_id', $clientConfigId)
+            ->where('database_name', $targetDb)
+            ->get();
+
+        foreach ($ignored as $ignore) {
+
+            $type = $ignore->conflict_type;
+            $table = $ignore->table_name;
+            $column = $ignore->column_name;
+
+            if (!isset($conflicts[$type])) {
+                continue;
+            }
+
+            if (is_null($column)) {
+                unset($conflicts[$type][$table]);
+                continue;
+            }
+
+            if (isset($conflicts[$type][$table][$column])) {
+                unset($conflicts[$type][$table][$column]);
+
+                if (empty($conflicts[$type][$table])) {
+                    unset($conflicts[$type][$table]);
+                }
+            }
+        }
+
+        foreach ($conflicts as $type => $tables) {
+            if (empty($tables)) {
+                unset($conflicts[$type]);
             }
         }
 

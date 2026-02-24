@@ -23,4 +23,9 @@ class UserDBConfig extends Model
     public function savedDatabase() {
         return $this->belongsTo(SavedDatabase::class, 'config_id');
     }
+
+    public function ignoredConflicts()
+    {
+        return $this->hasMany(IgnoredConflict::class);
+    }
 }
