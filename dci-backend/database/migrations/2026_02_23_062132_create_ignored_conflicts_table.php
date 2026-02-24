@@ -13,7 +13,14 @@ return new class extends Migration
     {
         Schema::create('ignored_conflicts', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('user_config_id');
+            $table->string('database_name');
+            $table->string('table_name');
+            $table->string('column_name')->nullable();
+            $table->string('conflict_type');
             $table->timestamps();
+
+            $table->foreign('user_config_id')->references('id')->on('user_db_configs')->onDelete('cascade');
         });
     }
 
