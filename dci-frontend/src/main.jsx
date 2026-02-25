@@ -9,13 +9,14 @@ import LoginPage from './Pages/Login.jsx';
 import MainPage from './Pages/Scanner.jsx';
 import SettingsPage from './Pages/Settings.jsx';
 import ManageData from './Pages/ManageData.jsx';
+import MainPageDCI from './Pages/MainPageDCI.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
         <Route path='/' element={<LoginPage />} />
-        <Route path='/main' element={<ProtectedRoute><MainPage /></ProtectedRoute>} />
+        <Route path='/main' element={<ProtectedRoute><MainPageDCI /></ProtectedRoute>} />
         <Route path='/settings' element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         <Route path='/manage-data' element={<ProtectedRoute><ManageData /></ProtectedRoute>} />
       </Routes>
