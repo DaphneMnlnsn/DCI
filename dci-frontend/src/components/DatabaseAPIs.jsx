@@ -3,6 +3,72 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import swal from 'sweetalert2';
 
+export const fetchUserConfig = async () => {
+
+    try {
+        const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/config/user`, {
+            withCredentials: true
+        });
+        if (response.status === 200){
+            return {
+                master: response.data.master_config,
+                client: response.data.client_config
+            }
+        }
+
+        return null;
+
+    }
+    catch (error) {
+        console.log('Fetch user config error: ', error);
+        return null;
+    }
+}
+
+export const fetchConfigs = async (dbDriver) => {
+
+    if (!dbDriver) return null;
+
+    try {
+        const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/configs`, {
+            params: { driver: dbDriver},
+            withCredentials: true
+        });
+        if (response.status === 200){
+
+            return response.data.configs;
+        }
+
+        return null;
+
+    }
+    catch (error) {
+        console.log('Fetch configurations error: ', error);
+        return null;
+    }
+}
+
+export const setDatabaseConnection = async (configId, role) => {
+    try {
+        const response = await axios.post(
+            `${import.meta.env.VITE_APP_BASE_URL}/api/set-database`,
+            {
+                configId: configId,
+                role: role,
+            },
+            {
+                withCredentials: true
+            }
+        );
+
+        return response.data;
+
+    } catch (error) {
+        console.error("Set database error:", error);
+        throw error;
+    }
+};
+
 export const ignoreAllConflicts = async (results, dbA, dbB) => {
     if (!results?.raw?.conflicts) return;
 
@@ -14,7 +80,8 @@ export const ignoreAllConflicts = async (results, dbA, dbB) => {
         if (['missing_client_table', 'extra_client_table'].includes(conflictType)) {
             Object.keys(tables).forEach(tableName => {
                 flattened.push({
-                    database_name: dbB,
+                    master_database_name: dbA,
+                    client_database_name: dbB,
                     table_name: tableName,
                     column_name: null,
                     conflict_type: conflictType
@@ -32,7 +99,8 @@ export const ignoreAllConflicts = async (results, dbA, dbB) => {
             Object.entries(tables).forEach(([tableName, columns]) => {
                 Object.keys(columns).forEach(columnName => {
                     flattened.push({
-                        database_name: dbB,
+                        master_database_name: dbA,
+                        client_database_name: dbB,
                         table_name: tableName,
                         column_name: columnName,
                         conflict_type: conflictType

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\SavedDatabase;
 use App\Models\UserDBConfig;
 use App\Services\ActivityLogService;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
@@ -37,10 +38,59 @@ class DatabaseController extends Controller
             ], 500);
         }*/
 
-        $configs = SavedDatabase::where('config_driver', $driver)->get();
+        $configs = SavedDatabase::where('config_driver', $request->driver)
+        ->get();
+
+        $configs->transform(function ($config) {
+            $decrypted = Crypt::decryptString($config->db_config);
+
+            $decoded = json_decode($decrypted, true);
+
+            $config->host = $decoded['host'] ?? null;
+
+            return $config;
+        });
 
         return response()->json([
             'configs' => $configs
+        ]);
+    }
+
+    public function indexUserConfig(Request $request)
+    {
+        $user = Auth::user();
+
+        $masterConfig = $user->userDbConfigs->where('role', 'master')->first();
+        $clientConfig = $user->userDbConfigs->where('role', 'client')->first();
+
+        if (!$masterConfig) {
+            return response()->json(['message' => 'Master config not found'], 404);
+        }
+
+        if (!$clientConfig) {
+            return response()->json(['message' => 'Client config not found'], 404);
+        }
+
+        $masterSaved = $masterConfig->savedDatabase;
+        $clientSaved = $clientConfig->savedDatabase;
+
+        if (!$masterSaved || !$clientSaved) {
+            return response()->json(['message' => 'Saved database record missing'], 404);
+        }
+
+        try {
+            $masterDecrypted = json_decode(Crypt::decryptString($masterSaved->db_config), true);
+            $clientDecrypted = json_decode(Crypt::decryptString($clientSaved->db_config), true);
+        } catch (Exception $e) {
+            return response()->json(['message' => 'Failed to decrypt database config', 'error' => $e->getMessage()], 500);
+        }
+
+        $masterSaved->host = $masterDecrypted['host'] ?? null;
+        $clientSaved->host = $clientDecrypted['host'] ?? null;
+
+        return response()->json([
+            'master_config' => $masterSaved,
+            'client_config' => $clientSaved,
         ]);
     }
     public function saveConfig(Request $request){

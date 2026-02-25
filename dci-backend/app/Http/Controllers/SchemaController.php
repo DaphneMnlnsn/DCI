@@ -86,18 +86,29 @@ class SchemaController extends Controller
                 return response()->json(['error' => 'Databases not specified'], 400);
             }
 
-            $userId = Auth::id();
+            $user = Auth::user();
 
-            $clientConfig = UserDBConfig::where('user_id', $userId)
+            $masterConfig = $user->userDbConfigs
+                ->where('role', 'master')
+                ->first();
+
+            if (!$masterConfig) {
+                return response()->json(['message' => 'Master config not found'], 404);
+            }
+
+            $clientConfig = $user->userDbConfigs
                 ->where('role', 'client')
                 ->first();
 
             if (!$clientConfig) {
-                return response()->json(['error' => 'Client DB config not found'], 404);
+                return response()->json(['message' => 'Client config not found'], 404);
             }
 
+            $masterConfigId = $masterConfig->id;
+            $clientConfigId = $clientConfig->id;
+
             return response()->json(
-                $scanner->scan($source, $target, $sourceConfig, $targetConfig, $clientConfig->id)
+                $scanner->scan($source, $target, $sourceConfig, $targetConfig, $masterConfigId, $clientConfigId)
             );
 
         }
@@ -122,17 +133,28 @@ class SchemaController extends Controller
             $masterSchema = $reader->readSchemaByDatabase($source, $sourceConfig);
             $clientSchema = $reader->readSchemaByDatabase($target, $targetConfig);
 
-            $userId = Auth::id();
+            $user = Auth::user();
 
-            $clientConfig = UserDBConfig::where('user_id', $userId)
+            $masterConfig = $user->userDbConfigs
+                ->where('role', 'master')
+                ->first();
+
+            if (!$masterConfig) {
+                return response()->json(['message' => 'Master config not found'], 404);
+            }
+
+            $clientConfig = $user->userDbConfigs
                 ->where('role', 'client')
                 ->first();
 
             if (!$clientConfig) {
-                return response()->json(['error' => 'Client DB config not found'], 404);
+                return response()->json(['message' => 'Client config not found'], 404);
             }
 
-            $conflicts = $scanner->scan($source, $target, $sourceConfig, $targetConfig, $clientConfig->id);
+            $masterConfigId = $masterConfig->id;
+            $clientConfigId = $clientConfig->id;
+
+            $conflicts = $scanner->scan($source, $target, $sourceConfig, $targetConfig, $masterConfigId, $clientConfigId);
             
             $message = $fixer->fix($conflicts['conflicts'], $masterSchema['schema'], $clientSchema['schema'], $target, $sourceConfig, $targetConfig);
 

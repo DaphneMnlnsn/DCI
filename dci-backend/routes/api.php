@@ -21,6 +21,7 @@ Route::middleware(['auth'])->group(function (){
     Route::get('/activity-logs', [ActivityLogController::class, 'index']);
 
     Route::get('/configs', [DatabaseController::class, 'index']);
+    Route::get('/config/user', [DatabaseController::class, 'indexUserConfig']);
     Route::post('/save-config', [DatabaseController::class, 'saveConfig']);
     Route::post('/set-database', [DatabaseController::class, 'setDatabase']);
 

@@ -12,7 +12,7 @@ class IgnoredConflictController extends Controller
     public function index(Request $request){
         $user = Auth::user();
 
-        $ignored = IgnoredConflict::whereHas('userConfig', function ($query) use ($user) {
+        $ignored = IgnoredConflict::whereHas('clientConfig', function ($query) use ($user) {
             $query->where('user_id', $user->id);
         })
         ->orderBy('created_at', 'asc')
@@ -24,12 +24,38 @@ class IgnoredConflictController extends Controller
     }
 
     public function store(Request $request){
+        
+        $user = Auth::user();
+
+        $masterConfig = $user->userDbConfigs
+            ->where('role', 'master')
+            ->first();
+
+        if (!$masterConfig) {
+            return response()->json(['message' => 'Master config not found'], 404);
+        }
+
+        $clientConfig = $user->userDbConfigs
+            ->where('role', 'client')
+            ->first();
+
+        if (!$clientConfig) {
+            return response()->json(['message' => 'Client config not found'], 404);
+        }
+
+        $masterConfigId = $masterConfig->id;
+        $clientConfigId = $clientConfig->id;
+
         $validated = $request->validate([
-            'database_name' => 'required|string',
+            'master_database_name' => 'required|string',
+            'client_database_name' => 'required|string',
             'table_name' => 'required|string',
             'column_name' => 'nullable|string',
             'conflict_type' => 'required|string',
         ]);
+
+        $validated['master_config_id'] = $masterConfigId;
+        $validated['client_config_id'] = $clientConfigId;
 
         $conflict = IgnoredConflict::create($validated);
         
@@ -46,15 +72,24 @@ class IgnoredConflictController extends Controller
     {
         $user = Auth::user();
 
-        $userConfig = $user->userDbConfigs
+        $masterConfig = $user->userDbConfigs
+            ->where('role', 'master')
+            ->first();
+
+        if (!$masterConfig) {
+            return response()->json(['message' => 'Master config not found'], 404);
+        }
+
+        $clientConfig = $user->userDbConfigs
             ->where('role', 'client')
             ->first();
 
-        if (!$userConfig) {
+        if (!$clientConfig) {
             return response()->json(['message' => 'Client config not found'], 404);
         }
 
-        $userConfigId = $userConfig->id;
+        $masterConfigId = $masterConfig->id;
+        $clientConfigId = $clientConfig->id;
 
         $validated = $request->validate([
             'conflicts' => 'required|array'
@@ -62,10 +97,12 @@ class IgnoredConflictController extends Controller
 
         foreach ($validated['conflicts'] as $conflict) {
             IgnoredConflict::firstOrCreate([
-                'user_config_id' => $userConfigId,
-                'database_name' => $conflict['database_name'],
+                'master_config_id' => $masterConfigId,
+                'client_config_id' => $clientConfigId,
+                'master_database_name' => $conflict['master_database_name'],
+                'client_database_name' => $conflict['client_database_name'],
                 'table_name' => $conflict['table_name'],
-                'column_name' => $conflict['column_name'],
+                'column_name' => $conflict['column_name'] ?? null,
                 'conflict_type' => $conflict['conflict_type'],
             ]);
 

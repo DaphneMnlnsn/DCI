@@ -18,7 +18,7 @@ class SchemaScannerService
 
     }
 
-    public function scan(string $sourceDb, string $targetDb, array $sourceConfig, $targetConfig, $clientConfigId)
+    public function scan(string $sourceDb, string $targetDb, array $sourceConfig, $targetConfig, $masterConfigId, $clientConfigId)
     {
 
         $masterData = $this->reader->readSchemaByDatabase($sourceDb, $sourceConfig);
@@ -150,8 +150,10 @@ class SchemaScannerService
             }
         }
 
-        $ignored = IgnoredConflict::where('user_config_id', $clientConfigId)
-            ->where('database_name', $targetDb)
+        $ignored = IgnoredConflict::where('client_config_id', $clientConfigId)
+            ->where('master_config_id', $masterConfigId)
+            ->where('master_database_name', $sourceDb)
+            ->where('client_database_name', $targetDb)
             ->get();
 
         foreach ($ignored as $ignore) {

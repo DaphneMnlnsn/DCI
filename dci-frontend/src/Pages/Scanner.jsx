@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 import Row from '../components/Row.jsx';
 import exportToExcel from '../Pages/ExcelExport.jsx';
 import exportToPDF from '../Pages/PDFExport.jsx';
-import {fetchConflicts, fetchSchema, fixAllConflicts} from '../components/DatabaseAPIs.jsx';
+import {fetchConfigs, fetchConflicts, fetchSchema, fetchUserConfig, fixAllConflicts, setDatabaseConnection} from '../components/DatabaseAPIs.jsx';
 import { CollapsibleTable, CollapsibleTable2, CollapsibleTableScanned } from '../components/CollapsibleTables.jsx';
 
 const MainPage = () => {
@@ -18,6 +18,12 @@ const MainPage = () => {
     const [database, setDatabase] = useState(null);
     const [database2, setDatabase2] = useState(null);
     const [results, setResults] = useState(null);
+    const [masterDbDriver, setMasterDbDriver] = useState(null);
+    const [masterConfigs, setMasterConfigs] = useState([]);
+    const [selectedMasterConfig, setSelectedMasterConfig] = useState(null);
+    const [clientDbDriver, setClientDbDriver] = useState(null);
+    const [clientConfigs, setClientConfigs] = useState([]);
+    const [selectedClientConfig, setSelectedClientConfig] = useState(null);
     const [show, setShow] = useState(false);
     const [show2, setShow2] = useState(false);
     //const [scan, setScan] = useState(false);
@@ -32,7 +38,7 @@ const MainPage = () => {
     const location = useLocation();
     const [conflictMap, setConflictMap] = useState({});
 
-    useEffect(() => {
+    /*useEffect(() => {
         if (location.state?.master && location.state?.client) {
             setDbA(location.state.master);
             setDbB(location.state.client);
@@ -43,7 +49,120 @@ const MainPage = () => {
 
             window.history.replaceState({}, document.title);
         }
+    }, [location.state]);*/
+
+    useEffect(() => {
+        if (!location.state) return;
+
+        if (location.state.master && !dbA) {
+            setDbA(location.state.master);
+            fetchDatabase(location.state.master);
+        }
+
+        if (location.state.client && !dbB) {
+            setDbB(location.state.client);
+            fetchDatabase2(location.state.client);
+        }
+
     }, [location.state]);
+
+    useEffect(() => {
+        const loadUserConfig = async () => {
+            const configs = await fetchUserConfig();
+            if (!configs) return;
+
+            if (configs.master) {
+                setMasterDbDriver(configs.master.config_driver);
+                await fetchMasterConfigs(configs.master.config_driver, parseInt(configs.master.id, 10));
+            }
+
+            if (configs.client) {
+                setClientDbDriver(configs.client.config_driver);
+                await fetchClientConfigs(configs.client.config_driver, parseInt(configs.client.id, 10));
+            }
+        };
+
+        loadUserConfig();
+    }, []);
+
+    useEffect(() => {
+        if (!masterDbDriver) {
+            setMasterConfigs([]);
+            setSelectedMasterConfig("");
+            return;
+        }
+
+        fetchMasterConfigs(masterDbDriver);
+        
+    }, [masterDbDriver]);
+
+    useEffect(() => {
+        if (!clientDbDriver) {
+            setClientConfigs([]);
+            setSelectedClientConfig("");
+            return;
+        }
+
+        fetchClientConfigs(clientDbDriver);
+        
+    }, [clientDbDriver]);
+
+    useEffect(() => {
+        if (!selectedMasterConfig || !masterDbDriver) return;
+
+        configureMaster();
+    }, [selectedMasterConfig, masterDbDriver]);
+
+    useEffect(() => {
+        if (!selectedClientConfig || !clientDbDriver) return;
+
+        configureClient();
+    }, [selectedClientConfig, clientDbDriver]);
+
+    const fetchClientConfigs = async (dbDriver, savedConfigId = null) => {
+        if(!dbDriver) return;
+
+        const configs = await fetchConfigs(dbDriver);
+        setClientConfigs(configs);
+
+        if (savedConfigId && configs.some(c => c.id === savedConfigId)) {
+            setSelectedClientConfig(savedConfigId);
+        } else if (!configs.some(c => c.id === selectedClientConfig)) {
+            setSelectedClientConfig(null);
+        }
+    };
+
+    const fetchMasterConfigs = async (dbDriver, savedConfigId = null) => {
+        if (!dbDriver) return;
+
+        const configs = await fetchConfigs(dbDriver);
+        setMasterConfigs(configs);
+
+        // only set selectedMasterConfig if it exists in fetched configs
+        if (savedConfigId && configs.some(c => c.id === savedConfigId)) {
+            setSelectedMasterConfig(savedConfigId);
+        } else if (!configs.some(c => c.id === selectedMasterConfig)) {
+            setSelectedMasterConfig(null);
+        }
+    };
+
+    const configureMaster = async () => {
+        try {
+            await setDatabaseConnection(selectedMasterConfig, "master");
+            console.log("Master connection configured");
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    const configureClient = async () => {
+        try {
+            await setDatabaseConnection(selectedClientConfig, "client");
+            console.log("Client connection configured");
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
     const fetchDatabase = async (dbName) => {
         if (!dbName) return;
@@ -256,18 +375,28 @@ const MainPage = () => {
                     <div className='scanner-select'>
                         <h3 className="card-title">Master Database</h3>
 
-                         <div className="dropdown-group">
-                            <select>
-                                <option value="">Select host</option>
-                                <option value="server1">Server 1</option>
-                                <option value="server2">Server 2</option>
+                        <div className="dropdown-group">
+                            <select
+                                value={masterDbDriver}
+                                onChange={(e) => setMasterDbDriver(e.target.value)}
+                            >
+                                <option value="">Select DB Type</option>
+                                <option value="mysql">MySQL</option>
+                                <option value="pgsql">PostgreSQL</option>
+                                <option value="sqlsrv">MS SQL</option>
                             </select>
 
-
-                            <select>
-                                <option value="">Select Port</option>
-                                <option value="server1">Port 1</option>
-                                <option value="server2">Port 2</option>
+                            <select
+                                value={selectedMasterConfig}
+                                onChange={(e) => setSelectedMasterConfig(parseInt(e.target.value, 10))}
+                                disabled={!masterConfigs.length || !masterDbDriver}
+                            >
+                            <option value="">Select Configuration</option>
+                            {masterConfigs.map((conf) => (
+                                <option key={conf.id} value={conf.id}>
+                                    {conf.config_name} ({conf.host})
+                                </option>
+                            ))}
                             </select>
                         </div>
 
@@ -275,16 +404,27 @@ const MainPage = () => {
                     <div className='scanner-select'>
                         <h3 className="card-title">Client Database</h3>
                         <div className="dropdown-group">
-                            <select>
-                            <option value="">Select Host</option>
-                            <option value="server1">Server 1</option>
-                            <option value="server2">Server 2</option>
+                            <select
+                                value={clientDbDriver}
+                                onChange={(e) => setClientDbDriver(e.target.value)}
+                            >
+                                <option value="">Select DB Type</option>
+                                <option value="mysql">MySQL</option>
+                                <option value="pgsql">PostgreSQL</option>
+                                <option value="sqlsrv">MS SQL</option>
                             </select>
 
-                            <select>
-                            <option value="">Select Port</option>
-                            <option value="server1">Port 1</option>
-                            <option value="server2">Port 2</option>
+                            <select
+                                value={selectedClientConfig}
+                                onChange={(e) => setSelectedClientConfig(parseInt(e.target.value, 10))}
+                                disabled={!clientConfigs.length || !clientDbDriver}
+                            >
+                            <option value="">Select Configuration</option>
+                            {clientConfigs.map((conf) => (
+                                <option key={conf.id} value={conf.id}>
+                                    {conf.config_name} ({conf.host})
+                                </option>
+                            ))}
                             </select>
                         </div>
                     </div>
