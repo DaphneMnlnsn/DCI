@@ -9,8 +9,10 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import Tooltip from '@mui/material/Tooltip';
+import WarningIcon from '@mui/icons-material/Warning';
 
-export default function Row({ row, conflictMap }) {
+export default function Row({ row, tableConflictMap = {}, columnConflictMap = {} }) {
     const [open, setOpen] = React.useState(false);
 
     // const hasConflict = conflictMap?.[row.tableName] &&
@@ -25,35 +27,33 @@ export default function Row({ row, conflictMap }) {
     'length_mismatch',
     ];
 
-    const hasConflict = tableConflictTypes.some(type => {
-        const typeGroup = conflictMap?.[type];
-        if (!typeGroup) return false;
+    const tableName = row.tableName?.trim();
+    const tableConflicts = tableConflictMap?.[tableName] || {};
+    
+    //TABLE-RELATED-CONFLICT
+    const isMissingClientTable = !!tableConflicts.missing_client_table;
+    const isExtraClientTable = !!tableConflicts.extra_client_table;
 
-        const tableConflicts = typeGroup[row.tableName];
-        if (!tableConflicts) return false;
-
-        if (typeof tableConflicts === "object") {
-            return Object.keys(tableConflicts).length > 0;
-        }
-
-        return true;
-    });
-
-    console.log("Row component:", row.tableName);
-    console.log("Conflict map received for this row:", conflictMap?.[row.tableName]);
+    //HIGHLIGHT
+    const highlightWholeTable = isMissingClientTable || isExtraClientTable;
 
     return (
         <React.Fragment>
 
-        <TableRow className="table-row">
+        <TableRow className="table-row"
+            style={{
+                backgroundColor: highlightWholeTable ? '#ffe6e6' : 'transparent',
+                boxShadow: highlightWholeTable ? "inset 4px 0 0 #d32f2f" : "none",
+            }}
+        >
             <TableCell className="icon-cell">
-            <IconButton
-                aria-label="expand row"
-                size="small"
-                onClick={() => setOpen(!open)}
-            >
-                {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-            </IconButton>
+                <IconButton
+                    aria-label="expand row"
+                    size="small"
+                    onClick={() => setOpen(!open)}
+                >
+                    {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                </IconButton>
             </TableCell>
 
             <TableCell className="table-name-cell">
@@ -61,10 +61,65 @@ export default function Row({ row, conflictMap }) {
                 ? row
                 : `${row.tableName} (${row.columns?.length || 0})`}
             </TableCell>
+            <TableCell align="right">
+                {(() => {
+                    if (highlightWholeTable) {
+                    const tooltipText = isMissingClientTable
+                        ? "Missing client table"
+                        : isExtraClientTable
+                        ? "Extra client table"
+                        : "";
+
+                    return (
+                        <Tooltip title={tooltipText} arrow placement="top">
+                        <Box display="inline-flex" alignItems="center" justifyContent="center">
+                            <WarningIcon style={{ color: '#d32f2f', cursor: 'pointer', fontSize: 20 }} />
+                        </Box>
+                        </Tooltip>
+                    );
+                    }
+
+                    let conflictCount = 0;
+                    const conflictTypesSet = new Set();
+                    row.columns?.forEach((col) => {
+                    const colName = col.columnName.trim();
+
+                    if (columnConflictMap?.missing_client_column?.[colName]) {
+                        conflictCount += 1;
+                        conflictTypesSet.add("Missing client column");
+                    }
+                    if (columnConflictMap?.extra_client_column?.[colName]) {
+                        conflictCount += 1;
+                        conflictTypesSet.add("Extra client column");
+                    }
+                    if (columnConflictMap?.type_mismatch?.[colName]) {
+                        conflictCount += 1;
+                        conflictTypesSet.add("Type mismatch");
+                    }
+                    if (columnConflictMap?.length_mismatch?.[colName]) {
+                        conflictCount += 1;
+                        conflictTypesSet.add("Length mismatch");
+                    }
+                    });
+
+                    if (conflictCount > 0) {
+                    return (
+                        <Tooltip title={`Expand table to see error`} arrow placement="top">
+                        <Box display="inline-flex" alignItems="center" justifyContent="center" gap={0.5}>
+                            <WarningIcon style={{ color: '#d32f2f', fontSize: 20, cursor: 'pointer' }} />
+                            <span style={{ color: '#d32f2f', fontWeight: 600 }}>{conflictCount}</span>
+                        </Box>
+                        </Tooltip>
+                    );
+                    }
+
+                    return null;
+                })()}
+            </TableCell>
         </TableRow>
     
         <TableRow className="expanded-row">
-            <TableCell colSpan={2} className="expanded-cell">
+            <TableCell colSpan={3} className="expanded-cell">
             <Collapse in={open} timeout="auto" unmountOnExit>
                 <Box className="expanded-box">
                 <Table size="small" className="inner-table">
@@ -80,35 +135,60 @@ export default function Row({ row, conflictMap }) {
                             const colName = column.columnName.trim();
 
                             if (index === 0) {
-                                console.log("Full conflictMap:", conflictMap);
-                                console.log("type_mismatch object:", conflictMap?.type_mismatch);
+                                console.log("Full conflictMap:", tableConflictMap);
+                                console.log("Full columnConflictMap:", columnConflictMap);
+                                console.log("type_mismatch object:", columnConflictMap?.type_mismatch);
                             }
 
-                            const isMissingClientColumn = !!conflictMap?.missing_client_column?.[colName];
-                            const isExtraClientColumn = !!conflictMap?.extra_client_column?.[colName];
-                            const isTypeMismatch = !!conflictMap?.type_mismatch?.[colName];
-                            const isLengthMismatch = !!conflictMap?.length_mismatch?.[colName];
+                            //COLUMN-RELATED-CONFLICTS
+                            const isMissingClientColumn = !!columnConflictMap?.missing_client_column?.[colName];
+                            const isExtraClientColumn = !!columnConflictMap?.extra_client_column?.[colName];
+                            const isTypeMismatch = !!columnConflictMap?.type_mismatch?.[colName];
+                            const isLengthMismatch = !!columnConflictMap?.length_mismatch?.[colName];
 
+                            //HIGHLIGHT
                             const highlightColumnName = isMissingClientColumn || isTypeMismatch || isLengthMismatch;
-                            const highlightVariableType = isExtraClientColumn || isTypeMismatch || isLengthMismatch;
+                            const highlightVariableType = isMissingClientColumn || isExtraClientColumn || isTypeMismatch || isLengthMismatch;
+                            
+                            const hasColumnConflict =
+                                isMissingClientColumn ||
+                                isExtraClientColumn ||
+                                isTypeMismatch ||
+                                isLengthMismatch;
+
+                            const conflictTypes = [];
+                            if (isMissingClientColumn) conflictTypes.push("Missing client column");
+                            if (isExtraClientColumn) conflictTypes.push("Extra client column");
+                            if (isTypeMismatch) conflictTypes.push("Type mismatch");
+                            if (isLengthMismatch) conflictTypes.push("Length mismatch");
+                            const tooltipText = hasColumnConflict ? conflictTypes.join(" / ") : "";
 
                             console.log("column:", colName);
                             console.log("isMissingClientColumn:", isMissingClientColumn, "isTypeMismatch:", isTypeMismatch, "isLengthMismatch:", isLengthMismatch);
                             console.log("highlightColumnName:", highlightColumnName, "highlightVariableType:", highlightVariableType);
                             console.log(
                                 "type mismatch columns:",
-                                Object.keys(conflictMap?.type_mismatch || {})
+                                Object.keys(columnConflictMap?.type_mismatch || {})
                             );
+                            console.log("Table conflicts for this row:", columnConflictMap?.[row.tableName]);
+                            console.log("Row tableName:", `"${row.tableName}"`);
+                            console.log("Available keys:", Object.keys(columnConflictMap || {}));
 
                             return (
-                                <TableRow key={index}>
-                                <TableCell style={{ backgroundColor: highlightColumnName ? '#ffe6e6' : 'transparent' }}>
-                                    {column.columnName}
-                                </TableCell>
-                                <TableCell style={{ backgroundColor: highlightVariableType ? '#ffe6e6' : 'transparent' }}>
-                                    {column.dataType} {column.maxCharacters ? `(${column.maxCharacters})` : '(N/A)'}
-                                </TableCell>
-                                </TableRow>
+                                <Tooltip key={index} title={tooltipText} arrow placement="top" disableHoverListener={!hasColumnConflict}>
+                                    <TableRow
+                                    style={{
+                                        backgroundColor: hasColumnConflict ? "#ffe6e6" : "transparent",
+                                        boxShadow: hasColumnConflict ? "inset 4px 0 0 #d32f2f" : "none",
+                                        cursor: hasColumnConflict ? "pointer" : "default",
+                                    }}
+                                    >
+                                    <TableCell>{column.columnName}</TableCell>
+                                    <TableCell>
+                                        {column.dataType} {column.maxCharacters ? `(${column.maxCharacters})` : "(N/A)"}
+                                    </TableCell>
+                                    </TableRow>
+                                </Tooltip>
                             );
                             })}
                     </TableBody>

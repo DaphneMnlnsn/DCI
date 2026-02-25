@@ -77,6 +77,9 @@ const renderDetails = (conflictType, row) => {
 export function CollapsibleTable({ database, conflictMap = {} }) {
     if (!database) return <div>No data</div>;
     const tables = Array.isArray(database.tables) ? database.tables : [];
+    const tableConflictMap = conflictMap;
+    console.log("tableConflictMap", tableConflictMap);
+
     return (
         <TableContainer component={Paper} elevation={0}>
         <Table aria-label="collapsible table">
@@ -87,7 +90,12 @@ export function CollapsibleTable({ database, conflictMap = {} }) {
             </TableHead>
             <TableBody>
             {tables.map((table) => (
-                <Row key={table.tableName} row={table} conflictMap={conflictMap[table.tableName] || {}} />
+                <Row
+                    key={table.tableName}
+                    row={table}
+                    tableConflictMap={conflictMap} 
+                    columnConflictMap={conflictMap[table.tableName] || {}} 
+                />
             ))}
             </TableBody>
         </Table>
@@ -98,6 +106,8 @@ export function CollapsibleTable({ database, conflictMap = {} }) {
 export function CollapsibleTable2({ database2, conflictMap = {} }) {
     if (!database2) return <div>No data</div>;
     const tables2 = Array.isArray(database2.tables2) ? database2.tables2 : [];
+    const tableConflictMap = conflictMap;
+
     return (
         <TableContainer component={Paper} elevation={0}>
         <Table aria-label="collapsible table">
@@ -108,7 +118,12 @@ export function CollapsibleTable2({ database2, conflictMap = {} }) {
             </TableHead>
             <TableBody>
             {tables2.map((table) => (
-                <Row key={table.tableName} row={table} conflictMap={conflictMap[table.tableName] || {}} />
+                <Row
+                    key={table.tableName}
+                    row={table}
+                    tableConflictMap={conflictMap} 
+                    columnConflictMap={conflictMap[table.tableName] || {}} 
+                />
             ))}
             </TableBody>
         </Table>
