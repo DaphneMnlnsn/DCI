@@ -249,6 +249,7 @@ export const fixAllConflicts = async (dbA, dbB, navigate, results) => {
                                 client: dbB
                             }
                         });*/
+                        await ignoreAllConflicts(results, dbA, dbB)
                     }
                 }
                 else {

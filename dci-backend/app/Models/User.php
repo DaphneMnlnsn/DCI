@@ -45,4 +45,8 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function userDbConfigs() {
+        return $this->hasMany(UserDBConfig::class);
+    }
 }

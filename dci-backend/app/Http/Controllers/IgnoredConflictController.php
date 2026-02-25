@@ -25,7 +25,6 @@ class IgnoredConflictController extends Controller
 
     public function store(Request $request){
         $validated = $request->validate([
-            'user_config_id' => 'required|integer',
             'database_name' => 'required|string',
             'table_name' => 'required|string',
             'column_name' => 'nullable|string',
@@ -45,15 +44,25 @@ class IgnoredConflictController extends Controller
 
     public function storeMultiple(Request $request)
     {
+        $user = Auth::user();
+
+        $userConfig = $user->userDbConfigs
+            ->where('role', 'client')
+            ->first();
+
+        if (!$userConfig) {
+            return response()->json(['message' => 'Client config not found'], 404);
+        }
+
+        $userConfigId = $userConfig->id;
+
         $validated = $request->validate([
             'conflicts' => 'required|array'
         ]);
 
-        $user = Auth::user();
-
         foreach ($validated['conflicts'] as $conflict) {
             IgnoredConflict::firstOrCreate([
-                'user_config_id' => $conflict['user_config_id'],
+                'user_config_id' => $userConfigId,
                 'database_name' => $conflict['database_name'],
                 'table_name' => $conflict['table_name'],
                 'column_name' => $conflict['column_name'],
