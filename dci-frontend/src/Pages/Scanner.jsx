@@ -17,7 +17,7 @@ const MainPage = () => {
     const [error, setError] = useState('');
     const [database, setDatabase] = useState(null);
     const [database2, setDatabase2] = useState(null);
-    //const [results, setResults] = useState(null);
+    const [results, setResults] = useState(null);
     const [show, setShow] = useState(false);
     const [show2, setShow2] = useState(false);
     //const [scan, setScan] = useState(false);
@@ -30,6 +30,7 @@ const MainPage = () => {
     const [dbA, setDbA] = useState(null);
     const [dbB, setDbB] = useState(null);
     const location = useLocation();
+    const [conflictMap, setConflictMap] = useState({});
 
     useEffect(() => {
         if (location.state?.master && location.state?.client) {
@@ -295,7 +296,7 @@ const MainPage = () => {
                         <div className="card">
                             {show ? (
                                 <>
-                                    <CollapsibleTable database={database}/>
+                                    <CollapsibleTable database={database} conflictMap={conflictMap} />
                                     <div className='master-button-group'>
                                         <button
                                             className='select-btn' onClick={ ()=> openDatabaseSelect("Select Master Database", setDbA, fetchDatabase, "master")}>Reselect
@@ -325,7 +326,7 @@ const MainPage = () => {
                         <div className="card">
                             {show2 ? (
                                 <>
-                                    <CollapsibleTable2 database2={database2}/>
+                                    <CollapsibleTable2 database2={database2} conflictMap={conflictMap} />
                                     <div className='client-button-group'>
                               
                                         <button
@@ -335,9 +336,15 @@ const MainPage = () => {
                                         <button
                                             className='select-btn'
                                             disabled={!dbA || !dbB} 
-                                            onClick={async() => {await fetchConflicts(dbA, dbB);
-                                                setFixConflicts(true);
-                                                setHasScanned(true);
+                                            onClick={async() => {
+                                                const result = await fetchConflicts(dbA, dbB);
+                                                if (result) {
+                                                    console.log("Conflict map received:", result.conflictMap);
+                                                    setConflictMap(result.conflictMap);
+                                                    setResults(result);
+                                                    setFixConflicts(true);
+                                                    setHasScanned(true);
+                                                }
                                             }}
                                         >
                                             {hasScanned ? "Rescan" : "Scan"}

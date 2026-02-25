@@ -74,7 +74,7 @@ const renderDetails = (conflictType, row) => {
     }
 };
     
-export function CollapsibleTable({ database }) {
+export function CollapsibleTable({ database, conflictMap = {} }) {
     if (!database) return <div>No data</div>;
     const tables = Array.isArray(database.tables) ? database.tables : [];
     return (
@@ -87,7 +87,7 @@ export function CollapsibleTable({ database }) {
             </TableHead>
             <TableBody>
             {tables.map((table) => (
-                <Row key={table.tableName} row={table} />
+                <Row key={table.tableName} row={table} conflictMap={conflictMap[table.tableName] || {}} />
             ))}
             </TableBody>
         </Table>
@@ -95,7 +95,7 @@ export function CollapsibleTable({ database }) {
     );
 }
 
-export function CollapsibleTable2({ database2 }) {
+export function CollapsibleTable2({ database2, conflictMap = {} }) {
     if (!database2) return <div>No data</div>;
     const tables2 = Array.isArray(database2.tables2) ? database2.tables2 : [];
     return (
@@ -108,7 +108,7 @@ export function CollapsibleTable2({ database2 }) {
             </TableHead>
             <TableBody>
             {tables2.map((table) => (
-                <Row key={table.tableName} row={table} />
+                <Row key={table.tableName} row={table} conflictMap={conflictMap[table.tableName] || {}} />
             ))}
             </TableBody>
         </Table>
