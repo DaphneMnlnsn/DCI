@@ -74,11 +74,10 @@ const renderDetails = (conflictType, row) => {
     }
 };
     
-export function CollapsibleTable({ database, conflictMap = {} }) {
+export function CollapsibleTable({ database, conflictMap = {}, expandedTables={}, toggleTable }) {
     if (!database) return <div>No data</div>;
     const tables = Array.isArray(database.tables) ? database.tables : [];
     const tableConflictMap = conflictMap;
-    console.log("tableConflictMap", tableConflictMap);
 
     return (
         <TableContainer component={Paper} elevation={0}>
@@ -95,6 +94,8 @@ export function CollapsibleTable({ database, conflictMap = {} }) {
                     row={table}
                     tableConflictMap={conflictMap} 
                     columnConflictMap={conflictMap[table.tableName] || {}} 
+                    expandedTables={expandedTables} 
+                    toggleTable={toggleTable} 
                 />
             ))}
             </TableBody>
@@ -103,7 +104,7 @@ export function CollapsibleTable({ database, conflictMap = {} }) {
     );
 }
 
-export function CollapsibleTable2({ database2, conflictMap = {} }) {
+export function CollapsibleTable2({ database2, conflictMap = {}, expandedTables={}, toggleTable }) {
     if (!database2) return <div>No data</div>;
     const tables2 = Array.isArray(database2.tables2) ? database2.tables2 : [];
     const tableConflictMap = conflictMap;
@@ -123,6 +124,8 @@ export function CollapsibleTable2({ database2, conflictMap = {} }) {
                     row={table}
                     tableConflictMap={conflictMap} 
                     columnConflictMap={conflictMap[table.tableName] || {}} 
+                    expandedTables={expandedTables} 
+                    toggleTable={toggleTable} 
                 />
             ))}
             </TableBody>

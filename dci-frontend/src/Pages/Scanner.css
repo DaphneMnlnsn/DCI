@@ -348,13 +348,16 @@ button:focus {
     display: flex;
     gap: 10px;
     margin-top: 20px;
+    align-items: center;    
+    justify-content: center;  
+    width: 100%;
 }
 
 .client-button-group {
-    display: inline-flex;  
-    align-items: center;      
+    display: flex;  
+    align-items: center;    
+    justify-content: center;  
     width: 100%;
-    margin-left: 150px;
     padding: 0 20px;
     margin-top: 20px;
 }

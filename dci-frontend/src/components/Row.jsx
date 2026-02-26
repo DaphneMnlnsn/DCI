@@ -11,26 +11,24 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import Tooltip from '@mui/material/Tooltip';
 import WarningIcon from '@mui/icons-material/Warning';
+import '../Pages/Settings.css';
 
-export default function Row({ row, tableConflictMap = {}, columnConflictMap = {} }) {
-    const [open, setOpen] = React.useState(false);
-
-    // const hasConflict = conflictMap?.[row.tableName] &&
-    //     Object.keys(conflictMap[row.tableName]).length > 0;
+export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}, expandedTables={}, toggleTable }) {
 
     const tableConflictTypes = [
-    'missing_client_table',
-    'extra_client_table',
-    'missing_client_column',
-    'extra_client_column',
-    'type_mismatch',
-    'length_mismatch',
+        'missing_client_table',
+        'extra_client_table',
+        'missing_client_column',
+        'extra_client_column',
+        'type_mismatch',
+        'length_mismatch',
     ];
 
     const tableName = row.tableName?.trim();
+    const open = !!expandedTables[tableName];
     const tableConflicts = tableConflictMap?.[tableName] || {};
     
-    //TABLE-RELATED-CONFLICT
+    //TABLE-RELATED-CONFLICTS
     const isMissingClientTable = !!tableConflicts.missing_client_table;
     const isExtraClientTable = !!tableConflicts.extra_client_table;
 
@@ -50,7 +48,7 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
                 <IconButton
                     aria-label="expand row"
                     size="small"
-                    onClick={() => setOpen(!open)}
+                    onClick={() => toggleTable(tableName)}
                 >
                     {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                 </IconButton>
@@ -71,10 +69,31 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
                         : "";
 
                     return (
-                        <Tooltip title={tooltipText} arrow placement="top">
-                        <Box display="inline-flex" alignItems="center" justifyContent="center">
-                            <WarningIcon style={{ color: '#d32f2f', cursor: 'pointer', fontSize: 20 }} />
-                        </Box>
+                        <Tooltip
+                            title={tooltipText}
+                            arrow
+                            placement="top"
+                            slotProps={{
+                                tooltip: {
+                                    sx: {
+                                        bgcolor: "#e36666",
+                                        fontSize: 12,
+                                        fontWeight: 500,
+                                        fontFamily: "Poppins",
+                                        borderRadius: 3,
+                                        paddingRight: 2,
+                                        paddingLeft: 2,
+                                        boxShadow: 3
+                                    },
+                                },
+                                arrow: {
+                                    sx: { color: "#e36666" },
+                                },
+                            }}
+                        >
+                            <Box display="inline-flex" alignItems="center" justifyContent="center">
+                                <WarningIcon style={{ color: '#d32f2f', cursor: 'pointer', fontSize: 20 }} />
+                            </Box>
                         </Tooltip>
                     );
                     }
@@ -104,11 +123,32 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
 
                     if (conflictCount > 0) {
                     return (
-                        <Tooltip title={`Expand table to see error`} arrow placement="top">
-                        <Box display="inline-flex" alignItems="center" justifyContent="center" gap={0.5}>
-                            <WarningIcon style={{ color: '#d32f2f', fontSize: 20, cursor: 'pointer' }} />
-                            <span style={{ color: '#d32f2f', fontWeight: 600 }}>{conflictCount}</span>
-                        </Box>
+                        <Tooltip 
+                            title={`Expand table to see error`} 
+                            arrow placement="top"
+                            slotProps={{
+                                tooltip: {
+                                    sx: {
+                                        bgcolor: "#e36666",
+                                        fontSize: 12,
+                                        fontWeight: 500,
+                                        fontFamily: "Poppins",
+                                        borderRadius: 3,
+                                        paddingRight: 2,
+                                        paddingLeft: 2,
+                                        boxShadow: 3
+                                    },
+                                },
+                                arrow: {
+                                    sx: { color: "#e36666" },
+                                },
+                            }}
+                        
+                        >
+                            <Box display="inline-flex" alignItems="center" justifyContent="center" gap={0.5}>
+                                <WarningIcon style={{ color: '#d32f2f', fontSize: 20, cursor: 'pointer' }} />
+                                <span style={{ color: '#d32f2f', fontWeight: 600 }}>{conflictCount}</span>
+                            </Box>
                         </Tooltip>
                     );
                     }
@@ -134,12 +174,6 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
                         {row.columns?.map((column, index) => {
                             const colName = column.columnName.trim();
 
-                            if (index === 0) {
-                                console.log("Full conflictMap:", tableConflictMap);
-                                console.log("Full columnConflictMap:", columnConflictMap);
-                                console.log("type_mismatch object:", columnConflictMap?.type_mismatch);
-                            }
-
                             //COLUMN-RELATED-CONFLICTS
                             const isMissingClientColumn = !!columnConflictMap?.missing_client_column?.[colName];
                             const isExtraClientColumn = !!columnConflictMap?.extra_client_column?.[colName];
@@ -163,19 +197,30 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
                             if (isLengthMismatch) conflictTypes.push("Length mismatch");
                             const tooltipText = hasColumnConflict ? conflictTypes.join(" / ") : "";
 
-                            console.log("column:", colName);
-                            console.log("isMissingClientColumn:", isMissingClientColumn, "isTypeMismatch:", isTypeMismatch, "isLengthMismatch:", isLengthMismatch);
-                            console.log("highlightColumnName:", highlightColumnName, "highlightVariableType:", highlightVariableType);
-                            console.log(
-                                "type mismatch columns:",
-                                Object.keys(columnConflictMap?.type_mismatch || {})
-                            );
-                            console.log("Table conflicts for this row:", columnConflictMap?.[row.tableName]);
-                            console.log("Row tableName:", `"${row.tableName}"`);
-                            console.log("Available keys:", Object.keys(columnConflictMap || {}));
-
                             return (
-                                <Tooltip key={index} title={tooltipText} arrow placement="top" disableHoverListener={!hasColumnConflict}>
+                                <Tooltip 
+                                    key={index} 
+                                    title={tooltipText} 
+                                    arrow placement="top" 
+                                    disableHoverListener={!hasColumnConflict}
+                                    slotProps={{
+                                        tooltip: {
+                                            sx: {
+                                                bgcolor: "#e36666",
+                                                fontSize: 12,
+                                                fontWeight: 500,
+                                                fontFamily: "Poppins",
+                                                borderRadius: 3,
+                                                paddingRight: 2,
+                                                paddingLeft: 2,
+                                                boxShadow: 3
+                                            },
+                                        },
+                                        arrow: {
+                                            sx: { color: "#e36666" },
+                                        },
+                                    }}
+                                >
                                     <TableRow
                                     style={{
                                         backgroundColor: hasColumnConflict ? "#ffe6e6" : "transparent",

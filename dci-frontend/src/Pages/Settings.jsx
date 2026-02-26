@@ -20,7 +20,7 @@ const SettingsPage = () => {
 
     // User table pagination
     const [usersPage, setUsersPage] = useState(1);
-    const usersPerPage = 6;
+    const usersPerPage = 7;
 
     const usersTotal = users.length;
     const usersLastPage = Math.max(1, Math.ceil(usersTotal / usersPerPage));
@@ -32,7 +32,7 @@ const SettingsPage = () => {
 
     // Activity log pagination
     const [logsPage, setLogsPage] = useState(1);
-    const logsPerPage = 7;
+    const logsPerPage = 8;
 
     const logsTotal = activityLogs.length;
     const logsLastPage = Math.max(1, Math.ceil(logsTotal / logsPerPage));

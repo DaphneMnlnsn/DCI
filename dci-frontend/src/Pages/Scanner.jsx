@@ -37,6 +37,7 @@ const MainPage = () => {
     const [dbB, setDbB] = useState(null);
     const location = useLocation();
     const [conflictMap, setConflictMap] = useState({});
+    const [expandedTables, setExpandedTables] = useState({});
 
     /*useEffect(() => {
         if (location.state?.master && location.state?.client) {
@@ -192,7 +193,7 @@ const MainPage = () => {
 
         const allDatabases = response.data.databases || [];
 
-        const result = await swal.fire({
+        const result = await Swal.fire({
             title: title,
             html: `
                 <input 
@@ -354,6 +355,13 @@ const MainPage = () => {
         console.log("Export data:", data);
     };
 
+    const toggleTable = (tableName) => {
+        setExpandedTables(prev => ({
+            ...prev,
+            [tableName]: !prev[tableName]
+        }));
+    };
+
     Row.propTypes = {
         row: PropTypes.oneOfType([
             PropTypes.string,
@@ -440,7 +448,7 @@ const MainPage = () => {
                         <div className="card">
                             {show ? (
                                 <>
-                                    <CollapsibleTable database={database} conflictMap={conflictMap} />
+                                    <CollapsibleTable database={database} conflictMap={conflictMap} expandedTables={expandedTables} toggleTable={toggleTable} />
                                     <div className='master-button-group'>
                                         <button
                                             className='select-btn' onClick={ ()=> openDatabaseSelect("Select Master Database", setDbA, fetchDatabase, "master")}>Reselect
@@ -470,7 +478,7 @@ const MainPage = () => {
                         <div className="card">
                             {show2 ? (
                                 <>
-                                    <CollapsibleTable2 database2={database2} conflictMap={conflictMap} />
+                                    <CollapsibleTable2 database2={database2} conflictMap={conflictMap} expandedTables={expandedTables} toggleTable={toggleTable} />
                                     <div className='client-button-group'>
                               
                                         <button
@@ -483,7 +491,6 @@ const MainPage = () => {
                                             onClick={async() => {
                                                 const result = await fetchConflicts(dbA, dbB);
                                                 if (result) {
-                                                    console.log("Conflict map received:", result.conflictMap);
                                                     setConflictMap(result.conflictMap);
                                                     setResults(result);
                                                     setFixConflicts(true);
