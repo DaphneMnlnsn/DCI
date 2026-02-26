@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './Scanner.css';
 import axios from 'axios';
-import swal from 'sweetalert2';
+import Swal from 'sweetalert2';
 import Header from '../assets/header.jsx';
 import PropTypes from 'prop-types';
 import Row from '../components/Row.jsx';
@@ -308,8 +308,8 @@ const MainPage = () => {
         await fetchDatabase2(dbB);
     }
 
-    const handleExport = async(results) => {
-        const { isConfirmed } = await swal.fire({
+    const handleExport = async(data) => {
+        const result = await Swal.fire({
             title: "Export Results",
             html: `
             <div style="text-align:left; margin-left:20px;">
@@ -341,13 +341,17 @@ const MainPage = () => {
             }
         });
 
-        if (!isConfirmed) return;
+        if (!result.isConfirmed) return;
 
-        const excel = document.getElementById("exportExcel").checked;
-        const pdf = document.getElementById("exportPDF").checked;
+        const {excel, pdf} = result.value;
 
-        if (excel) exportToExcel(results); // not exporting
-        if (pdf) exportToPDF(results); 
+        //const excel = document.getElementById("exportExcel").checked;
+        //const pdf = document.getElementById("exportPDF").checked;
+
+        if (excel) exportToExcel(data);
+        if (pdf) exportToPDF(data);
+        
+        console.log("Export data:", data);
     };
 
     Row.propTypes = {
