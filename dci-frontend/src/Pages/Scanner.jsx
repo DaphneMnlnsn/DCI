@@ -10,6 +10,7 @@ import exportToExcel from '../Pages/ExcelExport.jsx';
 import exportToPDF from '../Pages/PDFExport.jsx';
 import {fetchConfigs, fetchConflicts, fetchSchema, fetchUserConfig, fixAllConflicts, setDatabaseConnection} from '../components/DatabaseAPIs.jsx';
 import { CollapsibleTable, CollapsibleTable2, CollapsibleTableScanned } from '../components/CollapsibleTables.jsx';
+import { use } from 'react';
 
 const MainPage = () => {
     const navigate = useNavigate();
@@ -38,6 +39,7 @@ const MainPage = () => {
     const location = useLocation();
     const [conflictMap, setConflictMap] = useState({});
     const [expandedTables, setExpandedTables] = useState({});
+    const [scanConflictFirst, setScanConflictFirst] = useState(true);
 
     /*useEffect(() => {
         if (location.state?.master && location.state?.client) {
@@ -120,6 +122,24 @@ const MainPage = () => {
         configureClient();
     }, [selectedClientConfig, clientDbDriver]);
 
+    useEffect(() => {
+        if (!dbA || !dbB) return;
+
+        if(scanConflictFirst){
+            const runScan = async () => {
+                const result = await fetchConflicts(dbA, dbB);
+                if (result) {
+                    setConflictMap(result.conflictMap);
+                    setResults(result);
+                    setFixConflicts(true);
+                    setHasScanned(true);
+                }
+                setScanConflictFirst(false);
+            }
+            runScan();
+        }
+    }, [dbA, dbB, setScanConflictFirst]);
+
     const fetchClientConfigs = async (dbDriver, savedConfigId = null) => {
         if(!dbDriver) return;
 
@@ -139,7 +159,6 @@ const MainPage = () => {
         const configs = await fetchConfigs(dbDriver);
         setMasterConfigs(configs);
 
-        // only set selectedMasterConfig if it exists in fetched configs
         if (savedConfigId && configs.some(c => c.id === savedConfigId)) {
             setSelectedMasterConfig(savedConfigId);
         } else if (!configs.some(c => c.id === selectedMasterConfig)) {
@@ -178,7 +197,7 @@ const MainPage = () => {
 
         const data = await fetchSchema(dbName, 'client');
         setDatabase2({ raw: data.raw, database2: data.database, tables2: data.tables });
-        setShow2(true);
+        setShow2(true);        
     }
 
     const openDatabaseSelect = async (title, setDb, fetchFn, role) => {
@@ -451,7 +470,7 @@ const MainPage = () => {
                                     <CollapsibleTable database={database} conflictMap={conflictMap} expandedTables={expandedTables} toggleTable={toggleTable} />
                                     <div className='master-button-group'>
                                         <button
-                                            className='select-btn' onClick={ ()=> openDatabaseSelect("Select Master Database", setDbA, fetchDatabase, "master")}>Reselect
+                                            className='select-btn' disabled={!selectedMasterConfig} onClick={ ()=> openDatabaseSelect("Select Master Database", setDbA, fetchDatabase, "master")}>Reselect
                                         </button>
 
                                         <button className='export-btn' 
@@ -469,7 +488,7 @@ const MainPage = () => {
                     </div>
                         <div className="line"></div>
                                 <button
-                                    className='select-btn'onClick={ ()=> openDatabaseSelect("Select Master Database", setDbA, fetchDatabase, "master")}>Select</button> </>
+                                    className='select-btn' disabled={!selectedMasterConfig} onClick={ ()=> openDatabaseSelect("Select Master Database", setDbA, fetchDatabase, "master")}>Select</button> </>
                             )}
                         </div>
                     </div>
@@ -482,7 +501,7 @@ const MainPage = () => {
                                     <div className='client-button-group'>
                               
                                         <button
-                                            className='client-btn-select'onClick={ ()=> openDatabaseSelect("Select Client Database", setDbB, fetchDatabase2, "client")}> Reselect
+                                            className='client-btn-select' disabled={!selectedClientConfig} onClick={ ()=> openDatabaseSelect("Select Client Database", setDbB, fetchDatabase2, "client")}> Reselect
                                         </button>
 
                                         <button
@@ -516,7 +535,7 @@ const MainPage = () => {
                                         <p className="label">Please select a database to Compare</p></div>
                                 <div className="line"></div>
                                     <button
-                                        className='select-btn' disabled={!dbA} onClick={ ()=> openDatabaseSelect("Select Client Database", setDbB, fetchDatabase2, "client")}>Select</button>
+                                        className='select-btn' disabled={!dbA || !selectedClientConfig} onClick={ ()=> openDatabaseSelect("Select Client Database", setDbB, fetchDatabase2, "client")}>Select</button>
                                 </>
                             )}
                         </div>
