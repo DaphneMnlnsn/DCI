@@ -19,6 +19,7 @@ const Header = () => {
     const [tempDb, setTempDb] = useState('');
     const [dbType, setDbType] = useState('');
     const [error, setError] = useState('');
+    const [configName, setConfigName] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
     const handleLogout = async () => {
@@ -48,7 +49,8 @@ const Header = () => {
     const handleSave = async () => {
         const driver = tempDb;
         try {
-            const response = await axios.post(`${import.meta.env.VITE_APP_BASE_URL}/api/set-database`, {
+            const response = await axios.post(`${import.meta.env.VITE_APP_BASE_URL}/api/save-config`, {
+                configName: configName,
                 driver: driver,
                 host: host,
                 port: port,
@@ -109,7 +111,7 @@ const Header = () => {
             <div className="settings-popup" ref={popupRef}>
               <div className='popup-container'>
                 <div className='settings-label'>Configure</div>
-                <div className="line"></div>
+                <div className="header-line"></div>
                 <div className='popup-subLabel'>Database Type</div>
                 <div className='popup-radio-group'>
                   <label className='popup-radio-button-label'>
@@ -124,6 +126,13 @@ const Header = () => {
                 </div>
 
                 <form className='popup-form'>
+                  <div className='popup-subLabel'>Config Name</div>
+                    <input className='popup-login-email' 
+                      type='text'
+                      placeholder='Enter config name' 
+                      value={configName}
+                      onChange={e => setConfigName(e.target.value)}/>
+
                   <div className='popup-subLabel'>Host/Server</div>
                     <input className='popup-login-email' 
                       type='text' 
