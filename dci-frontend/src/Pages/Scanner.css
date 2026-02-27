@@ -375,3 +375,25 @@ button:focus {
     margin: 0;
     box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 3px -1px;
 }
+.db-type-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.db-logo {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+}
+.db-logo {
+    width: 45px;           
+    height: 45px;
+    padding: 0 5px;
+    border: 1px solid #ccc; 
+    border-radius: 10px;    
+    background-color: #f9f9f9; 
+    
+    vertical-align: middle;
+  
+}

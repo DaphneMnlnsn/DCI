@@ -11,7 +11,9 @@ import exportToPDF from '../Pages/PDFExport.jsx';
 import {fetchConfigs, fetchConflicts, fetchSchema, fetchUserConfig, fixAllConflicts, setDatabaseConnection} from '../components/DatabaseAPIs.jsx';
 import { CollapsibleTable, CollapsibleTable2, CollapsibleTableScanned } from '../components/DCINew/CollapsibleTables2.jsx';
 import { use } from 'react';
-
+import mysqlLogo from '../assets/mysql.png';
+import postgresLogo from '../assets/postgres.png';
+import sqlserverLogo from '../assets/ssms.png';
 const MainPage = () => {
     const navigate = useNavigate();
     const fileInput = useRef(null);
@@ -407,7 +409,18 @@ const MainPage = () => {
             }),
         ]).isRequired,
     };
-
+const getDbLogo = (type) => {
+  switch (type) {
+    case "mysql":
+      return mysqlLogo;
+    case "pgsql":
+      return postgresLogo;
+    case "sqlsrv":
+      return sqlserverLogo;
+    default:
+      return null;
+  }
+};
      return (
         <div className='scanner-root'> 
             <Header />
@@ -417,9 +430,17 @@ const MainPage = () => {
                     <div className='scanner-select'>
                         <h3 className="card-title">Master Database</h3>
 
-                        <div className="dropdown-group">
+                      <div className="dropdown-group db-type-wrapper">
+                            {masterDbDriver && (
+                                <img
+                                    src={getDbLogo(masterDbDriver)}
+                                    alt="db-logo"
+                                    className="db-logo"
+                                />
+                            )}
+
                             <select
-                                value={masterDbDriver}
+                                value={masterDbDriver || ""}
                                 onChange={(e) => setMasterDbDriver(e.target.value)}
                             >
                                 <option value="">Select DB Type</option>
@@ -429,25 +450,33 @@ const MainPage = () => {
                             </select>
 
                             <select
-                                value={selectedMasterConfig}
+                                value={selectedMasterConfig || ""}
                                 onChange={(e) => setSelectedMasterConfig(parseInt(e.target.value, 10))}
                                 disabled={!masterConfigs.length || !masterDbDriver}
                             >
-                            <option value="">Select Configuration</option>
-                            {masterConfigs.map((conf) => (
-                                <option key={conf.id} value={conf.id}>
-                                    {conf.config_name} ({conf.host})
-                                </option>
-                            ))}
+                                <option value="">Select Configuration</option>
+                                {masterConfigs.map((conf) => (
+                                    <option key={conf.id} value={conf.id}>
+                                        {conf.config_name} ({conf.host})
+                                    </option>
+                                ))}
                             </select>
                         </div>
 
                     </div>
                     <div className='scanner-select'>
                         <h3 className="card-title">Client Database</h3>
-                        <div className="dropdown-group">
+                        <div className="dropdown-group db-type-wrapper">
+                            {clientDbDriver && (
+                                <img
+                                    src={getDbLogo(clientDbDriver)}
+                                    alt="db-logo"
+                                    className="db-logo"
+                                />
+                            )}
+
                             <select
-                                value={clientDbDriver}
+                                value={clientDbDriver || ""}
                                 onChange={(e) => setClientDbDriver(e.target.value)}
                             >
                                 <option value="">Select DB Type</option>
@@ -457,16 +486,16 @@ const MainPage = () => {
                             </select>
 
                             <select
-                                value={selectedClientConfig}
+                                value={selectedClientConfig || ""}
                                 onChange={(e) => setSelectedClientConfig(parseInt(e.target.value, 10))}
                                 disabled={!clientConfigs.length || !clientDbDriver}
                             >
-                            <option value="">Select Configuration</option>
-                            {clientConfigs.map((conf) => (
-                                <option key={conf.id} value={conf.id}>
-                                    {conf.config_name} ({conf.host})
-                                </option>
-                            ))}
+                                <option value="">Select Configuration</option>
+                                {clientConfigs.map((conf) => (
+                                    <option key={conf.id} value={conf.id}>
+                                        {conf.config_name} ({conf.host})
+                                    </option>
+                                ))}
                             </select>
                         </div>
                     </div>
