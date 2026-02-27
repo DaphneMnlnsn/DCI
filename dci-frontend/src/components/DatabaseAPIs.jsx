@@ -254,7 +254,7 @@ export const fetchConflicts = async (dbA, dbB) => {
     }
 }
 
-export const fixAllConflicts = async (dbA, dbB, navigate, results) => {
+export const fixAllConflicts = async (dbA, dbB, navigate, results, mode, table, column) => {
 
     const decision = await swal.fire({
         title: 'Fix Conflicts',
@@ -272,6 +272,9 @@ export const fixAllConflicts = async (dbA, dbB, navigate, results) => {
                 params: {
                     source: dbA,
                     target: dbB,
+                    mode: mode,
+                    table: table,
+                    column: column
                 },
                 responseType: 'json',
                 withCredentials: true
@@ -319,6 +322,7 @@ export const fixAllConflicts = async (dbA, dbB, navigate, results) => {
                         });*/
                         await ignoreAllConflicts(results, dbA, dbB)
                     }
+
                 }
                 else {
                     swal.fire({

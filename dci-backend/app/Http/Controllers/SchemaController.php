@@ -155,8 +155,12 @@ class SchemaController extends Controller
             $clientConfigId = $clientConfig->id;
 
             $conflicts = $scanner->scan($source, $target, $sourceConfig, $targetConfig, $masterConfigId, $clientConfigId);
+
+            $mode = $request->query('mode', 'all');
+            $table = $request->query('table');
+            $column = $request->query('column');
             
-            $message = $fixer->fix($conflicts['conflicts'], $masterSchema['schema'], $clientSchema['schema'], $target, $sourceConfig, $targetConfig);
+            $message = $fixer->fix($conflicts['conflicts'], $masterSchema['schema'], $clientSchema['schema'], $target, $sourceConfig, $targetConfig, $mode, $table, $column);
 
             return response()->json($message);
 

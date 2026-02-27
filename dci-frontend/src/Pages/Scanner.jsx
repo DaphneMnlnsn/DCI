@@ -40,6 +40,9 @@ const MainPage = () => {
     const [conflictMap, setConflictMap] = useState({});
     const [expandedTables, setExpandedTables] = useState({});
     const [scanConflictFirst, setScanConflictFirst] = useState(true);
+    const [fixMode, setFixMode] = useState('');
+    const [fixTable, setFixTable] = useState('');
+    const [fixColumn, setFixColumn] = useState('');
 
     /*useEffect(() => {
         if (location.state?.master && location.state?.client) {
@@ -324,8 +327,15 @@ const MainPage = () => {
     };
 
     const handleConflicts = async () => {
-        setWarnings(await fixAllConflicts(dbA, dbB, navigate, results));
+        setWarnings(await fixAllConflicts(dbA, dbB, navigate, results, fixMode, fixTable, fixColumn));
         await fetchDatabase2(dbB);
+        const result = await fetchConflicts(dbA, dbB);
+        if (result) {
+            setConflictMap(result.conflictMap);
+            setResults(result);
+            setFixConflicts(true);
+            setHasScanned(true);
+        }
     }
 
     const handleExport = async(data) => {
@@ -476,7 +486,7 @@ const MainPage = () => {
                                         <button className='export-btn' 
                                             style={{ backgroundColor: hasScanned ? '#FACC1566' : '#ccc', color: '#000000'}}
                                             disabled={!hasScanned}
-                                            onClick={() => handleExport(database2)}>Export Results
+                                            onClick={() => handleExport(results?.conflictsArray)}>Export Results
                                         </button>
                                     </div>
                                 </>
@@ -525,7 +535,12 @@ const MainPage = () => {
                                             cursor: (fixConflicts && hasScanned) ? 'pointer' : 'not-allowed' }}
                                             
                                             disabled={!(fixConflicts && hasScanned)}
-                                            onClick={() => handleConflicts()}>Fix Conflicts
+                                            onClick={() => {
+                                                handleConflicts();
+                                                setFixMode('all');
+                                                setFixTable(null);
+                                                setFixColumn(null);
+                                                }}>Fix All Conflicts
                                         </button>
                                     </div>
                                 </>

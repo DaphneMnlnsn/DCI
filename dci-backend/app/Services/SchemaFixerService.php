@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Config;
 
+use function PHPUnit\Framework\isArray;
+
 class SchemaFixerService
 {
     protected $builder;
@@ -32,7 +34,8 @@ class SchemaFixerService
         return $conn;
     }
 
-    public function fix(array $conflicts, array $masterSchema, array $clientSchema, string $targetDb, array $sourceConfig, $targetConfig){
+    public function fix(array $conflicts, array $masterSchema, array $clientSchema, string $targetDb, array $sourceConfig, $targetConfig, string $mode = 'all', ?string $table = null, ?string $column = null)
+    {
 
         $sql = [];
 
@@ -40,6 +43,14 @@ class SchemaFixerService
         $clientDriver = $targetConfig['driver'];
 
         $conn = $this->getConnection($targetDb, $targetConfig);
+
+        if ($mode === 'table' && $table){
+            $conflicts = $this->filterByTable($conflicts, $table);
+        }
+
+        if ($mode === 'column' && $table && $column){
+            $conflicts = $this->filterByColumn($conflicts, $table, $column);
+        }
 
         $sql = array_merge(
             $sql,
@@ -97,6 +108,47 @@ class SchemaFixerService
             'executed' => $executed
         ];
         
+    }
+
+    protected function filterByTable(array $conflicts, string $table){
+        foreach($conflicts as $type => $tables){
+            if(is_array($tables)){
+                $conflicts[$type] = array_key_exists($table, $tables)
+                    ? [$table => $tables[$table]]
+                    : [];
+            }
+        }
+
+        return $conflicts;
+    }
+
+    protected function filterByColumn(array $conflicts, string $table, string $column){
+        $filtered = [];
+
+        $columnTypes = [
+            'missing_client_column',
+            'extra_client_column',
+            'type_mismatch',
+            'length_mismatch'
+        ];
+
+        foreach ($columnTypes as $type) {
+            if (!isset($conflicts[$type][$table][$column])) {
+                $filtered[$type] = [];
+                continue;
+            }
+
+            $filtered[$type] = [
+                $table => [
+                    $column => $conflicts[$type][$table][$column]
+                ]
+            ];
+        }
+
+        $filtered['missing_client_table'] = [];
+        $filtered['extra_client_table'] = [];
+
+        return $filtered;
     }
 
     protected function fixMissingTables(array $conflicts, array $masterSchema, $masterDriver, $clientDriver):array{
