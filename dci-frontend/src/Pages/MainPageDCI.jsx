@@ -1,15 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import './Scanner.css';
+import './MainPageDCI.css';
 import axios from 'axios';
-import swal from 'sweetalert2';
-import Header from '../assets/header.jsx';
+import Swal from 'sweetalert2';
+import HeaderDCI from '../assets/headerDCI.jsx';
 import PropTypes from 'prop-types';
 import Row from '../components/Row.jsx';
 import exportToExcel from '../Pages/ExcelExport.jsx';
 import exportToPDF from '../Pages/PDFExport.jsx';
-import {fetchConflicts, fetchSchema, fixAllConflicts} from '../components/DatabaseAPIs.jsx';
+import {fetchConfigs, fetchConflicts, fetchSchema, fetchUserConfig, fixAllConflicts, setDatabaseConnection} from '../components/DatabaseAPIs.jsx';
 import { CollapsibleTable, CollapsibleTable2, CollapsibleTableScanned } from '../components/CollapsibleTables.jsx';
+import { use } from 'react';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faDatabase } from "@fortawesome/free-solid-svg-icons";
 
 const MainPageDCI = () => {
     const navigate = useNavigate();
@@ -17,7 +20,13 @@ const MainPageDCI = () => {
     const [error, setError] = useState('');
     const [database, setDatabase] = useState(null);
     const [database2, setDatabase2] = useState(null);
-    //const [results, setResults] = useState(null);
+    const [results, setResults] = useState(null);
+    const [masterDbDriver, setMasterDbDriver] = useState(null);
+    const [masterConfigs, setMasterConfigs] = useState([]);
+    const [selectedMasterConfig, setSelectedMasterConfig] = useState(null);
+    const [clientDbDriver, setClientDbDriver] = useState(null);
+    const [clientConfigs, setClientConfigs] = useState([]);
+    const [selectedClientConfig, setSelectedClientConfig] = useState(null);
     const [show, setShow] = useState(false);
     const [show2, setShow2] = useState(false);
     //const [scan, setScan] = useState(false);
@@ -30,8 +39,14 @@ const MainPageDCI = () => {
     const [dbA, setDbA] = useState(null);
     const [dbB, setDbB] = useState(null);
     const location = useLocation();
+    const [conflictMap, setConflictMap] = useState({});
+    const [expandedTables, setExpandedTables] = useState({});
+    const [scanConflictFirst, setScanConflictFirst] = useState(true);
+    const [fixMode, setFixMode] = useState('');
+    const [fixTable, setFixTable] = useState('');
+    const [fixColumn, setFixColumn] = useState('');
 
-    useEffect(() => {
+    /*useEffect(() => {
         if (location.state?.master && location.state?.client) {
             setDbA(location.state.master);
             setDbB(location.state.client);
@@ -42,7 +57,137 @@ const MainPageDCI = () => {
 
             window.history.replaceState({}, document.title);
         }
+    }, [location.state]);*/
+
+    useEffect(() => {
+        if (!location.state) return;
+
+        if (location.state.master && !dbA) {
+            setDbA(location.state.master);
+            fetchDatabase(location.state.master);
+        }
+
+        if (location.state.client && !dbB) {
+            setDbB(location.state.client);
+            fetchDatabase2(location.state.client);
+        }
+
     }, [location.state]);
+
+    useEffect(() => {
+        const loadUserConfig = async () => {
+            const configs = await fetchUserConfig();
+            if (!configs) return;
+
+            if (configs.master) {
+                setMasterDbDriver(configs.master.config_driver);
+                await fetchMasterConfigs(configs.master.config_driver, parseInt(configs.master.id, 10));
+            }
+
+            if (configs.client) {
+                setClientDbDriver(configs.client.config_driver);
+                await fetchClientConfigs(configs.client.config_driver, parseInt(configs.client.id, 10));
+            }
+        };
+
+        loadUserConfig();
+    }, []);
+
+    useEffect(() => {
+        if (!masterDbDriver) {
+            setMasterConfigs([]);
+            setSelectedMasterConfig("");
+            return;
+        }
+
+        fetchMasterConfigs(masterDbDriver);
+        
+    }, [masterDbDriver]);
+
+    useEffect(() => {
+        if (!clientDbDriver) {
+            setClientConfigs([]);
+            setSelectedClientConfig("");
+            return;
+        }
+
+        fetchClientConfigs(clientDbDriver);
+        
+    }, [clientDbDriver]);
+
+    useEffect(() => {
+        if (!selectedMasterConfig || !masterDbDriver) return;
+
+        configureMaster();
+    }, [selectedMasterConfig, masterDbDriver]);
+
+    useEffect(() => {
+        if (!selectedClientConfig || !clientDbDriver) return;
+
+        configureClient();
+    }, [selectedClientConfig, clientDbDriver]);
+
+    useEffect(() => {
+        if (!dbA || !dbB) return;
+
+        if(scanConflictFirst){
+            const runScan = async () => {
+                const result = await fetchConflicts(dbA, dbB);
+                if (result) {
+                    setConflictMap(result.conflictMap);
+                    setResults(result);
+                    setFixConflicts(true);
+                    setHasScanned(true);
+                }
+                setScanConflictFirst(false);
+            }
+            runScan();
+        }
+    }, [dbA, dbB, setScanConflictFirst]);
+
+    const fetchClientConfigs = async (dbDriver, savedConfigId = null) => {
+        if(!dbDriver) return;
+
+        const configs = await fetchConfigs(dbDriver);
+        setClientConfigs(configs);
+
+        if (savedConfigId && configs.some(c => c.id === savedConfigId)) {
+            setSelectedClientConfig(savedConfigId);
+        } else if (!configs.some(c => c.id === selectedClientConfig)) {
+            setSelectedClientConfig(null);
+        }
+    };
+
+    const fetchMasterConfigs = async (dbDriver, savedConfigId = null) => {
+        if (!dbDriver) return;
+
+        const configs = await fetchConfigs(dbDriver);
+        setMasterConfigs(configs);
+
+        if (savedConfigId && configs.some(c => c.id === savedConfigId)) {
+            setSelectedMasterConfig(savedConfigId);
+        } else if (!configs.some(c => c.id === selectedMasterConfig)) {
+            setSelectedMasterConfig(null);
+        }
+    };
+
+    const configureMaster = async () => {
+        try {
+            await setDatabaseConnection(selectedMasterConfig, "master");
+            console.log("Master connection configured");
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    const configureClient = async () => {
+        try {
+            await setDatabaseConnection(selectedClientConfig, "client");
+            console.log("Client connection configured");
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
     const fetchDatabase = async (dbName) => {
         if (!dbName) return;
@@ -57,7 +202,7 @@ const MainPageDCI = () => {
 
         const data = await fetchSchema(dbName, 'client');
         setDatabase2({ raw: data.raw, database2: data.database, tables2: data.tables });
-        setShow2(true);
+        setShow2(true);        
     }
 
     const openDatabaseSelect = async (title, setDb, fetchFn, role) => {
@@ -72,7 +217,7 @@ const MainPageDCI = () => {
 
         const allDatabases = response.data.databases || [];
 
-        const result = await swal.fire({
+        const result = await Swal.fire({
             title: title,
             html: `
                 <input 
@@ -180,16 +325,24 @@ const MainPageDCI = () => {
         if (result.isConfirmed) {
             setDb(result.value.database);
             fetchFn(result.value.database);
+            setScanConflictFirst(true);
         }
     };
 
     const handleConflicts = async () => {
-        setWarnings(await fixAllConflicts(dbA, dbB, navigate, results));
+        setWarnings(await fixAllConflicts(dbA, dbB, navigate, results, fixMode, fixTable, fixColumn));
         await fetchDatabase2(dbB);
+        const result = await fetchConflicts(dbA, dbB);
+        if (result) {
+            setConflictMap(result.conflictMap);
+            setResults(result);
+            setFixConflicts(true);
+            setHasScanned(true);
+        }
     }
 
-    const handleExport = async(results) => {
-        const { isConfirmed } = await swal.fire({
+    const handleExport = async(data) => {
+        const result = await Swal.fire({
             title: "Export Results",
             html: `
             <div style="text-align:left; margin-left:20px;">
@@ -221,13 +374,24 @@ const MainPageDCI = () => {
             }
         });
 
-        if (!isConfirmed) return;
+        if (!result.isConfirmed) return;
 
-        const excel = document.getElementById("exportExcel").checked;
-        const pdf = document.getElementById("exportPDF").checked;
+        const {excel, pdf} = result.value;
 
-        if (excel) exportToExcel(results); // not exporting
-        if (pdf) exportToPDF(results); 
+        //const excel = document.getElementById("exportExcel").checked;
+        //const pdf = document.getElementById("exportPDF").checked;
+
+        if (excel) exportToExcel(data);
+        if (pdf) exportToPDF(data);
+        
+        console.log("Export data:", data);
+    };
+
+    const toggleTable = (tableName) => {
+        setExpandedTables(prev => ({
+            ...prev,
+            [tableName]: !prev[tableName]
+        }));
     };
 
     Row.propTypes = {
@@ -246,23 +410,161 @@ const MainPageDCI = () => {
         ]).isRequired,
     };
 
-     return (
+    return (
         <div className='scanner-root'> 
-            <Header />
+            <HeaderDCI />
             <div className='scanner-container'>
-                <div className='scanner-grid-container'>
-          
-                    <div className='scanner-select'>
-                        {/*<h3 className="card-title">Master Database</h3>*/}
+                <div className='scanner2-grid-container'>
+                    <div className='scanner2-container'>
+                        <div className='scanner2-select'>
+                        <h3 className="scanner2-card-title">
+                            <span><FontAwesomeIcon icon={faDatabase} className='db-icon'/>Master Database</span>
+                        </h3>
 
+                        <div className="dropdown-group">
+                            <select
+                                value={masterDbDriver}
+                                onChange={(e) => setMasterDbDriver(e.target.value)}
+                            >
+                                <option value="">Select DB Type</option>
+                                <option value="mysql">MySQL</option>
+                                <option value="pgsql">PostgreSQL</option>
+                                <option value="sqlsrv">MS SQL</option>
+                            </select>
+
+                            <select
+                                value={selectedMasterConfig}
+                                onChange={(e) => setSelectedMasterConfig(parseInt(e.target.value, 10))}
+                                disabled={!masterConfigs.length || !masterDbDriver}
+                            >
+                            <option value="">Select Configuration</option>
+                            {masterConfigs.map((conf) => (
+                                <option key={conf.id} value={conf.id}>
+                                    {conf.config_name} ({conf.host})
+                                </option>
+                            ))}
+                            </select>
+                        </div>
+
+                        <div className='scanner2-select'>
+                            <div className="card2">
+                                {show ? (
+                                    <>
+                                        <CollapsibleTable database={database} conflictMap={conflictMap} expandedTables={expandedTables} toggleTable={toggleTable} />
+                                        <div className='master-button-group'>
+                                            <button
+                                                className='select-btn' disabled={!selectedMasterConfig} onClick={ ()=> openDatabaseSelect("Select Master Database", setDbA, fetchDatabase, "master")}>Reselect
+                                            </button>
+
+                                            <button className='export-btn' 
+                                                style={{ backgroundColor: hasScanned ? '#FACC1566' : '#ccc', color: '#000000'}}
+                                                disabled={!hasScanned}
+                                                onClick={() => handleExport(results?.conflictsArray)}>Export Results
+                                            </button>
+                                        </div>
+                                    </>
+                                    
+                                ) : (
+                                    <>
+                        <div className="scanner2-card-header">
+                            <p className="label">Please select a database to Compare</p>
+                        </div>
+                            <div className="scanner2-line"></div>
+                                    <button
+                                        className='select-btn' disabled={!selectedMasterConfig} onClick={ ()=> openDatabaseSelect("Select Master Database", setDbA, fetchDatabase, "master")}>Select</button> </>
+                                )}
+                            </div>
+                        </div>
                     </div>
-                    <div className='scanner-select'>
-                        {/*<h3 className="card-title">Client Database</h3>*/}
-                    </div>
-                
                 </div>
-            </div>      
-        </div>
+
+                <div className='scanner2-container'>
+                    <div className='scanner2-select'>
+                        <h3 className="scanner2-card-title">
+                            <span><FontAwesomeIcon icon={faDatabase} className='db-icon'/>Client Database</span>
+                        </h3>
+                        <div className="dropdown-group">
+                            <select
+                                value={clientDbDriver}
+                                onChange={(e) => setClientDbDriver(e.target.value)}
+                            >
+                                <option value="">Select DB Type</option>
+                                <option value="mysql">MySQL</option>
+                                <option value="pgsql">PostgreSQL</option>
+                                <option value="sqlsrv">MS SQL</option>
+                            </select>
+
+                            <select
+                                value={selectedClientConfig}
+                                onChange={(e) => setSelectedClientConfig(parseInt(e.target.value, 10))}
+                                disabled={!clientConfigs.length || !clientDbDriver}
+                            >
+                            <option value="">Select Configuration</option>
+                            {clientConfigs.map((conf) => (
+                                <option key={conf.id} value={conf.id}>
+                                    {conf.config_name} ({conf.host})
+                                </option>
+                            ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className='scanner2-select'>
+                        <div className="card2">
+                            {show2 ? (
+                                <>
+                                    <CollapsibleTable2 database2={database2} conflictMap={conflictMap} expandedTables={expandedTables} toggleTable={toggleTable} />
+                                    <div className='client-button-group'>
+                              
+                                        <button
+                                            className='client-btn-select' disabled={!selectedClientConfig} onClick={ ()=> openDatabaseSelect("Select Client Database", setDbB, fetchDatabase2, "client")}> Reselect
+                                        </button>
+
+                                        <button
+                                            className='select-btn'
+                                            disabled={!dbA || !dbB} 
+                                            onClick={async() => {
+                                                const result = await fetchConflicts(dbA, dbB);
+                                                if (result) {
+                                                    setConflictMap(result.conflictMap);
+                                                    setResults(result);
+                                                    setFixConflicts(true);
+                                                    setHasScanned(true);
+                                                }
+                                            }}
+                                        >
+                                            {hasScanned ? "Rescan" : "Scan"}
+                                        </button>
+
+                                        <button className='fix-btn' style={{ backgroundColor: (fixConflicts && hasScanned) ? '#FACC1566' : '#ccc', 
+                                            color: (fixConflicts && hasScanned) ? '#000000' : '#888888',
+                                            cursor: (fixConflicts && hasScanned) ? 'pointer' : 'not-allowed' }}
+                                            
+                                            disabled={!(fixConflicts && hasScanned)}
+                                            onClick={() => {
+                                                handleConflicts();
+                                                setFixMode('all');
+                                                setFixTable(null);
+                                                setFixColumn(null);
+                                                }}>Fix All Conflicts
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                <div className="scanner-card-header">
+                                        <p className="label">Please select a database to Compare</p></div>
+                                <div className="scanner2-line"></div>
+                                    <button
+                                        className='select-btn' disabled={!dbA || !selectedClientConfig} onClick={ ()=> openDatabaseSelect("Select Client Database", setDbB, fetchDatabase2, "client")}>Select</button>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>      
+    </div>
     );
 };
 

@@ -16,7 +16,7 @@ createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <Routes>
         <Route path='/' element={<LoginPage />} />
-        <Route path='/main' element={<ProtectedRoute><MainPage /></ProtectedRoute>} />
+        <Route path='/main' element={<ProtectedRoute><MainPageDCI /></ProtectedRoute>} />
         <Route path='/settings' element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         <Route path='/manage-data' element={<ProtectedRoute><ManageData /></ProtectedRoute>} />
       </Routes>
