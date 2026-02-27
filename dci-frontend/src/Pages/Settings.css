@@ -47,15 +47,14 @@
     flex: 1;
     background-color: #FFFFFF;
     border-radius: 12px;
+    padding-top: 0.4%;
     width: 100%;
     box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15);
-    height: 400px;
     display: flex;
     flex-direction: column;
 }
 
 .settings-card-header{
-    background-color: rgb(250, 204, 21, 0.4);
     color: #333333;
     padding: 2px;
     border-radius: 10px 10px 0 0;
@@ -116,7 +115,7 @@
     gap: 60px;
     justify-content: center;
     padding: 10px;
-    accent-color: #facc15;
+    accent-color: #004483;
 }
 
 .radio-button-label {

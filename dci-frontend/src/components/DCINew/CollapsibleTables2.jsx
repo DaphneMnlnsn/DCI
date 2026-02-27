@@ -82,11 +82,6 @@ export function CollapsibleTable({ database, conflictMap = {}, expandedTables={}
     return (
         <TableContainer component={Paper} elevation={0}>
         <Table aria-label="collapsible table">
-            <TableHead>
-            <TableRow>
-                <TableCell colSpan={4} style={{ fontWeight: 'bold' }}>Table Names ({tables.length}) - {database.database}</TableCell>
-            </TableRow>
-            </TableHead>
             <TableBody>
             {tables.map((table) => (
                 <Row
@@ -113,11 +108,6 @@ export function CollapsibleTable2({ database2, conflictMap = {}, expandedTables=
     return (
         <TableContainer component={Paper} elevation={0}>
         <Table aria-label="collapsible table">
-            <TableHead>
-            <TableRow>
-                <TableCell colSpan={4} style={{ fontWeight: 'bold' }}>Table Names ({tables2.length}) - {database2.database2}</TableCell>
-            </TableRow>
-            </TableHead>
             <TableBody>
             {tables2.map((table) => (
                 <Row

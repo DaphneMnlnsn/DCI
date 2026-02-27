@@ -13,6 +13,9 @@ import Tooltip from '@mui/material/Tooltip';
 import WarningIcon from '@mui/icons-material/Warning';
 import '../../Pages/Settings.css';
 import './Row2.css';
+import { faCancel, faCircleCheck as faCircleCheckFilled, faCircleMinus } from '@fortawesome/free-solid-svg-icons';
+import { faCircleCheck } from '@fortawesome/free-regular-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}, expandedTables={}, toggleTable, isMaster }) {
 
@@ -35,6 +38,19 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
 
     //HIGHLIGHT
     const highlightWholeTable = isMissingClientTable || isExtraClientTable;
+
+    const tableHasMissingColumn = row.columns?.some((col) => {
+        const colName = col.columnName.trim();
+        return !!columnConflictMap?.missing_client_column?.[colName];
+    });
+
+    const tableHasConflict = row.columns?.some((col) => {
+        const colName = col.columnName.trim();
+        return !!columnConflictMap?.missing_client_column?.[colName] ||
+        !!columnConflictMap?.extra_client_column?.[colName] ||
+        !!columnConflictMap?.type_mismatch?.[colName] ||
+        !!columnConflictMap?.length_mismatch?.[colName];
+    });
 
     return (
         <React.Fragment>
@@ -70,6 +86,7 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
                         : "";
 
                     return (
+                        <>
                         <Tooltip
                             title={tooltipText}
                             arrow
@@ -96,6 +113,56 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
                                 <WarningIcon style={{ color: '#d32f2f', cursor: 'pointer', fontSize: 20 }} />
                             </Box>
                         </Tooltip>
+                        <>
+                            <Tooltip 
+                                title="Ignore table" 
+                                arrow placement="top"
+                                slotProps={{
+                                    tooltip: {
+                                        sx: {
+                                            bgcolor: "#e36666",
+                                            fontSize: 12,
+                                            fontWeight: 500,
+                                            fontFamily: "Poppins",
+                                            borderRadius: 3,
+                                            paddingRight: 2,
+                                            paddingLeft: 2,
+                                            boxShadow: 3
+                                        },
+                                    },
+                                    arrow: {
+                                        sx: { color: "#e36666" },
+                                    },
+                                }}>
+                                <FontAwesomeIcon icon={faCircleMinus} className='btn-icon-table' />
+                            </Tooltip>
+
+                            {isMissingClientTable && (
+                                <Tooltip
+                                    title="Fix table"
+                                    arrow placement="top"
+                                    slotProps={{
+                                        tooltip: {
+                                            sx: {
+                                                bgcolor: "#004483",
+                                                fontSize: 12,
+                                                fontWeight: 500,
+                                                fontFamily: "Poppins",
+                                                borderRadius: 3,
+                                                paddingRight: 2,
+                                                paddingLeft: 2,
+                                                boxShadow: 3
+                                            },
+                                        },
+                                        arrow: {
+                                            sx: { color: "#004483" },
+                                        },
+                                    }}>
+                                <FontAwesomeIcon icon={faCircleCheckFilled} className='btn-icon-table-fix' />
+                                </Tooltip>
+                            )}
+                            </>
+                        </>
                     );
                     }
 
@@ -170,6 +237,7 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
                             <>
                                 <TableCell>Column Name</TableCell>
                                 <TableCell>Data Type</TableCell>
+                                {tableHasMissingColumn && <TableCell>Action</TableCell>}
                             </>
                             )
                                 :
@@ -177,7 +245,7 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
                             <>
                                 <TableCell>Column Name</TableCell>
                                 <TableCell>Data Type</TableCell>
-                                <TableCell>Action</TableCell>
+                                {tableHasConflict && <TableCell>Action</TableCell>}
                             </>
                             )
                         }
@@ -248,6 +316,16 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
                                             <TableCell>
                                                 {column.dataType} {column.maxCharacters ? `(${column.maxCharacters})` : "(N/A)"}
                                             </TableCell>
+                                            {tableHasMissingColumn && (
+                                                <TableCell className='last'>
+                                                    {isMissingClientColumn && (
+                                                        <>
+                                                            <button className='row-ignore-btn'><FontAwesomeIcon icon={faCircleMinus} className='btn-icon'/>Ignore</button>
+                                                            <button className='row-fix-btn'><FontAwesomeIcon icon={faCircleCheck} className='btn-icon-fix'/>Fix</button>
+                                                        </>
+                                                    )}
+                                                </TableCell>
+                                            )}
                                             </>
 
                                         ) : (
@@ -256,9 +334,15 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
                                             <TableCell>
                                                 {column.dataType} {column.maxCharacters ? `(${column.maxCharacters})` : "(N/A)"}
                                             </TableCell>
-                                            <TableCell>
-                                                {column.dataType} {column.maxCharacters ? `(${column.maxCharacters})` : "(N/A)"}
-                                            </TableCell>
+                                            {tableHasConflict && (
+                                                <TableCell className='last'>
+                                                    {hasColumnConflict && (                                                            
+                                                        <>
+                                                            <center><button className='row-ignore-btn'><FontAwesomeIcon icon={faCircleMinus} className='btn-icon'/>Ignore</button></center>
+                                                        </>
+                                                    )}
+                                                </TableCell>
+                                            )}
                                             </>
                                         )
 

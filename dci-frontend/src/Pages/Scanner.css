@@ -163,8 +163,8 @@
 .line {
     height: 2px;
     width: 70%;
-    background-color: #facc15;
     margin: 10px auto 25px auto;
+    background: linear-gradient(to right, #255DB4, #84B2FA);
 }
 
 .btn {

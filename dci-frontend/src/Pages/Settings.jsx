@@ -385,6 +385,7 @@ const SettingsPage = () => {
                         <p className='settings-user-label'>Users</p>
                         <Plus className='settings-icon' onClick={handleAdd}/>
                     </div>
+                    <div className="line"></div>
                     <div className="activity-log-table-wrapper">
                         <table id="activity-log-table" className="activity-logs">
                             <thead>
@@ -458,6 +459,7 @@ const SettingsPage = () => {
                     <div className='settings-card-header'>
                         <p className='settings-label'>Activity Log</p>
                     </div>
+                    <div className="line"></div>
                     <div className="activity-log-table-wrapper">
                         <table id="activity-log-table" className="activity-logs">
                             <thead>
