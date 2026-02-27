@@ -12,8 +12,9 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import Tooltip from '@mui/material/Tooltip';
 import WarningIcon from '@mui/icons-material/Warning';
 import '../../Pages/Settings.css';
+import './Row2.css';
 
-export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}, expandedTables={}, toggleTable }) {
+export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}, expandedTables={}, toggleTable, isMaster }) {
 
     const tableConflictTypes = [
         'missing_client_table',
@@ -164,9 +165,22 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
                 <Box className="expanded-box">
                 <Table size="small" className="inner-table">
                     <TableHead>
-                    <TableRow className="inner-header">
-                        <TableCell>Column Name</TableCell>
-                        <TableCell>Variable Type</TableCell>
+                    <TableRow className="inner-header2">
+                        {isMaster ? (
+                            <>
+                                <TableCell>Column Name</TableCell>
+                                <TableCell>Data Type</TableCell>
+                            </>
+                            )
+                                :
+                            (
+                            <>
+                                <TableCell>Column Name</TableCell>
+                                <TableCell>Data Type</TableCell>
+                                <TableCell>Action</TableCell>
+                            </>
+                            )
+                        }
                     </TableRow>
                     </TableHead>
 
@@ -228,10 +242,27 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
                                         cursor: hasColumnConflict ? "pointer" : "default",
                                     }}
                                     >
-                                    <TableCell>{column.columnName}</TableCell>
-                                    <TableCell>
-                                        {column.dataType} {column.maxCharacters ? `(${column.maxCharacters})` : "(N/A)"}
-                                    </TableCell>
+                                        {isMaster ? (
+                                            <>
+                                            <TableCell>{column.columnName}</TableCell>
+                                            <TableCell>
+                                                {column.dataType} {column.maxCharacters ? `(${column.maxCharacters})` : "(N/A)"}
+                                            </TableCell>
+                                            </>
+
+                                        ) : (
+                                            <>
+                                            <TableCell>{column.columnName}</TableCell>
+                                            <TableCell>
+                                                {column.dataType} {column.maxCharacters ? `(${column.maxCharacters})` : "(N/A)"}
+                                            </TableCell>
+                                            <TableCell>
+                                                {column.dataType} {column.maxCharacters ? `(${column.maxCharacters})` : "(N/A)"}
+                                            </TableCell>
+                                            </>
+                                        )
+
+                                        }
                                     </TableRow>
                                 </Tooltip>
                             );

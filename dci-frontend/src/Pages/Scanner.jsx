@@ -9,7 +9,7 @@ import Row from '../components/Row.jsx';
 import exportToExcel from '../Pages/ExcelExport.jsx';
 import exportToPDF from '../Pages/PDFExport.jsx';
 import {fetchConfigs, fetchConflicts, fetchSchema, fetchUserConfig, fixAllConflicts, setDatabaseConnection} from '../components/DatabaseAPIs.jsx';
-import { CollapsibleTable, CollapsibleTable2, CollapsibleTableScanned } from '../components/CollapsibleTables.jsx';
+import { CollapsibleTable, CollapsibleTable2, CollapsibleTableScanned } from '../components/DCINew/CollapsibleTables2.jsx';
 import { use } from 'react';
 
 const MainPage = () => {
