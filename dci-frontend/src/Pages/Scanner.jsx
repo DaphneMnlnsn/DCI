@@ -323,6 +323,7 @@ const MainPage = () => {
         if (result.isConfirmed) {
             setDb(result.value.database);
             fetchFn(result.value.database);
+            setScanConflictFirst(true);
         }
     };
 
