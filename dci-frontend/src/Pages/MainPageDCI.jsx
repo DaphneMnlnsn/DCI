@@ -13,6 +13,9 @@ import { CollapsibleTable, CollapsibleTable2, CollapsibleTableScanned } from '..
 import { use } from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDatabase } from "@fortawesome/free-solid-svg-icons";
+import mysqlLogo from '../assets/mysql.png';
+import postgresLogo from '../assets/postgres.png';
+import sqlserverLogo from '../assets/ssms.png';
 
 const MainPageDCI = () => {
     const navigate = useNavigate();
@@ -45,6 +48,8 @@ const MainPageDCI = () => {
     const [fixMode, setFixMode] = useState('');
     const [fixTable, setFixTable] = useState('');
     const [fixColumn, setFixColumn] = useState('');
+    const [searchText, setSearchText] = useState('');
+    const [conflictFilter, setConflictFilter] = useState('');
 
     /*useEffect(() => {
         if (location.state?.master && location.state?.client) {
@@ -410,6 +415,19 @@ const MainPageDCI = () => {
         ]).isRequired,
     };
 
+    const getDbLogo = (type) => {
+        switch (type) {
+            case "mysql":
+                return mysqlLogo;
+            case "pgsql":
+                return postgresLogo;
+            case "sqlsrv":
+                return sqlserverLogo;
+            default:
+                return null;
+        }
+    };
+
     return (
         <div className='scanner-root'> 
             <HeaderDCI />
@@ -417,39 +435,70 @@ const MainPageDCI = () => {
                 <div className='scanner2-grid-container'>
                     <div className='scanner2-container'>
                         <div className='scanner2-select'>
-                        <h3 className="scanner2-card-title">
-                            <span><FontAwesomeIcon icon={faDatabase} className='db-icon'/>Master Database</span>
-                        </h3>
+                            <h3 className="scanner2-card-title">
+                                <span><FontAwesomeIcon icon={faDatabase} className='db-icon'/>Master Database</span>
+                            </h3>
+                            
+                            <div className='driver-label-group'>
+                                <div className='driver-label'>Database</div>
+                                <div className='driver-label'>Configuration</div>
+                            </div>
+                            
+                            <div className="dropdown-group db-type-wrapper2">
+                                {masterDbDriver && (
+                                    <img
+                                        src={getDbLogo(masterDbDriver)}
+                                        alt="db-logo"
+                                        className="db-logo"
+                                    />
+                                )}
 
-                        <div className="dropdown-group">
-                            <select
-                                value={masterDbDriver}
-                                onChange={(e) => setMasterDbDriver(e.target.value)}
-                            >
-                                <option value="">Select DB Type</option>
-                                <option value="mysql">MySQL</option>
-                                <option value="pgsql">PostgreSQL</option>
-                                <option value="sqlsrv">MS SQL</option>
-                            </select>
+                                <select
+                                    value={masterDbDriver || ""}
+                                    onChange={(e) => setMasterDbDriver(e.target.value)}
+                                >
+                                    <option value="">Select DB Type</option>
+                                    <option value="mysql">MySQL</option>
+                                    <option value="pgsql">PostgreSQL</option>
+                                    <option value="sqlsrv">MS SQL</option>
+                                </select>
 
-                            <select
-                                value={selectedMasterConfig}
-                                onChange={(e) => setSelectedMasterConfig(parseInt(e.target.value, 10))}
-                                disabled={!masterConfigs.length || !masterDbDriver}
-                            >
-                            <option value="">Select Configuration</option>
-                            {masterConfigs.map((conf) => (
-                                <option key={conf.id} value={conf.id}>
-                                    {conf.config_name} ({conf.host})
-                                </option>
-                            ))}
-                            </select>
-                        </div>
+                                <select
+                                    value={selectedMasterConfig || ""}
+                                    onChange={(e) => setSelectedMasterConfig(parseInt(e.target.value, 10))}
+                                    disabled={!masterConfigs.length || !masterDbDriver}
+                                >
+                                    <option value="">Select Configuration</option>
+                                    {masterConfigs.map((conf) => (
+                                        <option key={conf.id} value={conf.id}>
+                                            {conf.config_name} ({conf.host})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
 
                         <div className='scanner2-select'>
                             <div className="card2">
                                 {show ? (
                                     <>
+                                        <div className='table-label-group'>
+                                            <p className='db-label'>Database: {dbA}</p>
+                                            <p className='db-table-count'>{Array.isArray(database?.tables) ? database.tables.length : 0} tables</p>
+                                        </div>
+
+                                        <input
+                                            type="text"
+                                            placeholder="Search tables..."
+                                            value={searchText}
+                                            onChange={(e) => setSearchText(e.target.value)}
+                                            className="table-search-master"
+                                        />
+
+                                        <div className='table-header-group'>
+                                            <p className='db-label'>Tables</p>
+                                            <p className='db-label'>Conflicts</p>
+                                        </div>
+
                                         <CollapsibleTable database={database} conflictMap={conflictMap} expandedTables={expandedTables} toggleTable={toggleTable} />
                                         <div className='master-button-group'>
                                             <button
@@ -466,26 +515,40 @@ const MainPageDCI = () => {
                                     
                                 ) : (
                                     <>
-                        <div className="scanner2-card-header">
-                            <p className="label">Please select a database to Compare</p>
-                        </div>
-                            <div className="scanner2-line"></div>
-                                    <button
-                                        className='select-btn' disabled={!selectedMasterConfig} onClick={ ()=> openDatabaseSelect("Select Master Database", setDbA, fetchDatabase, "master")}>Select</button> </>
-                                )}
+                                    <div className="scanner2-card-header">
+                                        <p className="label">Please select a database to Compare</p>
+                                    </div>
+                                    <div className="scanner2-line"></div>
+                                            <button
+                                                className='select-btn' disabled={!selectedMasterConfig} onClick={ ()=> openDatabaseSelect("Select Master Database", setDbA, fetchDatabase, "master")}>Select</button> </>
+                                        )}
+                                    </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
                 <div className='scanner2-container'>
                     <div className='scanner2-select'>
                         <h3 className="scanner2-card-title">
                             <span><FontAwesomeIcon icon={faDatabase} className='db-icon'/>Client Database</span>
                         </h3>
-                        <div className="dropdown-group">
+
+                        <div className='driver-label-group'>
+                            <div className='driver-label'>Database</div>
+                            <div className='driver-label'>Configuration</div>
+                        </div>
+                    
+                        <div className="dropdown-group db-type-wrapper2">
+                            {clientDbDriver && (
+                                <img
+                                    src={getDbLogo(clientDbDriver)}
+                                    alt="db-logo"
+                                    className="db-logo"
+                                />
+                            )}
+
                             <select
-                                value={clientDbDriver}
+                                value={clientDbDriver || ""}
                                 onChange={(e) => setClientDbDriver(e.target.value)}
                             >
                                 <option value="">Select DB Type</option>
@@ -495,16 +558,16 @@ const MainPageDCI = () => {
                             </select>
 
                             <select
-                                value={selectedClientConfig}
+                                value={selectedClientConfig || ""}
                                 onChange={(e) => setSelectedClientConfig(parseInt(e.target.value, 10))}
                                 disabled={!clientConfigs.length || !clientDbDriver}
                             >
-                            <option value="">Select Configuration</option>
-                            {clientConfigs.map((conf) => (
-                                <option key={conf.id} value={conf.id}>
-                                    {conf.config_name} ({conf.host})
-                                </option>
-                            ))}
+                                <option value="">Select Configuration</option>
+                                {clientConfigs.map((conf) => (
+                                    <option key={conf.id} value={conf.id}>
+                                        {conf.config_name} ({conf.host})
+                                    </option>
+                                ))}
                             </select>
                         </div>
                     </div>
@@ -513,6 +576,31 @@ const MainPageDCI = () => {
                         <div className="card2">
                             {show2 ? (
                                 <>
+                                    <div className='table-label-group'>
+                                        <p className='db-label'>Database: {dbA}</p>
+                                        <p className='db-table-count'>{Array.isArray(database2?.tables2) ? database2.tables2.length : 0} tables</p>
+                                    </div>
+
+                                    <input
+                                        type="text"
+                                        placeholder="Search tables..."
+                                        value={searchText}
+                                        onChange={(e) => setSearchText(e.target.value)}
+                                        className="table-search-master"
+                                    />
+
+                                    <div className='table-header-group'>
+                                        <p className='db-label'>Tables</p>
+                                        <select 
+                                            className='conflict-type-select'
+                                            value={conflictFilter}
+                                            onChange={(e) => setConflictFilter(e.target.value)}
+                                        >
+                                            <option>All Conflicts</option>
+                                            <option>Ignored Conflicts</option>
+                                        </select>
+                                    </div>
+
                                     <CollapsibleTable2 database2={database2} conflictMap={conflictMap} expandedTables={expandedTables} toggleTable={toggleTable} />
                                     <div className='client-button-group'>
                               

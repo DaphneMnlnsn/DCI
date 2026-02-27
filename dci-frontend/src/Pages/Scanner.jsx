@@ -14,6 +14,7 @@ import { use } from 'react';
 import mysqlLogo from '../assets/mysql.png';
 import postgresLogo from '../assets/postgres.png';
 import sqlserverLogo from '../assets/ssms.png';
+
 const MainPage = () => {
     const navigate = useNavigate();
     const fileInput = useRef(null);
@@ -409,19 +410,21 @@ const MainPage = () => {
             }),
         ]).isRequired,
     };
-const getDbLogo = (type) => {
-  switch (type) {
-    case "mysql":
-      return mysqlLogo;
-    case "pgsql":
-      return postgresLogo;
-    case "sqlsrv":
-      return sqlserverLogo;
-    default:
-      return null;
-  }
-};
-     return (
+
+    const getDbLogo = (type) => {
+        switch (type) {
+            case "mysql":
+            return mysqlLogo;
+            case "pgsql":
+            return postgresLogo;
+            case "sqlsrv":
+            return sqlserverLogo;
+            default:
+            return null;
+        }
+    };
+
+    return (
         <div className='scanner-root'> 
             <Header />
             <div className='scanner-container'>
