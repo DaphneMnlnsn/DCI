@@ -2,8 +2,8 @@ import React from 'react';
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
 
-export const exportToExcel = (results) => {
-  if (!results?.conflicts) return;
+export const exportToExcel = (conflicts) => {
+  if (!conflicts.length) return;
 
   try {
     const data = [];
@@ -11,7 +11,7 @@ export const exportToExcel = (results) => {
 
     let currentRow = 1; // Row 0 = header
 
-    results.conflicts.forEach((item) => {
+    conflicts.forEach((item) => {
       const type = item.conflictType;
       const details = item.details || {};
 
