@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SavedDatabase;
 use App\Models\UserDBConfig;
+use App\Services\ActivityLogService;
 use App\Services\SchemaFixerService;
 use App\Services\SchemaReaderService;
 use App\Services\SchemaScannerService;
@@ -81,6 +82,7 @@ class SchemaController extends Controller
         try{
             $source = $request->query('source');
             $target = $request->query('target');
+            $filter = $request->query('filter');
 
             if (!$source || !$target) {
                 return response()->json(['error' => 'Databases not specified'], 400);
@@ -108,7 +110,7 @@ class SchemaController extends Controller
             $clientConfigId = $clientConfig->id;
 
             return response()->json(
-                $scanner->scan($source, $target, $sourceConfig, $targetConfig, $masterConfigId, $clientConfigId)
+                $scanner->scan($source, $target, $sourceConfig, $targetConfig, $masterConfigId, $clientConfigId, $filter)
             );
 
         }
@@ -154,13 +156,36 @@ class SchemaController extends Controller
             $masterConfigId = $masterConfig->id;
             $clientConfigId = $clientConfig->id;
 
-            $conflicts = $scanner->scan($source, $target, $sourceConfig, $targetConfig, $masterConfigId, $clientConfigId);
+            $conflicts = $scanner->scan($source, $target, $sourceConfig, $targetConfig, $masterConfigId, $clientConfigId, 'unignored');
 
             $mode = $request->query('mode', 'all');
             $table = $request->query('table');
             $column = $request->query('column');
             
             $message = $fixer->fix($conflicts['conflicts'], $masterSchema['schema'], $clientSchema['schema'], $target, $sourceConfig, $targetConfig, $mode, $table, $column);
+
+            //For activity logging
+            $executedTables = $table ? [$table] : array_keys($conflicts['conflicts']);
+            $executedColumns = $column ? [$column] : [];
+
+            $executedCount = 0;
+            foreach ($conflicts['conflicts'] as $conflictType => $tables) {
+                foreach ($tables as $tbl => $cols) {
+                    if ($table && $tbl !== $table) continue;
+                    if (is_array($cols)) {
+                        $executedCount += count($cols);
+                    } else {
+                        $executedCount += 1;
+                    }
+                }
+            }
+
+            ActivityLogService::log(
+                'FIX CONFLICT',
+                "User {$user->username} fixed {$executedCount} conflict(s) "
+                . ($table ? "in table '{$table}'" : "across all tables")
+                . ($column ? ", column '{$column}'" : "")
+            );
 
             return response()->json($message);
 

@@ -9,7 +9,7 @@ import Row from '../components/Row.jsx';
 import exportToExcel from '../Pages/ExcelExport.jsx';
 import exportToPDF from '../Pages/PDFExport.jsx';
 import {fetchConfigs, fetchConflicts, fetchSchema, fetchUserConfig, fixAllConflicts, setDatabaseConnection} from '../components/DatabaseAPIs.jsx';
-import { CollapsibleTable, CollapsibleTable2, CollapsibleTableScanned } from '../components/CollapsibleTables.jsx';
+import { CollapsibleTable, CollapsibleTable2, CollapsibleTableScanned } from '../components/DCINew/CollapsibleTables2.jsx';
 import { use } from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDatabase } from "@fortawesome/free-solid-svg-icons";
@@ -54,7 +54,7 @@ const MainPageDCI = () => {
     const [fixTable, setFixTable] = useState('');
     const [fixColumn, setFixColumn] = useState('');
     const [searchText, setSearchText] = useState('');
-    const [conflictFilter, setConflictFilter] = useState('');
+    const [conflictFilter, setConflictFilter] = useState('unignored');
     const [masterSearch, setMasterSearch] = useState('');
     const [masterSuggestions, setMasterSuggestions] = useState([]);
     const [clientSearch, setClientSearch] = useState('');
@@ -135,7 +135,7 @@ const MainPageDCI = () => {
 
         if(scanConflictFirst){
             const runScan = async () => {
-                const result = await fetchConflicts(dbA, dbB);
+                const result = await fetchConflicts(dbA, dbB, conflictFilter);
                 if (result) {
                     setConflictMap(result.conflictMap);
                     setResults(result);
@@ -344,14 +344,15 @@ const MainPageDCI = () => {
 
     const handleConflicts = async () => {
         setWarnings(await fixAllConflicts(dbA, dbB, navigate, results, fixMode, fixTable, fixColumn));
-        await fetchDatabase2(dbB);
-        const result = await fetchConflicts(dbA, dbB);
+        setConflictFilter('unignored')
+        const result = await fetchConflicts(dbA, dbB, conflictFilter);
         if (result) {
             setConflictMap(result.conflictMap);
             setResults(result);
             setFixConflicts(true);
             setHasScanned(true);
         }
+        await fetchDatabase2(dbB);
     }
 
     const handleExport = async(data) => {
@@ -550,7 +551,7 @@ const MainPageDCI = () => {
                                             <p className='db-label'>Conflicts</p>
                                         </div>
 
-                                        <CollapsibleTable database={database} conflictMap={conflictMap} expandedTables={expandedTables} toggleTable={toggleTable} filteredTables={filteredMasterTables} />
+                                        <CollapsibleTable database={database} conflictMap={conflictMap} expandedTables={expandedTables} toggleTable={toggleTable} dbA={dbA} dbB={dbB} results={results} filteredTables={filteredMasterTables} />
                                         <div className='master-button-group'>
                                             <button
                                                 className='select-btn' disabled={!selectedMasterConfig} onClick={ ()=> openDatabaseSelect("Select Master Database", setDbA, fetchDatabase, "master")}><SyncAltSharpIcon className='btn-icon'/>{" "}Reselect
@@ -693,12 +694,13 @@ const MainPageDCI = () => {
                                             value={conflictFilter}
                                             onChange={(e) => setConflictFilter(e.target.value)}
                                         >
-                                            <option>All Conflicts</option>
-                                            <option>Ignored Conflicts</option>
+                                            <option value='unignored'>Unignored Conflicts</option>
+                                            <option value='all'>All Conflicts</option>
+                                            <option value='ignored'>Ignored Conflicts</option>
                                         </select>
                                     </div>
 
-                                    <CollapsibleTable2 database2={database2} conflictMap={conflictMap} expandedTables={expandedTables} toggleTable={toggleTable} filteredTables={filteredClientTables} />
+                                    <CollapsibleTable2 database2={database2} conflictMap={conflictMap} expandedTables={expandedTables} toggleTable={toggleTable} dbA={dbA} dbB={dbB} results={results} filteredTables={filteredClientTables} />
                                     <div className='client-button-group'>
                               
                                         <button
@@ -709,13 +711,14 @@ const MainPageDCI = () => {
                                             className='scan-btn'
                                             disabled={!dbA || !dbB} 
                                             onClick={async() => {
-                                                const result = await fetchConflicts(dbA, dbB);
+                                                const result = await fetchConflicts(dbA, dbB, conflictFilter);
                                                 if (result) {
                                                     setConflictMap(result.conflictMap);
                                                     setResults(result);
                                                     setFixConflicts(true);
                                                     setHasScanned(true);
                                                 }
+                                                await fetchDatabase2(dbB);
                                             }}
                                         >
                                             <DocumentScannerSharpIcon className='btn-icon'/>

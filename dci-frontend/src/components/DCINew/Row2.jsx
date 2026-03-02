@@ -1,4 +1,6 @@
 import React, { useState, useRef } from 'react';
+import axios from 'axios';
+import swal from 'sweetalert2';
 import Box from '@mui/material/Box';
 import Collapse from '@mui/material/Collapse';
 import IconButton from '@mui/material/IconButton';
@@ -13,11 +15,12 @@ import Tooltip from '@mui/material/Tooltip';
 import WarningIcon from '@mui/icons-material/Warning';
 import '../../Pages/Settings.css';
 import './Row2.css';
-import { faCancel, faCircleCheck as faCircleCheckFilled, faCircleMinus } from '@fortawesome/free-solid-svg-icons';
+import { faCancel, faCircleCheck as faCircleCheckFilled, faCircleMinus, faUndo } from '@fortawesome/free-solid-svg-icons';
 import { faCircleCheck } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { fixAllConflicts, ignoreMultiple } from '../DatabaseAPIs';
 
-export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}, expandedTables={}, toggleTable, isMaster }) {
+export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}, expandedTables={}, toggleTable, isMaster, dbA, dbB, results }) {
 
     const tableConflictTypes = [
         'missing_client_table',
@@ -52,6 +55,115 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
         !!columnConflictMap?.length_mismatch?.[colName];
     });
 
+    const handleIgnoreOne = async (tableName, columnName) => {
+        if (!results?.raw?.conflicts) return;
+
+        const conflicts = results.raw.conflicts;
+        let singleConflict = null;
+        let conflictType = null;
+
+        Object.entries(conflicts).forEach(([type, tables]) => {
+            if (['missing_client_column','extra_client_column','type_mismatch','length_mismatch'].includes(type)) {
+                if (tables?.[tableName]?.[columnName]) {
+                    singleConflict = {
+                        master_database_name: dbA,
+                        client_database_name: dbB,
+                        table_name: tableName,
+                        column_name: columnName,
+                        conflict_type: type
+                    };
+                    conflictType = type;
+                }
+            }
+        });
+
+        if (!singleConflict) return;
+
+        const ignoredConflict = results?.raw?.ignored?.find(c =>
+            c.table_name === tableName &&
+            (c.column_name || null) === (columnName || null) &&
+            c.conflict_type === conflictType
+        );
+
+        try {
+            if (ignoredConflict) {
+                console.log("Unignoring conflict:", ignoredConflict.id);
+                await axios.delete(
+                    `${import.meta.env.VITE_APP_BASE_URL}/api/conflicts/unignore`,
+                    {
+                        data: { id: ignoredConflict.id },
+                        withCredentials: true
+                    }
+                );
+
+                swal.fire({
+                    title: "Unignored",
+                    text: `Conflict on ${tableName}.${columnName} is now unignored.`,
+                    icon: "success",
+                    confirmButtonColor: "#003566"
+                });
+            } else {
+                await axios.post(
+                    `${import.meta.env.VITE_APP_BASE_URL}/api/conflicts/create`,
+                    singleConflict,
+                    { withCredentials: true }
+                );
+
+                swal.fire({
+                    title: "Ignored",
+                    text: `Conflict on ${tableName}.${columnName} ignored.`,
+                    icon: "success",
+                    confirmButtonColor: "#003566"
+                });
+            }
+
+        } catch (error) {
+            console.error(error);
+            swal.fire("Error", "Could not update conflict status", "error");
+        }
+    };
+
+    const handleIgnoreTable = async (tableName) => {
+        await ignoreMultiple(results, dbA, dbB, tableName);
+    }
+
+    const handleUnignoreTable = async (tableName) => {
+        const ignoredList = results?.raw?.ignored || [];
+        if (!ignoredList.length) return;
+
+        const ids = ignoredList
+            .filter(c => !tableName || c.table_name === tableName)
+            .map(c => c.id);
+
+        if (!ids.length) return;
+
+        try {
+            await axios.delete(
+                `${import.meta.env.VITE_APP_BASE_URL}/api/conflicts/unignore-multiple`,
+                {
+                    data: { ignored: ids },
+                    withCredentials: true
+                }
+            );
+
+            swal.fire({
+                title: "Unignored",
+                text: tableName
+                    ? `All ignored conflicts in table "${tableName}" have been unignored.`
+                    : "All ignored conflicts have been unignored.",
+                icon: "success",
+                confirmButtonColor: "#003566"
+            });
+        } catch (error) {
+            console.error(error);
+            swal.fire("Error unignoring conflicts", "", "error");
+        }
+    };
+
+    const fixConflicts = async (mode, table, column) => {
+        await fixAllConflicts(dbA, dbB, null, results, mode, table, column);
+    }
+
     return (
         <React.Fragment>
 
@@ -85,6 +197,17 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
                         ? "Extra client table"
                         : "";
 
+                    const tableConflictTypes = [];
+                    if (isMissingClientTable) tableConflictTypes.push('missing_client_table');
+                    if (isExtraClientTable) tableConflictTypes.push('extra_client_table');
+                    
+                    const isIgnored = tableConflictTypes.some(type =>
+                        results?.raw?.ignored?.some(c =>
+                            c.table_name === tableName &&
+                            c.conflict_type === type
+                        )
+                    );
+
                     return (
                         <>
                         <Tooltip
@@ -114,6 +237,7 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
                             </Box>
                         </Tooltip>
                         <>
+                            {!isIgnored ? (
                             <Tooltip 
                                 title="Ignore table" 
                                 arrow placement="top"
@@ -134,8 +258,32 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
                                         sx: { color: "#e36666" },
                                     },
                                 }}>
-                                <FontAwesomeIcon icon={faCircleMinus} className='btn-icon-table' />
+                                <FontAwesomeIcon icon={faCircleMinus} className='btn-icon-table'  onClick={() => handleIgnoreTable(tableName)}/>
                             </Tooltip>
+                            ) : (
+                            <Tooltip 
+                            title="Unignore table" 
+                            arrow placement="top"
+                            slotProps={{
+                                tooltip: {
+                                    sx: {
+                                        bgcolor: "#e36666",
+                                        fontSize: 12,
+                                        fontWeight: 500,
+                                        fontFamily: "Poppins",
+                                        borderRadius: 3,
+                                        paddingRight: 2,
+                                        paddingLeft: 2,
+                                        boxShadow: 3
+                                    },
+                                },
+                                arrow: {
+                                    sx: { color: "#e36666" },
+                                },
+                            }}>
+                            <FontAwesomeIcon icon={faUndo} className='btn-icon-table'  onClick={() => handleUnignoreTable(tableName)}/>
+                            </Tooltip>
+                            )}
 
                             {isMissingClientTable && (
                                 <Tooltip
@@ -158,10 +306,10 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
                                             sx: { color: "#004483" },
                                         },
                                     }}>
-                                <FontAwesomeIcon icon={faCircleCheckFilled} className='btn-icon-table-fix' />
+                                <FontAwesomeIcon icon={faCircleCheckFilled} className='btn-icon-table-fix' onClick={() => fixConflicts("table", tableName, null)}/>
                                 </Tooltip>
                             )}
-                            </>
+                        </>
                         </>
                     );
                     }
@@ -191,33 +339,84 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
 
                     if (conflictCount > 0) {
                     return (
-                        <Tooltip 
-                            title={`Expand table to see error`} 
-                            arrow placement="top"
-                            slotProps={{
-                                tooltip: {
-                                    sx: {
-                                        bgcolor: "#e36666",
-                                        fontSize: 12,
-                                        fontWeight: 500,
-                                        fontFamily: "Poppins",
-                                        borderRadius: 3,
-                                        paddingRight: 2,
-                                        paddingLeft: 2,
-                                        boxShadow: 3
+                        <>
+                            <Tooltip 
+                                title={`Expand table to see error`} 
+                                arrow placement="top"
+                                slotProps={{
+                                    tooltip: {
+                                        sx: {
+                                            bgcolor: "#e36666",
+                                            fontSize: 12,
+                                            fontWeight: 500,
+                                            fontFamily: "Poppins",
+                                            borderRadius: 3,
+                                            paddingRight: 2,
+                                            paddingLeft: 2,
+                                            boxShadow: 3
+                                        },
                                     },
-                                },
-                                arrow: {
-                                    sx: { color: "#e36666" },
-                                },
-                            }}
-                        
-                        >
-                            <Box display="inline-flex" alignItems="center" justifyContent="center" gap={0.5}>
-                                <WarningIcon style={{ color: '#d32f2f', fontSize: 20, cursor: 'pointer' }} />
-                                <span style={{ color: '#d32f2f', fontWeight: 600 }}>{conflictCount}</span>
-                            </Box>
-                        </Tooltip>
+                                    arrow: {
+                                        sx: { color: "#e36666" },
+                                    },
+                                }}
+                            
+                            >
+                                <Box display="inline-flex" alignItems="center" justifyContent="center" gap={0.5}>
+                                    <WarningIcon style={{ color: '#d32f2f', fontSize: 20, cursor: 'pointer' }} />
+                                    <span style={{ color: '#d32f2f', fontWeight: 600 }}>{conflictCount}</span>
+                                </Box>
+                            </Tooltip>
+                            
+                            {tableHasMissingColumn && (
+                                <>
+                                <Tooltip 
+                                    title="Ignore all table conflicts" 
+                                    arrow placement="top"
+                                    slotProps={{
+                                        tooltip: {
+                                            sx: {
+                                                bgcolor: "#e36666",
+                                                fontSize: 12,
+                                                fontWeight: 500,
+                                                fontFamily: "Poppins",
+                                                borderRadius: 3,
+                                                paddingRight: 2,
+                                                paddingLeft: 2,
+                                                boxShadow: 3
+                                            },
+                                        },
+                                        arrow: {
+                                            sx: { color: "#e36666" },
+                                        },
+                                    }}>
+                                    <FontAwesomeIcon icon={faCircleMinus} className='btn-icon-table'  onClick={() => handleIgnoreTable(tableName)}/>
+                                </Tooltip>
+                                <Tooltip
+                                    title="Fix table"
+                                    arrow placement="top"
+                                    slotProps={{
+                                        tooltip: {
+                                            sx: {
+                                                bgcolor: "#004483",
+                                                fontSize: 12,
+                                                fontWeight: 500,
+                                                fontFamily: "Poppins",
+                                                borderRadius: 3,
+                                                paddingRight: 2,
+                                                paddingLeft: 2,
+                                                boxShadow: 3
+                                            },
+                                        },
+                                        arrow: {
+                                            sx: { color: "#004483" },
+                                        },
+                                    }}>
+                                <FontAwesomeIcon icon={faCircleCheckFilled} className='btn-icon-table-fix' onClick={() => fixConflicts("table", tableName, null)}/>
+                                </Tooltip>
+                                </>
+                            )}
+                        </>
                     );
                     }
 
@@ -279,6 +478,20 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
                             if (isLengthMismatch) conflictTypes.push("Length mismatch");
                             const tooltipText = hasColumnConflict ? conflictTypes.join(" / ") : "";
 
+                            const columnConflictTypes = [];
+                            if (isMissingClientColumn) columnConflictTypes.push('missing_client_column');
+                            if (isExtraClientColumn) columnConflictTypes.push('extra_client_column');
+                            if (isTypeMismatch) columnConflictTypes.push('type_mismatch');
+                            if (isLengthMismatch) columnConflictTypes.push('length_mismatch');
+                            
+                            const isIgnored = columnConflictTypes.some(type =>
+                                results?.raw?.ignored?.some(c =>
+                                    c.table_name === tableName &&
+                                    (c.column_name || null) === (column.columnName || null) &&
+                                    c.conflict_type === type
+                                )
+                            );
+
                             return (
                                 <Tooltip 
                                     key={index} 
@@ -320,8 +533,8 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
                                                 <TableCell className='last'>
                                                     {isMissingClientColumn && (
                                                         <>
-                                                            <button className='row-ignore-btn'><FontAwesomeIcon icon={faCircleMinus} className='btn-icon'/>Ignore</button>
-                                                            <button className='row-fix-btn'><FontAwesomeIcon icon={faCircleCheck} className='btn-icon-fix'/>Fix</button>
+                                                            <button className='row-ignore-btn' onClick={() => handleIgnoreOne(tableName, column.columnName)}><FontAwesomeIcon icon={faCircleMinus} className='btn-icon-ignore'/>{isIgnored ? 'Unignore' : 'Ignore'}</button>
+                                                            <button className='row-fix-btn' onClick={() => fixConflicts("column", tableName, column.columnName)}><FontAwesomeIcon icon={faCircleCheck} className='btn-icon-fix'/>Fix</button>
                                                         </>
                                                     )}
                                                 </TableCell>
@@ -338,7 +551,7 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
                                                 <TableCell className='last'>
                                                     {hasColumnConflict && (                                                            
                                                         <>
-                                                            <center><button className='row-ignore-btn'><FontAwesomeIcon icon={faCircleMinus} className='btn-icon'/>Ignore</button></center>
+                                                            <center><button className='row-ignore-btn' onClick={() => handleIgnoreOne(tableName, column.columnName)}><FontAwesomeIcon icon={faCircleMinus} className='btn-icon-ignore'/>{isIgnored ? 'Unignore' : 'Ignore'}</button></center>
                                                         </>
                                                     )}
                                                 </TableCell>

@@ -69,7 +69,7 @@ export const setDatabaseConnection = async (configId, role) => {
     }
 };
 
-export const ignoreAllConflicts = async (results, dbA, dbB) => {
+export const ignoreMultiple = async (results, dbA, dbB, targetTable = null) => {
     if (!results?.raw?.conflicts) return;
 
     const conflicts = results.raw.conflicts;
@@ -78,11 +78,15 @@ export const ignoreAllConflicts = async (results, dbA, dbB) => {
     Object.entries(conflicts).forEach(([conflictType, tables]) => {
 
         if (['missing_client_table', 'extra_client_table'].includes(conflictType)) {
-            Object.keys(tables).forEach(tableName => {
+
+            Object.keys(tables).forEach(table => {
+
+                if (targetTable && table !== targetTable) return;
+
                 flattened.push({
                     master_database_name: dbA,
                     client_database_name: dbB,
-                    table_name: tableName,
+                    table_name: table,
                     column_name: null,
                     conflict_type: conflictType
                 });
@@ -96,13 +100,16 @@ export const ignoreAllConflicts = async (results, dbA, dbB) => {
             'length_mismatch'
         ].includes(conflictType)) {
 
-            Object.entries(tables).forEach(([tableName, columns]) => {
-                Object.keys(columns).forEach(columnName => {
+            Object.entries(tables).forEach(([table, columns]) => {
+
+                if (targetTable && table !== targetTable) return;
+
+                Object.keys(columns).forEach(column => {
                     flattened.push({
                         master_database_name: dbA,
                         client_database_name: dbB,
-                        table_name: tableName,
-                        column_name: columnName,
+                        table_name: table,
+                        column_name: column,
                         conflict_type: conflictType
                     });
                 });
@@ -119,7 +126,9 @@ export const ignoreAllConflicts = async (results, dbA, dbB) => {
 
         swal.fire({
             title: "Ignored",
-            text: "All conflicts have been ignored.",
+            text: targetTable
+                ? `All conflicts in table "${targetTable}" have been ignored.`
+                : "All conflicts have been ignored.",
             icon: "success",
             confirmButtonColor: "#003566"
         });
@@ -165,7 +174,7 @@ export const fetchSchema = async (dbName, role) => {
     }
 }
 
-export const fetchConflicts = async (dbA, dbB) => {
+export const fetchConflicts = async (dbA, dbB, filter) => {
 
     if (!dbA || !dbB) {
         swal.fire("Select two databases first", "", "warning");
@@ -187,6 +196,7 @@ export const fetchConflicts = async (dbA, dbB) => {
                 params: {
                     source: dbA,
                     target: dbB,
+                    filter: filter,
                 },
                 responseType: 'json',
                 withCredentials: true
@@ -207,7 +217,6 @@ export const fetchConflicts = async (dbA, dbB) => {
                     conflictMap[table][conflictType] = cols;
                 });
             });
-            let hasConflicts = true;
 
             // Calculate total conflict count
             let totalCount = 0;
@@ -228,11 +237,6 @@ export const fetchConflicts = async (dbA, dbB) => {
                         break;  
                 }
             });
-            if (totalCount === 0) {
-                hasConflicts = true;
-            } else {
-                hasConflicts = false;
-            }
 
             swal.fire({
                 title: "Scan Complete",
@@ -243,7 +247,7 @@ export const fetchConflicts = async (dbA, dbB) => {
                 confirmButtonColor: '#003566'
             });
 
-            return {raw, conflictsArray, conflictMap, hasConflicts};
+            return {raw, conflictsArray, conflictMap};
         }
 
         return null;
@@ -320,7 +324,7 @@ export const fixAllConflicts = async (dbA, dbB, navigate, results, mode, table, 
                                 client: dbB
                             }
                         });*/
-                        await ignoreAllConflicts(results, dbA, dbB)
+                        await ignoreMultiple(results, dbA, dbB, null, null)
                     }
 
                 }

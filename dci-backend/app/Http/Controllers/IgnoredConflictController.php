@@ -57,7 +57,7 @@ class IgnoredConflictController extends Controller
         $validated['master_config_id'] = $masterConfigId;
         $validated['client_config_id'] = $clientConfigId;
 
-        $conflict = IgnoredConflict::create($validated);
+        $conflict = IgnoredConflict::firstOrCreate($validated);
         
         $user = Auth::user();
         ActivityLogService::log(
@@ -106,12 +106,14 @@ class IgnoredConflictController extends Controller
                 'conflict_type' => $conflict['conflict_type'],
             ]);
 
-            ActivityLogService::log(
-                'IGNORE CONFLICT',
-                "User {$user->username} ignored conflict on {$conflict['table_name']}" .
-                ($conflict['column_name'] ? ".{$conflict['column_name']}" : "")
-            );
         }
+
+        $count = count($validated['conflicts']);
+
+        ActivityLogService::log(
+            'IGNORE CONFLICT',
+            "User {$user->username} ignored {$count} conflict(s)"
+        );
 
         return response()->json([
             'message' => 'Conflicts ignored successfully'

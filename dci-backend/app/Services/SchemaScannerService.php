@@ -18,7 +18,7 @@ class SchemaScannerService
 
     }
 
-    public function scan(string $sourceDb, string $targetDb, array $sourceConfig, $targetConfig, $masterConfigId, $clientConfigId)
+    public function scan(string $sourceDb, string $targetDb, array $sourceConfig, $targetConfig, $masterConfigId, $clientConfigId, string $filter = 'unignored')
     {
 
         $masterData = $this->reader->readSchemaByDatabase($sourceDb, $sourceConfig);
@@ -156,37 +156,53 @@ class SchemaScannerService
             ->where('client_database_name', $targetDb)
             ->get();
 
-        foreach ($ignored as $ignore) {
+        if ($filter === 'unignored') {
+            foreach ($ignored as $ignore) {
+                $type = $ignore->conflict_type;
+                $table = $ignore->table_name;
+                $column = $ignore->column_name;
 
-            $type = $ignore->conflict_type;
-            $table = $ignore->table_name;
-            $column = $ignore->column_name;
+                if (!isset($conflicts[$type])) continue;
 
-            if (!isset($conflicts[$type])) {
-                continue;
-            }
-
-            if (is_null($column)) {
-                unset($conflicts[$type][$table]);
-                continue;
-            }
-
-            if (isset($conflicts[$type][$table][$column])) {
-                unset($conflicts[$type][$table][$column]);
-
-                if (empty($conflicts[$type][$table])) {
+                if (is_null($column)) {
                     unset($conflicts[$type][$table]);
+                    continue;
+                }
+
+                if (isset($conflicts[$type][$table][$column])) {
+                    unset($conflicts[$type][$table][$column]);
+                    if (empty($conflicts[$type][$table])) {
+                        unset($conflicts[$type][$table]);
+                    }
+                }
+            }
+        }
+
+        if ($filter === 'ignored') {
+            $conflicts = [];
+            foreach ($ignored as $ignore) {
+                $type = $ignore->conflict_type;
+                $table = $ignore->table_name;
+                $column = $ignore->column_name;
+
+                if (!isset($conflicts[$type])) $conflicts[$type] = [];
+                if (is_null($column)) {
+                    $conflicts[$type][$table] = true;
+                } else {
+                    if (!isset($conflicts[$type][$table])) $conflicts[$type][$table] = [];
+                    $conflicts[$type][$table][$column] = true;
                 }
             }
         }
 
         foreach ($conflicts as $type => $tables) {
-            if (empty($tables)) {
-                unset($conflicts[$type]);
-            }
+            if (empty($tables)) unset($conflicts[$type]);
         }
 
-        return ['conflicts' => $conflicts];
+        return [
+            'conflicts' => $conflicts,
+            'ignored' => $ignored
+        ];
 
     }
 

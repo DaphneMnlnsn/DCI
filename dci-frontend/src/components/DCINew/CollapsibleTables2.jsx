@@ -74,11 +74,11 @@ const renderDetails = (conflictType, row) => {
     }
 };
     
-export function CollapsibleTable({ database, conflictMap = {}, expandedTables={}, toggleTable }) {
+export function CollapsibleTable({ database, conflictMap = {}, expandedTables={}, toggleTable, dbA, dbB, results, filteredTables = null }) {
     if (!database) return <div>No data</div>;
-    const tables = Array.isArray(database.tables) ? database.tables : [];
-    const tableConflictMap = conflictMap;
 
+    const tables = filteredTables || (Array.isArray(database.tables) ? database.tables : []);
+    
     return (
         <TableContainer component={Paper} elevation={0}>
         <Table aria-label="collapsible table">
@@ -92,6 +92,9 @@ export function CollapsibleTable({ database, conflictMap = {}, expandedTables={}
                     expandedTables={expandedTables} 
                     toggleTable={toggleTable}
                     isMaster={true}
+                    dbA = {dbA}
+                    dbB = {dbB}
+                    results = {results}
                 />
             ))}
             </TableBody>
@@ -100,10 +103,10 @@ export function CollapsibleTable({ database, conflictMap = {}, expandedTables={}
     );
 }
 
-export function CollapsibleTable2({ database2, conflictMap = {}, expandedTables={}, toggleTable }) {
+export function CollapsibleTable2({ database2, conflictMap = {}, expandedTables={}, toggleTable, dbA, dbB, results, filteredTables = null }) {
     if (!database2) return <div>No data</div>;
-    const tables2 = Array.isArray(database2.tables2) ? database2.tables2 : [];
-    const tableConflictMap = conflictMap;
+
+    const tables2 = filteredTables || (Array.isArray(database2.tables2) ? database2.tables2 : []);
 
     return (
         <TableContainer component={Paper} elevation={0}>
@@ -118,6 +121,9 @@ export function CollapsibleTable2({ database2, conflictMap = {}, expandedTables=
                     expandedTables={expandedTables} 
                     toggleTable={toggleTable} 
                     isMaster={false}
+                    dbA = {dbA}
+                    dbB = {dbB}
+                    results = {results}
                 />
             ))}
             </TableBody>

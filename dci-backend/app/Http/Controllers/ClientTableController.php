@@ -45,7 +45,7 @@ class ClientTableController extends Controller
 
     public function getTables(Request $request, SchemaScannerService $scanner, SchemaReaderService $reader){
 
-        $source = $request->query('source');
+        /*$source = $request->query('source');
         $target = $request->query('target');
 
         if (!$source || !$target) {
@@ -161,7 +161,7 @@ Log::info($config);
                 'conflicted_tables' => $tables,
             ]);
         }
-
+    */
     }
 
     private function quoteIdentifier($name, $driver)
@@ -197,7 +197,7 @@ Log::info($config);
 
     public function deleteAllData(Request $request, SchemaFixerService $fixer, SchemaReaderService $reader, SchemaScannerService $scanner){
 
-        $config = $this->getUserDbConfig();
+        /*$config = $this->getUserDbConfig();
 
         // Overriding the db
         $dynamicConnName = 'dynamic_schema';
@@ -345,13 +345,13 @@ Log::info($config);
             'message' => count($updatedTable['issues']) === 0
                 ? "No remaining conflicts."
                 : "Some conflicts still remain."
-        ]);
+        ]);*/
 
     }
 
     public function deleteIncompatibleData(Request $request, SchemaScannerService $scanner, SchemaReaderService $reader, SchemaFixerService $fixer){
     
-        $config = $this->getUserDbConfig();
+        /*$config = $this->getUserDbConfig();
 
         // Overriding the db
         $dynamicConnName = 'dynamic_schema';
@@ -573,7 +573,7 @@ Log::info($config);
             'message' => count($updatedTable['issues']) === 0
                 ? "No remaining conflicts."
                 : "Some conflicts still remain."
-        ]);
+        ]);*/
 
     }
 }
