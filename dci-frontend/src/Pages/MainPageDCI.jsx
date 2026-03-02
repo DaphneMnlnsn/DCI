@@ -142,11 +142,11 @@ const MainPageDCI = () => {
                     setFixConflicts(true);
                     setHasScanned(true);
                 }
-                setScanConflictFirst(false);
+                 await fetchDatabase2(dbB);
             }
             runScan();
         }
-    }, [dbA, dbB, setScanConflictFirst]);
+    }, [dbA, dbB, conflictFilter]);
 
     const fetchClientConfigs = async (dbDriver, savedConfigId = null) => {
         if(!dbDriver) return;
