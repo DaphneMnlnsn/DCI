@@ -13,9 +13,14 @@ import { CollapsibleTable, CollapsibleTable2, CollapsibleTableScanned } from '..
 import { use } from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDatabase } from "@fortawesome/free-solid-svg-icons";
+import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 import mysqlLogo from '../assets/mysql.png';
 import postgresLogo from '../assets/postgres.png';
 import sqlserverLogo from '../assets/ssms.png';
+import SyncAltSharpIcon from '@mui/icons-material/SyncAltSharp';
+import DocumentScannerSharpIcon from '@mui/icons-material/DocumentScannerSharp';
+import ConstructionSharpIcon from '@mui/icons-material/ConstructionSharp';
+import FileDownloadSharpIcon from '@mui/icons-material/FileDownloadSharp';
 
 const MainPageDCI = () => {
     const navigate = useNavigate();
@@ -50,19 +55,12 @@ const MainPageDCI = () => {
     const [fixColumn, setFixColumn] = useState('');
     const [searchText, setSearchText] = useState('');
     const [conflictFilter, setConflictFilter] = useState('');
-
-    /*useEffect(() => {
-        if (location.state?.master && location.state?.client) {
-            setDbA(location.state.master);
-            setDbB(location.state.client);
-            //setScan
-
-            fetchDatabase(location.state.master);
-            fetchDatabase2(location.state.client);
-
-            window.history.replaceState({}, document.title);
-        }
-    }, [location.state]);*/
+    const [masterSearch, setMasterSearch] = useState('');
+    const [masterSuggestions, setMasterSuggestions] = useState([]);
+    const [clientSearch, setClientSearch] = useState('');
+    const [clientSuggestions, setClientSuggestions] = useState([]);
+    const [filteredMasterTables, setFilteredMasterTables] = useState(null);
+    const [filteredClientTables, setFilteredClientTables] = useState(null);
 
     useEffect(() => {
         if (!location.state) return;
@@ -154,11 +152,16 @@ const MainPageDCI = () => {
         if(!dbDriver) return;
 
         const configs = await fetchConfigs(dbDriver);
-        setClientConfigs(configs);
 
-        if (savedConfigId && configs.some(c => c.id === savedConfigId)) {
+        const typedConfigs = configs.map(c => ({
+        ...c,
+        type: 'table'
+        }));
+        setClientConfigs(typedConfigs);
+
+        if (savedConfigId && typedConfigs.some(c => c.id === savedConfigId)) {
             setSelectedClientConfig(savedConfigId);
-        } else if (!configs.some(c => c.id === selectedClientConfig)) {
+        } else if (!typedConfigs.some(c => c.id === selectedClientConfig)) {
             setSelectedClientConfig(null);
         }
     };
@@ -167,11 +170,17 @@ const MainPageDCI = () => {
         if (!dbDriver) return;
 
         const configs = await fetchConfigs(dbDriver);
-        setMasterConfigs(configs);
+        console.log("Fetched configs:", configs);
 
-        if (savedConfigId && configs.some(c => c.id === savedConfigId)) {
+        const typedConfigs = configs.map(c => ({
+        ...c,
+        type: 'table'
+        }));
+        setMasterConfigs(typedConfigs);
+
+        if (savedConfigId && typedConfigs.some(c => c.id === savedConfigId)) {
             setSelectedMasterConfig(savedConfigId);
-        } else if (!configs.some(c => c.id === selectedMasterConfig)) {
+        } else if (!typedConfigs.some(c => c.id === selectedMasterConfig)) {
             setSelectedMasterConfig(null);
         }
     };
@@ -255,7 +264,6 @@ const MainPageDCI = () => {
                     search.parentElement.style.position = "relative";
 
                     list.style.position = "absolute";
-                    //list.style.top = "40px";
                     list.style.left = "0";
                     list.style.right = "0";
                     list.style.maxHeight = "150px";
@@ -383,9 +391,6 @@ const MainPageDCI = () => {
 
         const {excel, pdf} = result.value;
 
-        //const excel = document.getElementById("exportExcel").checked;
-        //const pdf = document.getElementById("exportPDF").checked;
-
         if (excel) exportToExcel(data);
         if (pdf) exportToPDF(data);
         
@@ -486,29 +491,75 @@ const MainPageDCI = () => {
                                             <p className='db-table-count'>{Array.isArray(database?.tables) ? database.tables.length : 0} tables</p>
                                         </div>
 
-                                        <input
-                                            type="text"
-                                            placeholder="Search tables..."
-                                            value={searchText}
-                                            onChange={(e) => setSearchText(e.target.value)}
-                                            className="table-search-master"
-                                        />
+                                        <div className="search-container">
+                                            <div className='input-wrapper'>
+                                                <FontAwesomeIcon icon={faMagnifyingGlass} className="search-icon" />
+                                                <input
+                                                type="text"
+                                                placeholder="Search tables..."
+                                                value={masterSearch}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setMasterSearch(val);
+
+                                                    if (!val) {
+                                                        setFilteredMasterTables(null);
+                                                        setMasterSuggestions([]);
+                                                        setExpandedTables({});
+                                                        return;
+                                                    }
+
+                                                    const filtered = database?.tables?.filter(table =>
+                                                    table.tableName.toLowerCase().includes(val.toLowerCase())
+                                                    ) || [];
+                                                    setMasterSuggestions(filtered);
+                                                }}
+                                                className="table-search-master"
+                                                />
+                                            </div>
+
+                                            {masterSuggestions.length > 0 && masterSearch && (
+                                                <div className="suggestion-list">
+                                                {masterSuggestions.map((table, index) => (
+                                                    <div
+                                                    key={index}
+                                                    className="suggestion-item"
+                                                    onClick={() => {
+                                                        setMasterSearch(table.tableName);
+                                                        setMasterSuggestions([]);
+                                                        setFilteredMasterTables([table]);
+
+                                                        setExpandedTables(prev => ({
+                                                        ...prev,
+                                                        [table.tableName]: true
+                                                        }));
+
+                                                        const el = document.getElementById(`table-${table.tableName}`);
+                                                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                    }}
+                                                    >
+                                                    {table.tableName}
+                                                    </div>
+                                                ))}
+                                                </div>
+                                            )}
+                                        </div>
 
                                         <div className='table-header-group'>
                                             <p className='db-label'>Tables</p>
                                             <p className='db-label'>Conflicts</p>
                                         </div>
 
-                                        <CollapsibleTable database={database} conflictMap={conflictMap} expandedTables={expandedTables} toggleTable={toggleTable} />
+                                        <CollapsibleTable database={database} conflictMap={conflictMap} expandedTables={expandedTables} toggleTable={toggleTable} filteredTables={filteredMasterTables} />
                                         <div className='master-button-group'>
                                             <button
-                                                className='select-btn' disabled={!selectedMasterConfig} onClick={ ()=> openDatabaseSelect("Select Master Database", setDbA, fetchDatabase, "master")}>Reselect
+                                                className='select-btn' disabled={!selectedMasterConfig} onClick={ ()=> openDatabaseSelect("Select Master Database", setDbA, fetchDatabase, "master")}><SyncAltSharpIcon className='btn-icon'/>{" "}Reselect
                                             </button>
 
                                             <button className='export-btn' 
-                                                style={{ backgroundColor: hasScanned ? '#FACC1566' : '#ccc', color: '#000000'}}
+                                                style={{ backgroundColor: hasScanned ? '#D4EBFF' : '#ccc', color: '#000000'}}
                                                 disabled={!hasScanned}
-                                                onClick={() => handleExport(results?.conflictsArray)}>Export Results
+                                                onClick={() => handleExport(results?.conflictsArray)}><FileDownloadSharpIcon className='btn-icon'/>Export Results
                                             </button>
                                         </div>
                                     </>
@@ -565,7 +616,7 @@ const MainPageDCI = () => {
                                 <option value="">Select Configuration</option>
                                 {clientConfigs.map((conf) => (
                                     <option key={conf.id} value={conf.id}>
-                                        {conf.config_name} ({conf.host})
+                                        {conf.config_name}
                                     </option>
                                 ))}
                             </select>
@@ -577,17 +628,63 @@ const MainPageDCI = () => {
                             {show2 ? (
                                 <>
                                     <div className='table-label-group'>
-                                        <p className='db-label'>Database: {dbA}</p>
+                                        <p className='db-label'>Database: {dbB}</p>
                                         <p className='db-table-count'>{Array.isArray(database2?.tables2) ? database2.tables2.length : 0} tables</p>
                                     </div>
 
-                                    <input
-                                        type="text"
-                                        placeholder="Search tables..."
-                                        value={searchText}
-                                        onChange={(e) => setSearchText(e.target.value)}
-                                        className="table-search-master"
-                                    />
+                                    <div className="search-container">
+                                        <div className='input-wrapper'>
+                                            <FontAwesomeIcon icon={faMagnifyingGlass} className="search-icon" />
+                                            <input
+                                                type="text"
+                                                placeholder="Search tables..."
+                                                value={clientSearch}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setClientSearch(val);
+
+                                                    if (!val) {
+                                                        setFilteredClientTables(null);
+                                                        setClientSuggestions([]);
+                                                        setExpandedTables({});
+                                                        return;
+                                                    }
+
+                                                    const filtered = database2?.tables2?.filter(table2 =>
+                                                    table2.tableName.toLowerCase().includes(val.toLowerCase())
+                                                    ) || [];
+                                                    setClientSuggestions(filtered);
+                                                }}
+                                                className="table-search-client"
+                                                />
+                                            </div>
+
+                                            {clientSuggestions.length > 0 && clientSearch && (
+                                                <div className="suggestion-list">
+                                                {clientSuggestions.map((table, index) => (
+                                                    <div
+                                                    key={index}
+                                                    className="suggestion-item"
+                                                    onClick={() => {
+                                                        setClientSearch(table.tableName);
+                                                        setClientSuggestions([]);
+                                                        setFilteredClientTables([table]);
+
+                                                        setExpandedTables(prev => ({
+                                                        ...prev,
+                                                        [table.tableName]: true
+                                                        }));
+
+                                                        const el = document.getElementById(`table-${table.tableName}`);
+                                                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                    }}
+                                                    >
+                                                    {table.tableName}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
 
                                     <div className='table-header-group'>
                                         <p className='db-label'>Tables</p>
@@ -601,15 +698,15 @@ const MainPageDCI = () => {
                                         </select>
                                     </div>
 
-                                    <CollapsibleTable2 database2={database2} conflictMap={conflictMap} expandedTables={expandedTables} toggleTable={toggleTable} />
+                                    <CollapsibleTable2 database2={database2} conflictMap={conflictMap} expandedTables={expandedTables} toggleTable={toggleTable} filteredTables={filteredClientTables} />
                                     <div className='client-button-group'>
                               
                                         <button
-                                            className='client-btn-select' disabled={!selectedClientConfig} onClick={ ()=> openDatabaseSelect("Select Client Database", setDbB, fetchDatabase2, "client")}> Reselect
+                                            className='client-btn-select' disabled={!selectedClientConfig} onClick={ ()=> openDatabaseSelect("Select Client Database", setDbB, fetchDatabase2, "client")}><SyncAltSharpIcon className='btn-icon'/>{" "}Reselect
                                         </button>
 
                                         <button
-                                            className='select-btn'
+                                            className='scan-btn'
                                             disabled={!dbA || !dbB} 
                                             onClick={async() => {
                                                 const result = await fetchConflicts(dbA, dbB);
@@ -621,11 +718,12 @@ const MainPageDCI = () => {
                                                 }
                                             }}
                                         >
+                                            <DocumentScannerSharpIcon className='btn-icon'/>
                                             {hasScanned ? "Rescan" : "Scan"}
                                         </button>
 
-                                        <button className='fix-btn' style={{ backgroundColor: (fixConflicts && hasScanned) ? '#FACC1566' : '#ccc', 
-                                            color: (fixConflicts && hasScanned) ? '#000000' : '#888888',
+                                        <button className='fix-btn' style={{ backgroundColor: (fixConflicts && hasScanned) ? '#FBD6D6' : '#ccc', 
+                                            color: (fixConflicts && hasScanned) ? '#8B1A10' : '#888888',
                                             cursor: (fixConflicts && hasScanned) ? 'pointer' : 'not-allowed' }}
                                             
                                             disabled={!(fixConflicts && hasScanned)}
@@ -634,7 +732,7 @@ const MainPageDCI = () => {
                                                 setFixMode('all');
                                                 setFixTable(null);
                                                 setFixColumn(null);
-                                                }}>Fix All Conflicts
+                                                }}><ConstructionSharpIcon className='btn-icon'/>Fix All Conflicts
                                         </button>
                                     </div>
                                 </>

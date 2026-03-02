@@ -1,8 +1,8 @@
 .scanner-select {
+    display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    align-items: center;
-    display: flex;
+    align-items: stretch; 
 }
 
 .scanner2-grid-container {
@@ -173,7 +173,7 @@
 }
 
 .driver-label-group .driver-label:last-child {
-    margin-left: 20px; /* or whatever spacing you want */
+    margin-left: 20px; 
 }
 
 .db-label {
@@ -217,19 +217,6 @@
     display: flex;
 }
 
-.table-search-master {
-    font-size: 15px;
-    width: 100%;
-    padding: 6px 10px;
-    height: 45px;
-    border: 1px solid rgba(130, 130, 130, 0.25);
-    border-radius: 15px;    
-    background-color: white;
-    color: black;
-    font-family: Poppins;
-    margin-bottom: 5px;
-}
-
 .scanner2-line {
     height: 2px;
     width: 70%;
@@ -269,21 +256,21 @@
     font-family: 'Poppins', sans-serif !important;
 }
 
-.MuiTableCell-head { /* Header */
+.MuiTableCell-head { 
     background-color: rgb(250, 204, 21, 0.4);
     padding: 25px;
 }
 
-.table-row:hover { /* Row Hover Effect */
+.table-row:hover { 
     transition: background-color 0.3s;
     background-color: #e1e1e1;
 }
 
-.table-row { /* Table Row Styling */
+.table-row { 
     background-color: #ffffff;
 }
 
-.table-row td { /* Table Cell Styling */
+.table-row td { 
     border-bottom: 1px solid #e0e0e0; 
 }
 
@@ -300,7 +287,7 @@ button:focus {
     font-size: 13px !important;
 }
 
-.expanded-row td { /* Expanded Row Styling */
+.expanded-row td { 
     padding: 0;
     border-bottom: 1px solid #ffffff; 
     font-size: 13px;
@@ -316,8 +303,8 @@ button:focus {
     border-collapse: collapse;
 }
 
-.inner-table th, /* Inner Table Header */
-.inner-table td { /* Inner Table Cell */
+.inner-table th, 
+.inner-table td { 
     border: 1px solid rgba(40, 100, 159, 0.116);
     padding: 10px;
     font-family: 'Poppins', sans-serif;
@@ -419,6 +406,7 @@ button:focus {
     color:black;
     font-weight: 600;
     margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .select-input {
@@ -467,4 +455,122 @@ button:focus {
     align-items: center;
     gap: 8px;
     padding: 0 20px;
+}
+
+.input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.search-container {      
+    margin-top: 5px;
+}
+
+.table-search-master,
+.table-search-client {
+    font-size: 15px;
+    width: 100%;
+    height: 45px;
+    padding: 0 12px 0 45px;
+    box-sizing: border-box;
+    border: 1px solid rgba(130, 130, 130, 0.25);
+    border-radius: 15px;
+    background-color: white;
+    font-family: Poppins, sans-serif;
+    color: black;
+}
+
+.table-search-master:focus,
+.table-search-client:focus {
+    outline: none;
+}
+
+.search-icon {
+    position: absolute;
+    left: 15px; 
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none; 
+    font-size: 16px; 
+    color: #003566;
+}
+
+.search-icon-client {
+    position: absolute;
+    top: 25%;
+    right: 36px;     
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.suggestion-list {
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    background-color: white; 
+    border: 1px solid rgba(130, 130, 130, 0.25);
+    border-radius: 15px;
+    max-height: 200px;
+    overflow-y: auto;
+    box-sizing: border-box;
+    font-family: Poppins, sans-serif;
+    font-size: 15px;
+    color: black;
+    margin-top: 4px; 
+}
+
+.suggestion-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 10px;
+}
+
+.suggestion-item:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.select-btn svg, .client-btn-select svg {
+    margin-right: 10px;
+    color: white;
+}
+
+.btn-icon {
+    margin-right: 10px;
+    color: #003566;
+}
+
+.fix-btn svg {
+    color: #8B1A10;
+}
+
+.scan-btn {
+    background-color: #D4EBFF;
+    color: black;   
+    border: none;
+    padding: 10px 40px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bolder;
+    margin: 25px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 3px -1px;
+}
+
+.client-btn-group {
+    font-size: 12px;
+}
+
+.client-btn-select,
+.select-btn,
+.scan-btn,
+.fix-btn,
+.export-btn {
+    display: inline-flex;
+    align-items: center;   
+
+    white-space: nowrap;          
 }

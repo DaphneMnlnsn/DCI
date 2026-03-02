@@ -74,63 +74,66 @@ const renderDetails = (conflictType, row) => {
     }
 };
     
-export function CollapsibleTable({ database, conflictMap = {}, expandedTables={}, toggleTable }) {
+export function CollapsibleTable({ database, conflictMap = {}, expandedTables={}, toggleTable, filteredTables = null }) {
     if (!database) return <div>No data</div>;
-    const tables = Array.isArray(database.tables) ? database.tables : [];
-    const tableConflictMap = conflictMap;
+
+    const tables = filteredTables || (Array.isArray(database.tables) ? database.tables : []);
 
     return (
         <TableContainer component={Paper} elevation={0}>
-        <Table aria-label="collapsible table">
-            <TableHead>
-            <TableRow>
-                <TableCell colSpan={4} style={{ fontWeight: 'bold' }}>Table Names ({tables.length}) - {database.database}</TableCell>
-            </TableRow>
-            </TableHead>
-            <TableBody>
-            {tables.map((table) => (
-                <Row
-                    key={table.tableName}
-                    row={table}
-                    tableConflictMap={conflictMap} 
-                    columnConflictMap={conflictMap[table.tableName] || {}} 
-                    expandedTables={expandedTables} 
-                    toggleTable={toggleTable} 
-                />
-            ))}
-            </TableBody>
-        </Table>
+            <Table aria-label="collapsible table">
+                <TableHead>
+                    <TableRow>
+                        <TableCell colSpan={4} style={{ fontWeight: 'bold' }}>
+                            Table Names ({tables.length}) - {database.database}
+                        </TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {tables.map((table) => (
+                        <Row
+                            key={table.tableName}
+                            row={table}
+                            tableConflictMap={conflictMap} 
+                            columnConflictMap={conflictMap[table.tableName] || {}} 
+                            expandedTables={expandedTables} 
+                            toggleTable={toggleTable} 
+                        />
+                    ))}
+                </TableBody>
+            </Table>
         </TableContainer>
     );
 }
 
-export function CollapsibleTable2({ database2, conflictMap = {}, expandedTables={}, toggleTable }) {
+export function CollapsibleTable2({ database2, conflictMap = {}, expandedTables={}, toggleTable, filteredTables = null }) {
     if (!database2) return <div>No data</div>;
-    const tables2 = Array.isArray(database2.tables2) ? database2.tables2 : [];
-    const tableConflictMap = conflictMap;
+
+    const tables = filteredTables || (Array.isArray(database2.tables2) ? database2.tables2 : []);
 
     return (
         <TableContainer component={Paper} elevation={0}>
-        <Table aria-label="collapsible table">
-            <TableHead>
-            <TableRow>
-                <TableCell colSpan={4} style={{ fontWeight: 'bold' }}>Table Names ({tables2.length}) - {database2.database2}</TableCell>
-            </TableRow>
-            </TableHead>
-            <TableBody>
-            {tables2.map((table) => (
-                <Row
-                    key={table.tableName}
-                    row={table}
-                    tableConflictMap={conflictMap} 
-                    columnConflictMap={conflictMap[table.tableName] || {}} 
-                    expandedTables={expandedTables} 
-                    toggleTable={toggleTable} 
-                />
-            ))}
-            </TableBody>
-        </Table>
-        
+            <Table aria-label="collapsible table">
+                <TableHead>
+                    <TableRow>
+                        <TableCell colSpan={4} style={{ fontWeight: 'bold' }}>
+                            Table Names ({tables.length}) - {database2.database2}
+                        </TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {tables.map((table) => (
+                        <Row
+                            key={table.tableName}
+                            row={table}
+                            tableConflictMap={conflictMap} 
+                            columnConflictMap={conflictMap[table.tableName] || {}} 
+                            expandedTables={expandedTables} 
+                            toggleTable={toggleTable} 
+                        />
+                    ))}
+                </TableBody>
+            </Table>
         </TableContainer>
     );
 }
