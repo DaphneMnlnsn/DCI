@@ -370,8 +370,9 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
                             
                             {tableHasMissingColumn && (
                                 <>
+                                {!isIgnored ? (
                                 <Tooltip 
-                                    title="Ignore all table conflicts" 
+                                    title="Ignore table" 
                                     arrow placement="top"
                                     slotProps={{
                                         tooltip: {
@@ -392,6 +393,30 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
                                     }}>
                                     <FontAwesomeIcon icon={faCircleMinus} className='btn-icon-table'  onClick={() => handleIgnoreTable(tableName)}/>
                                 </Tooltip>
+                                ) : (
+                                <Tooltip 
+                                title="Unignore table" 
+                                arrow placement="top"
+                                slotProps={{
+                                    tooltip: {
+                                        sx: {
+                                            bgcolor: "#e36666",
+                                            fontSize: 12,
+                                            fontWeight: 500,
+                                            fontFamily: "Poppins",
+                                            borderRadius: 3,
+                                            paddingRight: 2,
+                                            paddingLeft: 2,
+                                            boxShadow: 3
+                                        },
+                                    },
+                                    arrow: {
+                                        sx: { color: "#e36666" },
+                                    },
+                                }}>
+                                <FontAwesomeIcon icon={faUndo} className='btn-icon-table'  onClick={() => handleUnignoreTable(tableName)}/>
+                                </Tooltip>
+                                )}
                                 <Tooltip
                                     title="Fix table"
                                     arrow placement="top"
