@@ -84,12 +84,12 @@ const MainPageDCI = () => {
 
             if (configs.master) {
                 setMasterDbDriver(configs.master.config_driver);
-                await fetchMasterConfigs(configs.master.config_driver, parseInt(configs.master.id, 10));
+                setSelectedMasterConfig(parseInt(configs.master.id, 10));
             }
 
             if (configs.client) {
                 setClientDbDriver(configs.client.config_driver);
-                await fetchClientConfigs(configs.client.config_driver, parseInt(configs.client.id, 10));
+                setSelectedClientConfig(parseInt(configs.client.id, 10));
             }
         };
 
@@ -97,24 +97,15 @@ const MainPageDCI = () => {
     }, []);
 
     useEffect(() => {
-        if (!masterDbDriver) {
-            setMasterConfigs([]);
-            setSelectedMasterConfig("");
-            return;
-        }
+        if (!masterDbDriver) return;
 
-        fetchMasterConfigs(masterDbDriver);
-        
+        fetchMasterConfigs(masterDbDriver, selectedMasterConfig);
     }, [masterDbDriver]);
 
     useEffect(() => {
-        if (!clientDbDriver) {
-            setClientConfigs([]);
-            setSelectedClientConfig("");
-            return;
-        }
+        if (!clientDbDriver) return;
 
-        fetchClientConfigs(clientDbDriver);
+        fetchClientConfigs(clientDbDriver, selectedClientConfig);
         
     }, [clientDbDriver]);
 
@@ -170,7 +161,6 @@ const MainPageDCI = () => {
         if (!dbDriver) return;
 
         const configs = await fetchConfigs(dbDriver);
-        console.log("Fetched configs:", configs);
 
         const typedConfigs = configs.map(c => ({
         ...c,
@@ -695,8 +685,8 @@ const MainPageDCI = () => {
                                             onChange={(e) => setConflictFilter(e.target.value)}
                                         >
                                             <option value='unignored'>Unignored Conflicts</option>
-                                            <option value='all'>All Conflicts</option>
                                             <option value='ignored'>Ignored Conflicts</option>
+                                            <option value='all'>All Conflicts</option>
                                         </select>
                                     </div>
 

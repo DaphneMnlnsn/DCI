@@ -316,6 +316,7 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
 
                     let conflictCount = 0;
                     const conflictTypesSet = new Set();
+                    const columnConflictTypes = [];
                     row.columns?.forEach((col) => {
                     const colName = col.columnName.trim();
 
@@ -335,7 +336,25 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
                         conflictCount += 1;
                         conflictTypesSet.add("Length mismatch");
                     }
+                    const isMissingClientColumn = !!columnConflictMap?.missing_client_column?.[colName];
+                    const isExtraClientColumn = !!columnConflictMap?.extra_client_column?.[colName];
+                    const isTypeMismatch = !!columnConflictMap?.type_mismatch?.[colName];
+                    const isLengthMismatch = !!columnConflictMap?.length_mismatch?.[colName];
+
+                    if (isMissingClientColumn) columnConflictTypes.push('missing_client_column');
+                    if (isExtraClientColumn) columnConflictTypes.push('extra_client_column');
+                    if (isTypeMismatch) columnConflictTypes.push('type_mismatch');
+                    if (isLengthMismatch) columnConflictTypes.push('length_mismatch');
                     });
+                    
+                    const isIgnored =
+                    columnConflictTypes.length > 0 &&
+                    columnConflictTypes.every(type =>
+                        results?.raw?.ignored?.some(c =>
+                            c.table_name === tableName &&
+                            c.conflict_type === type
+                        )
+                    );
 
                     if (conflictCount > 0) {
                     return (
@@ -372,7 +391,7 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
                                 <>
                                 {!isIgnored ? (
                                 <Tooltip 
-                                    title="Ignore table" 
+                                    title="Ignore all conflicts in this table" 
                                     arrow placement="top"
                                     slotProps={{
                                         tooltip: {
@@ -395,7 +414,7 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
                                 </Tooltip>
                                 ) : (
                                 <Tooltip 
-                                title="Unignore table" 
+                                title="Unignore all conflicts in this table" 
                                 arrow placement="top"
                                 slotProps={{
                                     tooltip: {
@@ -418,7 +437,7 @@ export default function Row({ row, tableConflictMap = {}, columnConflictMap = {}
                                 </Tooltip>
                                 )}
                                 <Tooltip
-                                    title="Fix table"
+                                    title="Fix all conflicts in this table"
                                     arrow placement="top"
                                     slotProps={{
                                         tooltip: {
