@@ -35,8 +35,8 @@ html, body, #root {
 }
 
 .header-left .logo-img {
-  height: 40px;
-  width: 70px;
+  height: 35px;
+  width: 60px;
   cursor: pointer;
 }
 
@@ -45,7 +45,11 @@ html, body, #root {
   font-weight: bold;
   color: #003566;
   margin-right: auto;
-  margin-left: 70px;
+  margin-left: 50px;
+}
+
+.header-title-left h1{
+  font-size: 20px;
 }
 
 .header-right {
@@ -55,14 +59,14 @@ html, body, #root {
 
 .header-icon {
   color: #003566;
-  font-size: 26px;
+  font-size: 24px;
   margin: 8px;
   cursor: pointer;
 } 
 
 .logout-icon {
   color: #9e3b3b;
-  font-size: 26px;
+  font-size: 24px;
   margin: 8px;
   cursor: pointer;
 }
@@ -89,7 +93,7 @@ html, body, #root {
 }
 
 .settings-icon {
-    font-size: 26px;
+    font-size: 24px;
     width: 22px;
     height: 22px;
     margin-right: 5px;
@@ -133,7 +137,7 @@ html, body, #root {
     padding: 7px 45px;
     border-radius: 12px;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bolder;
     box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 3px -1px;
     margin-top: 5%;

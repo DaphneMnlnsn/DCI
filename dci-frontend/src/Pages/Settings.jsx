@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import './Settings.css';
 import axios from 'axios';
 import swal from 'sweetalert2';
-import Header from '../assets/header.jsx';
+import HeaderDCI from '../assets/headerDCI.jsx';
 import { Eye, EyeOff, Plus, Trash, Pencil } from "lucide-react";
 
 const SettingsPage = () => {
@@ -308,7 +308,7 @@ const SettingsPage = () => {
 
     return (
     <div className='settings-root'>
-        <Header/> 
+        <HeaderDCI/> 
         <div className="settings-container">
              
             <div className='settings-left'>

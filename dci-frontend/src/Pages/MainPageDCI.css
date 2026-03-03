@@ -10,7 +10,7 @@
     grid-template-columns: 1fr 1fr;
     height: 100%;
     margin: 20px;
-    gap: 30px;
+    gap: 20px;
 }
 
 .scanner2-container {
@@ -28,7 +28,7 @@
     padding: 10px 40px;
     border-radius: 12px;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 15px;
     font-weight: bolder;
     margin: 25px;
     display: inline-flex;
@@ -48,7 +48,7 @@
     padding: 10px 40px;
     border-radius: 12px;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 15px;
     font-weight: bolder;
     margin: 25px;
     box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 3px -1px;
@@ -63,7 +63,7 @@
     padding: 10px 40px;
     border-radius: 12px;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 15px;
     font-weight: bolder;
     margin: 25px;
     box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 3px -1px;
@@ -82,7 +82,7 @@
     padding: 10px 40px;
     border-radius: 12px;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 15px;
     font-weight: bolder;
     margin: 0;
     display: inline;
@@ -132,7 +132,7 @@
     width: 100%;
     padding-bottom: 10px;
     position: relative;
-    font-size: 20px;
+    font-size: 17px;
 
     display: flex;
     align-items: center;
@@ -154,7 +154,7 @@
 
 .db-icon {
     margin-right: 10px;
-    font-size: 27px;
+    font-size: 25px;
     color: #003566;
 }
 
@@ -322,12 +322,12 @@ button:focus {
 .conflict-count{
     color: #e63946; 
     font-weight: 600;
-    font-size: 18px;
+    font-size: 17px;
     
 }
 
 .swal-big {
-    font-size: 16px;      
+    font-size: 15px;      
     border-radius: 12px;   
 }
 
@@ -353,7 +353,7 @@ button:focus {
   margin-top: 40px;
   text-align: center;
   font-weight: 500;
-  font-size: 16px;
+  font-size: 15px;
   color: #6c757d;
 }
 .btn-group {
@@ -375,7 +375,7 @@ button:focus {
     border-radius: 10px;
     border: 1px solid #dcdcdc;
     font-family: 'Poppins';
-    font-size: 15px;
+    font-size: 13px;
     background-color: #ffffff;
     transition: all 0.2s ease;
     width: 50%;
@@ -444,7 +444,7 @@ button:focus {
     padding: 10px 40px;
     border-radius: 12px;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 15px;
     font-weight: bolder;
     margin: 0;
     box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 3px -1px;
@@ -468,7 +468,7 @@ button:focus {
 
 .table-search-master,
 .table-search-client {
-    font-size: 15px;
+    font-size: 14px;
     width: 100%;
     height: 45px;
     padding: 0 12px 0 45px;
@@ -515,7 +515,7 @@ button:focus {
     overflow-y: auto;
     box-sizing: border-box;
     font-family: Poppins, sans-serif;
-    font-size: 15px;
+    font-size: 14px;
     color: black;
     margin-top: 4px; 
 }
@@ -551,7 +551,7 @@ button:focus {
     padding: 10px 40px;
     border-radius: 12px;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 15px;
     font-weight: bolder;
     margin: 25px;
     display: inline-flex;

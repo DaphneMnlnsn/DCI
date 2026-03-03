@@ -58,19 +58,20 @@ const LoginPage = () => {
 
     return (
         <div className='login-root'> 
-            <div className='login-left'>
-                <div className='logo'>
-                    <img className='login-logo' src='IDA-RTL-Logo.png'></img>
+            <div className='login-left'>  
+                <img className='login-logo' src='IDA-RTL-Logo.png'></img>
+                
+                <div className='login-left-content'>
+                    <h1 className='app-name'>DCI</h1>
+                    <h2 className='app-subname'>Database Conflict Identifier</h2>
                 </div>
-                <h1 className='app-name'>DCI</h1>
-                <h2 className='app-subname'>Database Conflict Identifier</h2>
             </div>
 
             <div className='login-right'>
                 <div className='login-form-container'>
                     <h2 className='title'>Welcome Back!</h2>
                     <p className='subtitle'>Please login to your account to continue.</p> 
-                    <div className='line'></div>
+                    <div className='login-line'></div>
 
                     <form className='login-form' onSubmit={handleLogin}>
                         <div className='input-label'>Username</div>
