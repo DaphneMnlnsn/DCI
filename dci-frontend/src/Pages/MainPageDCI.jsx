@@ -314,7 +314,7 @@ const MainPageDCI = () => {
                 const selectedDb = document.getElementById("swal-select").value;
 
                 if (!selectedDb) {
-                    swal.showValidationMessage("Please select a database");
+                    Swal.showValidationMessage("Please select a database");
                     return false;
                 }
 
@@ -326,6 +326,20 @@ const MainPageDCI = () => {
         });
 
         if (result.isConfirmed) {
+            const newDb = result.value.database;
+
+            const otherDb = role === "master" ? dbB : dbA;
+
+            if (newDb === otherDb && selectedMasterConfig == selectedClientConfig) {
+                Swal.fire({
+                    title: "Invalid Selection",
+                    text: "Please select two different databases",
+                    icon: "warning",
+                    confirmButtonColor: "#003566"
+                });
+                return;
+            }
+
             setDb(result.value.database);
             fetchFn(result.value.database);
             setScanConflictFirst(true);
@@ -607,7 +621,7 @@ const MainPageDCI = () => {
                                 <option value="">Select Configuration</option>
                                 {clientConfigs.map((conf) => (
                                     <option key={conf.id} value={conf.id}>
-                                        {conf.config_name}
+                                        {conf.config_name} ({conf.host})
                                     </option>
                                 ))}
                             </select>

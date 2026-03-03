@@ -181,16 +181,6 @@ export const fetchConflicts = async (dbA, dbB, filter) => {
         return;
     }
 
-    if (dbA === dbB) {
-        swal.fire({
-            title: "Invalid Selection",
-            text: "Please select two different databases",
-            icon: "warning",
-            confirmButtonColor: "#003566"
-        });
-        return;
-    }
-
     try {
         const response = await axios.get(`${import.meta.env.VITE_APP_BASE_URL}/api/scan`, {
                 params: {
