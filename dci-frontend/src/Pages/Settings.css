@@ -162,6 +162,7 @@
     padding: 15px;
     border-radius: 15px;
     width: 95%;
+    outline: none;
     margin-bottom: 10px;
     border: #003566cc solid 1px;
     box-shadow: rgba(0, 0, 0, 0.484) 0px 2px 4px -1px;
@@ -178,7 +179,7 @@
 .settings-toggle-password{
     position: absolute;
     right: 20px;
-    top: 50%;
+    top: 55%;
     transform: translateY(-50%);
     background: none;
     border: none;
