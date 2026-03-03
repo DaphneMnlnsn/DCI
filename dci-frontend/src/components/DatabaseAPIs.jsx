@@ -174,7 +174,8 @@ export const fetchSchema = async (dbName, role) => {
     }
 }
 
-export const fetchConflicts = async (dbA, dbB, filter) => {
+export const fetchConflicts = async (dbA, dbB, filter, options = {}) => {
+    const { silent = false } = options;
 
     if (!dbA || !dbB) {
         swal.fire("Select two databases first", "", "warning");
@@ -228,15 +229,16 @@ export const fetchConflicts = async (dbA, dbB, filter) => {
                 }
             });
 
-            swal.fire({
-                title: "Scan Complete",
-                html: `<span class="conflict-count">${totalCount} conflicts found</span>`,
-                icon: "info",
-                iconColor: '#FF0000',
-                confirmButtonText: "OK",
-                confirmButtonColor: '#003566'
-            });
-
+            if(!silent){
+                swal.fire({
+                    title: "Scan Complete",
+                    html: `<span class="conflict-count">${totalCount} conflicts found</span>`,
+                    icon: "info",
+                    iconColor: '#FF0000',
+                    confirmButtonText: "OK",
+                    confirmButtonColor: '#003566'
+                });
+            }
             return {raw, conflictsArray, conflictMap};
         }
 
@@ -314,6 +316,7 @@ export const fixAllConflicts = async (dbA, dbB, navigate, results, mode, table, 
                                 client: dbB
                             }
                         });*/
+                        const results = await fetchConflicts(dbA, dbB, 'unignored', { silent: true });
                         await ignoreMultiple(results, dbA, dbB, null, null)
                     }
 
@@ -340,5 +343,5 @@ export const fixAllConflicts = async (dbA, dbB, navigate, results, mode, table, 
             });
             return null;
         }
-    }         
+    }
 }

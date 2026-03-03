@@ -349,7 +349,7 @@ const MainPageDCI = () => {
     const handleConflicts = async () => {
         setWarnings(await fixAllConflicts(dbA, dbB, navigate, results, fixMode, fixTable, fixColumn));
         setConflictFilter('unignored')
-        const result = await fetchConflicts(dbA, dbB, conflictFilter);
+        const result = await fetchConflicts(dbA, dbB, conflictFilter, { silent: true });
         if (result) {
             setConflictMap(result.conflictMap);
             setResults(result);
